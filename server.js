@@ -21,7 +21,15 @@ const CHUNK_ABOVE = Number(process.env.CHUNK_ABOVE_SECONDS) || 420;             
 const WATCH_BASE = (process.env.YT_WATCH_BASE || 'https://www.youtube.com').replace(/\/+$/, '');
 let goodModel = null;
 /* Requests per visitor per hour when the shared key is used. 0 turns the limit off. */
-const PER_HOUR = process.env.RATE_LIMIT_PER_HOUR === undefined ? 10 : Number(process.env.RATE_LIMIT_PER_HOUR);
+/* Free transcripts per visitor on the shared key: LIMIT per WINDOW_H hours (default 2 every 2 hours). 0 turns the limit off. */
+const LIMIT = process.env.RATE_LIMIT_COUNT === undefined ? 2 : Number(process.env.RATE_LIMIT_COUNT);
+const WINDOW_H = Number(process.env.RATE_LIMIT_HOURS) || 2;
+const WINDOW_MS = WINDOW_H * 3600e3;
+/* Safety net: most transcripts one network address can make per window, across all phones on it. 0 = off. */
+const IP_LIMIT = process.env.RATE_LIMIT_PER_IP === undefined ? 12 : Number(process.env.RATE_LIMIT_PER_IP);
+/* Extra transcripts earned by watching one rewarded video (confirmed by Google AdMob server-side verification). */
+const REWARD_CREDITS = Number(process.env.REWARD_CREDITS) || 1;
+const SSV_KEYS_URL = process.env.SSV_KEYS_URL || 'https://www.gstatic.com/admob/reward/verifier-keys.json';
 const MAX_ACTIVE = Number(process.env.MAX_CONCURRENT) || 4;
 /* Optional. When set, visitors must type this code to use the shared key. */
 const ACCESS_CODE = (process.env.ACCESS_CODE || '').trim();
@@ -550,22 +558,78 @@ function clientIp(req) {
   const xff = String(req.headers['x-forwarded-for'] || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
   return xff.length ? xff[xff.length - 1] : (req.socket.remoteAddress || 'unknown');
 }
-function allow(ip) {
-  if (!PER_HOUR) return { ok: true };
-  const now = Date.now();
-  const list = (hits.get(ip) || []).filter(function (t) { return t > now - 3600e3; });
-  if (list.length >= PER_HOUR) {
-    hits.set(ip, list);
-    return { ok: false, minutes: Math.max(1, Math.ceil((list[0] + 3600e3 - now) / 60e3)) };
+const bonus = new Map();   /* visitor id -> extra transcripts earned by watching videos */
+const seenTx = new Map();  /* AdMob transaction ids already credited (stops replays) */
+function visitorId(req) {
+  const d = String(req.headers['x-device-id'] || '').trim();
+  return /^[A-Za-z0-9-]{16,64}$/.test(d) ? 'd:' + d : null;
+}
+function recent(key, now) {
+  const list = (hits.get(key) || []).filter(function (t) { return t > now - WINDOW_MS; });
+  hits.set(key, list);
+  return list;
+}
+function minsLeft(t, now) { return Math.max(1, Math.ceil((t + WINDOW_MS - now) / 60e3)); }
+function look(req) {
+  const now = Date.now(), ip = clientIp(req), id = visitorId(req) || ('ip:' + ip);
+  return { now: now, id: id, mine: recent(id, now), ipList: recent('ipall:' + ip, now) };
+}
+function allow(req) {
+  if (!LIMIT) return { ok: true };
+  const q = look(req);
+  if (IP_LIMIT && q.ipList.length >= IP_LIMIT) return { ok: false, minutes: minsLeft(q.ipList[0], q.now) };
+  if (q.mine.length >= LIMIT) {
+    const b = bonus.get(q.id) || 0;
+    if (b > 0) { bonus.set(q.id, b - 1); q.ipList.push(q.now); return { ok: true }; }
+    return { ok: false, minutes: minsLeft(q.mine[0], q.now) };
   }
-  list.push(now);
-  hits.set(ip, list);
+  q.mine.push(q.now); q.ipList.push(q.now);
   return { ok: true };
 }
+function quotaInfo(req) {
+  const q = look(req), b = bonus.get(q.id) || 0;
+  const free = Math.max(0, LIMIT - q.mine.length);
+  return { limit: LIMIT, windowHours: WINDOW_H, left: LIMIT ? free + b : 999, bonus: b, rewardCredits: REWARD_CREDITS,
+           resetMinutes: (LIMIT && q.mine.length) ? minsLeft(q.mine[0], q.now) : 0 };
+}
 setInterval(function () {
-  const cutoff = Date.now() - 3600e3;
-  hits.forEach(function (list, ip) { if (!list.some(function (t) { return t > cutoff; })) hits.delete(ip); });
+  const cutoff = Date.now() - WINDOW_MS;
+  hits.forEach(function (list, k) { if (!list.some(function (t) { return t > cutoff; })) hits.delete(k); });
+  seenTx.forEach(function (t, k) { if (t < Date.now() - 864e5) seenTx.delete(k); });
 }, 600e3).unref();
+
+/* ---------- AdMob rewarded-video confirmation (server-side verification) ---------- */
+let ssvKeys = null, ssvAt = 0;
+async function ssvPem(keyId, force) {
+  if (force || !ssvKeys || Date.now() - ssvAt > 864e5) {
+    const r = await fetch(SSV_KEYS_URL);
+    const j = await r.json();
+    ssvKeys = j.keys || []; ssvAt = Date.now();
+  }
+  const k = ssvKeys.find(function (x) { return String(x.keyId) === String(keyId); });
+  return k ? k.pem : null;
+}
+async function handleSsv(req, res, url) {
+  const raw = (req.url.split('?')[1] || '');
+  const i = raw.indexOf('&signature=');
+  if (i < 0) return sendJson(res, 200, { ok: true }); /* AdMob's "test URL" button sends no signature: just say hello */
+  const msg = raw.slice(0, i), rest = new URLSearchParams(raw.slice(i + 1));
+  const sig = rest.get('signature'), keyId = rest.get('key_id');
+  let good = false;
+  try {
+    let pem = await ssvPem(keyId, false);
+    if (!pem) pem = await ssvPem(keyId, true);
+    if (pem && sig) good = crypto.createVerify('SHA256').update(msg).verify(pem, Buffer.from(sig, 'base64url'));
+  } catch (e) { good = false; }
+  if (!good) return sendJson(res, 403, { ok: false });
+  const tx = url.searchParams.get('transaction_id') || '', uid = url.searchParams.get('user_id') || '';
+  if (!tx || !/^[A-Za-z0-9-]{16,64}$/.test(uid)) return sendJson(res, 400, { ok: false });
+  if (seenTx.has(tx)) return sendJson(res, 200, { ok: true, duplicate: true });
+  seenTx.set(tx, Date.now());
+  const id = 'd:' + uid;
+  bonus.set(id, Math.min(10, (bonus.get(id) || 0) + REWARD_CREDITS));
+  return sendJson(res, 200, { ok: true });
+}
 
 function same(a, b) {
   const x = Buffer.from(String(a)), y = Buffer.from(String(b));
@@ -926,8 +990,8 @@ async function handleTranscribe(req, res) {
     if (ACCESS_CODE && !same(String(req.headers['x-access-code'] || '').trim(), ACCESS_CODE)) {
       return sendJson(res, 401, { error: 'bad_code', message: 'The access code is missing or wrong. Enter it under Options.' });
     }
-    const gate = allow(clientIp(req));
-    if (!gate.ok) return sendJson(res, 429, { error: 'rate', message: 'You have used all your transcripts for this hour. Try again in about ' + gate.minutes + ' minutes, or add your own Gemini key under Options.' });
+    const gate = allow(req);
+    if (!gate.ok) return sendJson(res, 429, { error: 'rate', minutes: gate.minutes, message: 'You have used your free transcripts. You get ' + LIMIT + ' every ' + WINDOW_H + ' hours, so more are free again in about ' + gate.minutes + ' minutes. In the app you can also watch a short video for ' + REWARD_CREDITS + ' more, or add your own Gemini key under Options.' });
   }
   if (active >= MAX_ACTIVE) return sendJson(res, 503, { error: 'busy', message: 'The server is busy with other transcripts. Try again in a minute.' });
 
@@ -969,7 +1033,7 @@ const server = http.createServer(async function (req, res) {
     if (req.method === 'OPTIONS') {
       res.writeHead(204, headers({
         'access-control-allow-methods': 'GET, POST, OPTIONS',
-        'access-control-allow-headers': 'content-type, x-gemini-key, x-access-code',
+        'access-control-allow-headers': 'content-type, x-gemini-key, x-access-code, x-device-id',
         'access-control-max-age': '86400'
       }));
       return res.end();
@@ -988,8 +1052,10 @@ const server = http.createServer(async function (req, res) {
     if (req.method === 'GET' && url.pathname === '/healthz') return sendJson(res, 200, { ok: true });
     if (req.method === 'GET' && url.pathname === '/favicon.ico') { res.writeHead(204); return res.end(); }
     if (req.method === 'GET' && url.pathname === '/api/config') {
-      return sendJson(res, 200, { hasSharedKey: !!SERVER_KEY, needsCode: !!ACCESS_CODE, perHour: PER_HOUR });
+      return sendJson(res, 200, { hasSharedKey: !!SERVER_KEY, needsCode: !!ACCESS_CODE, limit: LIMIT, windowHours: WINDOW_H, rewardCredits: REWARD_CREDITS });
     }
+    if (req.method === 'GET' && url.pathname === '/api/quota') return sendJson(res, 200, quotaInfo(req));
+    if (req.method === 'GET' && url.pathname === '/api/ssv') return await handleSsv(req, res, url);
     if (req.method === 'POST' && url.pathname === '/api/transcribe') return await handleTranscribe(req, res);
     sendJson(res, 404, { error: 'not_found', message: 'Not found.' });
   } catch (e) {
