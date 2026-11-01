@@ -573,6 +573,9 @@ function same(a, b) {
 }
 function headers(extra) {
   return Object.assign({
+    /* lets the Android app (which loads its page from its own private address) talk to this server */
+    'access-control-allow-origin': 'https://appassets.androidplatform.net',
+    'vary': 'Origin',
     'x-content-type-options': 'nosniff',
     'referrer-policy': 'no-referrer',
     'cache-control': 'no-store'
@@ -963,6 +966,14 @@ async function handleTranscribe(req, res) {
 const server = http.createServer(async function (req, res) {
   try {
     const url = new URL(req.url, 'http://localhost');
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, headers({
+        'access-control-allow-methods': 'GET, POST, OPTIONS',
+        'access-control-allow-headers': 'content-type, x-gemini-key, x-access-code',
+        'access-control-max-age': '86400'
+      }));
+      return res.end();
+    }
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
       const html = getPage();
       res.writeHead(200, headers({
