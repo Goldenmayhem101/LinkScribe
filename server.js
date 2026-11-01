@@ -13,12 +13,35 @@ const PORT = Number(process.env.PORT) || 3000;
 const SERVER_KEY = (process.env.GEMINI_API_KEY || '').trim();
 const BASE = (process.env.GEMINI_BASE_URL || 'https://generativelanguage.googleapis.com').replace(/\/+$/, '');
 /* Tried in order. The first one Gemini does not recognise is skipped. Set GEMINI_MODEL to pick your own. */
-const MODELS = [...new Set([process.env.GEMINI_MODEL, 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'].filter(Boolean))];
+/* Fastest models first. If a model is not available to your key, the next one is tried and the working one is remembered. */
+const MODELS = [...new Set([process.env.GEMINI_MODEL, 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-flash'].filter(Boolean))];
+const PARALLEL = Math.max(1, Number(process.env.PARALLEL) || 4);                 /* pieces transcribed at the same time */
+const CHUNK_SEC = Math.max(120, Number(process.env.CHUNK_SECONDS) || 360);        /* target length of each piece */
+const CHUNK_ABOVE = Number(process.env.CHUNK_ABOVE_SECONDS) || 420;               /* only split videos longer than this */
+const WATCH_BASE = (process.env.YT_WATCH_BASE || 'https://www.youtube.com').replace(/\/+$/, '');
+let goodModel = null;
 /* Requests per visitor per hour when the shared key is used. 0 turns the limit off. */
 const PER_HOUR = process.env.RATE_LIMIT_PER_HOUR === undefined ? 10 : Number(process.env.RATE_LIMIT_PER_HOUR);
 const MAX_ACTIVE = Number(process.env.MAX_CONCURRENT) || 4;
 /* Optional. When set, visitors must type this code to use the shared key. */
 const ACCESS_CODE = (process.env.ACCESS_CODE || '').trim();
+const ICON192 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAALXElEQVR4Aeyda3BU5RnHd5NsyGZzhyQN4VIuvWhVJBZtEShSgSngCLZg4UuwHWtJFUEoLdgptVIFC2ViR7SWpgqiVKwDQ3VqOx1qsdLRynUCCKXopLmRZJNA7tc+adJMdrPu5pw9Oe//nPPPvMmey/ue93l+z29v+fCemDtv+5CNBHQTiHHxhwSiIECBooDHoS4XBaIFURGgQFHh42AKRAeiIkCBosLHwboFIjoS6CFAgXoo8Fc3AQqkGx0H9hCgQD0U+KubAAXSjY4DewhQoB4K/NVNgALpRseBPQTMF6hnVv7ahgAFsk0p1SRCgdRwt82sFMg2pVSTCAVSw902s1Ig25RSTSIUSA1328xqIYFsw9xWiVAgW5XT/GQokPnMbTUjBbJVOc1PhgKZz9xWM1IgW5XT/GQokPnMbTWjEwSyVcHQkqFAaBWxWDwUyGIFQwuXAqFVxGLxUCCLFQwtXAqEVhGLxUOBLFYwtHApUJiK8FRkAhQoMiP2CEOAAoWBw1ORCVCgyIzYIwwBChQGDk9FJkCBIjNijzAE0AXKyo77+vL0NT/Mfnx77o5dYx3SJNmHf5AtiUv6YYqHcApXoNu/klT463H7Dk387sOZCxenfmmG76Y8r0VatHFKsouWpErikr5AmD4rCcGVkDHACeR2u2bMTnpuz/ifbBt9/Y0JIYN21EGB8NhTowWIPKMAE4cTaEqed+3G7EmfHQEIS2FIAuSRTdlTpyUqjCHk1FgCfXpi/GNP5aakxoaM1eEHBcvmrTkTJsVDcQASKCfXs7VwTKIPKCSoUkkwPl/sz3bmjsqMk22QBlStxcvSRiKhAalQUBiZWZ67l6YFHVS4iyJQWnrsosWpCkFYaOoly9IyRqK8y6MINGdeSvwIlGDUyTSkmUckxMy+M2VIXYe/E0rNptziHf5k7TMDDi4UgcaOx/pyAe4aDi4UgTJGAn2zALdHwsPBBSGQJ97tS4KIRGpjiSa4BBpCqBBla2/rrizvQMBhlRgEl0BDiBZCIAHh91MgwTDUhoMLRaBLF1qHCo/9XK5BuJRBQRHor3++qoyBBSfGwYUi0KnjzcWnmy1YSgUhnytuFlwKJg41JYpAEtvzv6ySv2wRCezaAQQKSKCzZ1r27/FHxOfwDoLo/NkWHAhAAgmUomer//mPRtlgC0ng6JFrgijkKVUHsQTq7nY9+kjp7/bydSiEDwf21W55tFwQhTin7hCWQMKhq8u1+5nqzRvK/DWdsssmBASFAJHPiAJHdg1t0V4MTqDehN79W8N9Sy/v3V1z6oPmlpbu3oNO+yuJnz7eLBAEhQDBTB9UIIHV1NS1Z3fN+u+V3DX74rIFlwpWfry+oMQhTZK9d+ElSXxdQYlAEBQCBLPhCjSQV62/8+L5Vvnnh0OaJCtvWwMJwG5bQyBYfAyMAtGBqAhQoKjwcTAFogP6CPSNokB9IPigjwAF0seNo/oIUKA+EHzQR4AC6ePGUX0EKFAfCD7oI0CB9HHjqD4CFKgPBB/0EdAukL55OMqmBCiQTQtrVloUyCzSNp2HAtm0sGalRYHMIm3TeSiQTQtrVlrQAnkT3dNnJa3+ftYTO3N3vTD+t69OcEiTZCXlh9ZnSfreRLdZMuiZx0SBtISXkhq7YmVG4fPj7n8wc+o0X05uvDcRNFQtaQ21ryQrKefd6pP0BcLy/AwBMtTB5vZDrMrNtyRufXrM3AWpnnjE8MwtkEsgzFuYKkCm4i1TLyjgKrR4adrqDVleL1xgAkthEyDyjnbXPXArIWPV6cszfXcvTXe7od/1VWnkdrvv+WbGzDuw7twDJNB1NyR8uyBTVXmsMm/+d0Z94SagJZGBBJr7tZTYWL72RDBZEH11fnKETiaeRhEoNS325i/C3cvIxEJomEpApaXzVgeBxPKmJcp7fOCx/+/xMZCAgJoK82RDeQW6dbovkBL3whHAwYUi0LgJvEVhOGOCzuHgQhHI4+HH5yBJwu3i4EIRKBwtnhtEoL0dZc0kFIHq67hS/SBNPvlAfS0KLhSBSj5q+2RcPBNMoKKsPfiQon0Ugc4VD8PStYqYmjDtmZMoi7KjCIRDxITyRz/FaQoUBFFek8+cbAo6yN2QBE6831hTxc9Ag9i88qK/A+bLxaDoUA4IopeKgNbRRnkLk/qUl7bv2V0tG2xhCBQ9V+WvQXn5kTiBBJJojh5pOHSgVjbYQhI48LL/2FGsW0FgCSTUDh6oe/rnlc3NXbLN1k9AgBRuq3zzYH3/EZANOIGEy4n3m360rvTkB+qeahIEUhMU/wOC+CUDUSCpnb+6o3DblSc3lx98tfb0iaby0rYWJ70mSbLytVQSlzd0gSAoBIhgAWygAvWSunCu5dBrdTufrNy0tnRV/sf3LbvskCbJblzzH0lc3tAFQi8NzL/QAmEiY1QDCVCggTS4rZkABdKMjAMGEqBAA2lwWzMBCqQZWbgBzjtHgZxXc0MzpkCG4nTexSiQ82puaMYUyFCczrsYBXJezQ3NmAIZitN5F6NAGDW3bBQUyLKlwwicAmHUwbJRUCDLlg4jcAqEUQfLRkGBLFs6jMCtIVBySszoMZ4Jk+KVtKxPxYEvF6/QJWiBJn9uxJJ70zY9nrPhxzmr1mR9a1WmkvbQ+uxNPx29dmP23AUp2TlxCqsVYmrVh0AFuv7GhIK1Wfn3j8qb5vNiLDqeMTJu1pzkB9dlr1iZQY36vYUTyO12zV+Usjx/ZE6upz9KqI3rbvA+sDprSh7XlO0pC5ZAiYkxKx8YNWM20DrIPZAG/Xo87m+sSJ+3MGXQGccdwBJozvyUiZMts9rmjNlJUIvGK5EXSKDPfH7Ebbf7lFDQN6nb7V68NE2+Ieobbo9RQALNXwh3K5qINU7wxsy8A/0NN2IW0XRAEWjMOE92Duin5vB8p05LjI2z4BrF4bMa8lkUgeSrzZBjxuqYkBAzcXI8VkwmRoMi0NjxFq7B2HEWDj5K2VAESs9Auf2MDqC+ZAsHryPfgUNQBEqycg2Sk1EwDiytOdsomXdweU1zCm70LCgCXbtm4TXt6mo7ja6LZa6HIlBFmYVvdVB1BWjZ1GFXL3ACFIEunm8NDMwye93d3R+ede59GlAEOlfc0mLNVRD/daH1aj3fwlQ/4cWeY0cbVEehZ/4/vXFVzzC7jEF5BRKeb//lWmmJxT4JifQVZSh3XhKG5jcggTo7Xfv3+uWlyHwK+mYsK2176w9wK3/ry0X3KCCBJIc6f+fr+61xq4PGhs5XXvCL9BK2kxuWQFIJ+TS944kKeXLLNmw7dbxp+5YKJ//7p780GgTqHzPcG/I69KvCqj8erm9r6x7uubRev76u46Wimtderu1w7r9+ApghCiQBdnW5/v52w9bN5b/ZVfXWG/XvHWs8f7bl8qVWJa34TPOxdxoOv173zC+ubN9S6eT/+khpghqoQL1Rtrd3f/TvtneONBz+fd2+opqiZ6uVtP0v+t88WP/eu40O/8LVW5Sgv9ACBcXKXUACFAiwKFYKiQJZqVqAsVIgwKJYKSQzBLISD8aqkQAF0giM3QMJUKBAHtzTSIACaQTG7oEEKFAgD+5pJECBNAJj90ACFCiQB/c0EoAWSGMu7K6AAAVSAN1OU1IgO1VTQS4USAF0O01JgexUTQW5UCAF0O00JQWyUzUV5GJPgRSAdOqUFMiplTcobwpkEEinXoYCObXyBuVNgQwC6dTLUCCnVt6gvCmQQSCdehkKFFB57mglQIG0EmP/AAIUKAAHd7QSoEBaibF/AAEKFICDO1oJUCCtxNg/gAAFCsDBHa0EKJBWYqH7O/YoBXJs6Y1JnAIZw9GxV6FAji29MYlTIGM4OvYqFMixpTcmcQpkDEfHXoUCKS691af/LwAAAP//Nie4CgAAAAZJREFUAwCYDODbiPOj8QAAAABJRU5ErkJggg==', 'base64');
+const ICON512 = Buffer.from('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', 'base64');
+const PAGE_FILE = path.join(__dirname, 'public', 'index.html');
+let pageCache = null;
+/* Uses public/index.html when it exists, otherwise the copy built into this file. */
+function getPage() {
+  if (!pageCache) { try { pageCache = fs.readFileSync(PAGE_FILE); } catch (e) { pageCache = PAGE; } }
+  return pageCache;
+}
+const MANIFEST = JSON.stringify({
+  name: 'Linkscribe', short_name: 'Linkscribe', start_url: '/', display: 'standalone',
+  background_color: '#F6F7FB', theme_color: '#4437D9',
+  icons: [
+    { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+  ]
+});
 const PAGE = String.raw`<!doctype html>
 <html lang="en">
 <head>
@@ -27,6 +50,10 @@ const PAGE = String.raw`<!doctype html>
 <title>Linkscribe</title>
 <meta name="description" content="Paste a YouTube link and get the full transcript.">
 <meta name="theme-color" content="#F6F7FB">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234437D9'/%3E%3Cpath d='M8 13v6M12.5 9v14M17 12v8M21.5 7v18M26 14v4' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -590,13 +617,16 @@ function parseYouTube(input) {
   return id && /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
 }
 
-function buildPrompt(startAt) {
+function buildPrompt(startAt, range) {
   const lines = [
     'Transcribe everything that is spoken in this video, word for word, in the language it is spoken in. Do not summarize, shorten, translate or skip anything.',
     'Start every paragraph with a timestamp in square brackets, like [00:00] (use [1:02:03] after the first hour), and add a new timestamp at least every 30 seconds.',
     'If more than one person speaks, put a label such as "Speaker 1:" right after the timestamp and keep the same labels all the way through.',
     'Do not describe sounds or music. Do not add an introduction, notes or closing remarks. Output only the transcript.'
   ];
+  if (range) {
+    lines.push('You are given one section of a longer video. Transcribe only this section, measuring timestamps from the start of the section (the section starts at [00:00]). Begin with the first words spoken and do not stop early.');
+  }
   if (startAt) {
     lines.push('Start at ' + startAt + ': your first paragraph must begin with the first words spoken at or just after ' + startAt + '. Do not repeat anything spoken before that.');
   }
@@ -637,34 +667,67 @@ async function readUpstreamError(r) {
   return { status: r.status, message: message || r.statusText || 'Unknown error' };
 }
 
-/* Sends the video to Gemini and relays the text back as it arrives. */
-async function relay(opts) {
-  const send = opts.send;
-  const payload = {
-    contents: [{ role: 'user', parts: [
-      { file_data: { file_uri: 'https://www.youtube.com/watch?v=' + opts.videoId } },
-      { text: buildPrompt(opts.startAt) }
-    ] }]
-  };
-  let resp = null, model = null, lastErr = null;
-  for (let i = 0; i < MODELS.length; i++) {
-    const r = await fetch(BASE + '/v1beta/models/' + encodeURIComponent(MODELS[i]) + ':streamGenerateContent?alt=sse', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': opts.key },
-      body: JSON.stringify(payload),
-      signal: opts.signal
-    });
-    if (r.ok) { resp = r; model = MODELS[i]; break; }
-    lastErr = await readUpstreamError(r);
-    const unknownModel = r.status === 404 ||
-      (r.status === 400 && /model/i.test(lastErr.message) && /not found|not supported|unsupported|unknown|invalid/i.test(lastErr.message));
-    const busy = r.status === 429 || r.status === 500 || r.status === 503 || r.status === 504;
-    if (!unknownModel && !busy) break;
-  }
-  if (!resp) { send('fail', explain(lastErr || { status: 0, message: '' })); return; }
-  send('status', { stage: 'watching', model: model });
+function speedConfig(name) {
+  /* Low video detail and little "thinking" make transcripts much faster. */
+  const cfg = { mediaResolution: 'MEDIA_RESOLUTION_LOW', temperature: 0 };
+  if (/^gemini-3/.test(name)) cfg.thinkingConfig = { thinkingLevel: 'low' };
+  else if (/^gemini-2\.5-flash/.test(name)) cfg.thinkingConfig = { thinkingBudget: 0 };
+  return cfg;
+}
+function isUnknownModel(e) {
+  return e.status === 404 || (e.status === 400 && /model/i.test(e.message) && /not found|not supported|unsupported|unknown|invalid/i.test(e.message));
+}
+function sleep(ms, signal) {
+  return new Promise(function (resolve, reject) {
+    const t = setTimeout(resolve, ms);
+    if (signal) signal.addEventListener('abort', function () { clearTimeout(t); reject(new Error('aborted')); }, { once: true });
+  });
+}
 
-  let finish = null, usage = null, gotText = false, blocked = null;
+/* Opens a streaming request to Gemini, trying faster models first. Returns { resp, model }. */
+async function openStream(o) {
+  const part = { file_data: { file_uri: 'https://www.youtube.com/watch?v=' + o.videoId } };
+  if (o.range) part.videoMetadata = { startOffset: o.range.from + 's', endOffset: o.range.to + 's' };
+  const payload = { contents: [{ role: 'user', parts: [part, { text: buildPrompt(o.startAt, o.range) }] }] };
+  function call(name, fast) {
+    const body = fast ? Object.assign({}, payload, { generationConfig: speedConfig(name) }) : payload;
+    return fetch(BASE + '/v1beta/models/' + encodeURIComponent(name) + ':streamGenerateContent?alt=sse', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': o.key },
+      body: JSON.stringify(body),
+      signal: o.signal
+    });
+  }
+  async function attempt(name) {
+    let r = await call(name, true);
+    if (!r.ok && r.status === 400) {
+      const e = await readUpstreamError(r);
+      /* If this model rejects the speed settings, try it again without them. */
+      if (/thinking|resolution|generation_?config|temperature/i.test(e.message)) r = await call(name, false);
+      else return { err: e };
+    }
+    if (r.ok) return { resp: r };
+    return { err: await readUpstreamError(r) };
+  }
+  const order = goodModel ? [goodModel].concat(MODELS.filter(function (m) { return m !== goodModel; })) : MODELS;
+  let lastErr = { status: 0, message: '' };
+  for (let i = 0; i < order.length; i++) {
+    const waits = o.retry ? [3000, 8000] : [];
+    for (let n = 0; ; n++) {
+      const res = await attempt(order[i]);
+      if (res.resp) { goodModel = order[i]; return { resp: res.resp, model: order[i] }; }
+      lastErr = res.err;
+      if (res.err.status === 429 && n < waits.length && !/per ?day|daily/i.test(res.err.message)) { await sleep(waits[n], o.signal); continue; }
+      break;
+    }
+    if (!isUnknownModel(lastErr)) break;
+  }
+  throw { upstream: true, status: lastErr.status, message: lastErr.message };
+}
+
+/* Reads Gemini's event stream and passes each piece of text to onText. */
+async function readSSE(resp, onText) {
+  const st = { finish: null, usage: null, gotText: false, blocked: null };
   function handle(block) {
     const data = block.split(/\r?\n/).filter(function (l) { return l.indexOf('data:') === 0; })
       .map(function (l) { return l.slice(5).replace(/^ /, ''); }).join('\n');
@@ -672,18 +735,17 @@ async function relay(opts) {
     let j;
     try { j = JSON.parse(data); } catch (e) { return; }
     if (j.error) throw { upstream: true, status: j.error.code, message: j.error.message };
-    if (j.promptFeedback && j.promptFeedback.blockReason) blocked = j.promptFeedback.blockReason;
+    if (j.promptFeedback && j.promptFeedback.blockReason) st.blocked = j.promptFeedback.blockReason;
     const c = j.candidates && j.candidates[0];
     if (c) {
       const parts = (c.content && c.content.parts) || [];
       for (let k = 0; k < parts.length; k++) {
-        if (typeof parts[k].text === 'string' && !parts[k].thought) { gotText = true; send('chunk', { text: parts[k].text }); }
+        if (typeof parts[k].text === 'string' && !parts[k].thought) { st.gotText = true; onText(parts[k].text); }
       }
-      if (c.finishReason) finish = c.finishReason;
+      if (c.finishReason) st.finish = c.finishReason;
     }
-    if (j.usageMetadata) usage = { input: j.usageMetadata.promptTokenCount, output: j.usageMetadata.candidatesTokenCount };
+    if (j.usageMetadata) st.usage = { input: j.usageMetadata.promptTokenCount, output: j.usageMetadata.candidatesTokenCount };
   }
-
   const reader = resp.body.getReader();
   const dec = new TextDecoder();
   let buf = '';
@@ -700,14 +762,145 @@ async function relay(opts) {
   }
   buf += dec.decode();
   if (buf.trim()) handle(buf);
+  return st;
+}
 
-  if (!gotText) {
-    send('fail', blocked
-      ? { message: 'Gemini declined to process this video (' + blocked + ').' }
-      : { message: finishNote(finish) || 'Gemini returned no text. The video may have no speech, or it may not be accessible.' });
+/* Rewrites [MM:SS] stamps so a section that starts at `offset` seconds lines up with the whole video. */
+function makeShifter(offset) {
+  const RE = /\[(\d{1,2}):(\d{2})(?::(\d{2}))?\]/g;
+  let held = '', mode = null;
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmt(t) {
+    const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), sec = t % 60;
+    return '[' + (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(sec) + ']';
+  }
+  function conv(text) {
+    if (!offset) return text;
+    return text.replace(RE, function (all, a, b, c) {
+      const t = c !== undefined ? (+a) * 3600 + (+b) * 60 + (+c) : (+a) * 60 + (+b);
+      /* Gemini may count from the section start or from the video start. Decide from the first stamp. */
+      if (mode === null) mode = t >= offset - 20 ? 'keep' : 'add';
+      return fmt(mode === 'add' ? t + offset : t);
+    });
+  }
+  return {
+    push: function (text) {
+      const all = held + text;
+      const k = all.lastIndexOf('[');
+      let cut = all.length;
+      if (k !== -1 && all.indexOf(']', k) === -1 && all.length - k <= 10) cut = k; /* wait for the rest of an unfinished stamp */
+      held = all.slice(cut);
+      return conv(all.slice(0, cut));
+    },
+    flush: function () { const o = conv(held); held = ''; return o; }
+  };
+}
+
+const lengths = new Map();
+/* Looks up the video length so long videos can be split. Returns seconds, or 0 if unknown. */
+async function getDuration(videoId, signal) {
+  if (lengths.has(videoId)) return lengths.get(videoId);
+  const ctrl = new AbortController();
+  const timer = setTimeout(function () { ctrl.abort(); }, 2500);
+  const onAbort = function () { ctrl.abort(); };
+  if (signal) signal.addEventListener('abort', onAbort, { once: true });
+  let secs = 0;
+  try {
+    const r = await fetch(WATCH_BASE + '/watch?v=' + videoId + '&hl=en', {
+      headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'accept-language': 'en-US,en;q=0.9', cookie: 'CONSENT=YES+1; SOCS=CAI' },
+      signal: ctrl.signal
+    });
+    const html = await r.text();
+    const m = html.match(/"lengthSeconds":"(\d+)"/);
+    if (m) secs = Number(m[1]);
+  } catch (e) { /* unknown length: the whole video is sent in one piece */ }
+  clearTimeout(timer);
+  if (signal) signal.removeEventListener('abort', onAbort);
+  if (lengths.size > 500) lengths.clear();
+  lengths.set(videoId, secs);
+  return secs;
+}
+
+/* One request for the whole video. */
+async function relaySingle(o) {
+  const send = o.send;
+  const op = await openStream({ key: o.key, videoId: o.videoId, startAt: o.startAt, range: null, signal: o.signal });
+  send('status', { stage: 'watching', model: op.model });
+  const st = await readSSE(op.resp, function (t) { send('chunk', { text: t }); });
+  if (!st.gotText) {
+    send('fail', st.blocked
+      ? { message: 'Gemini declined to process this video (' + st.blocked + ').' }
+      : { message: finishNote(st.finish) || 'Gemini returned no text. The video may have no speech, or it may not be accessible.' });
     return;
   }
-  send('done', { finishReason: finish || 'STOP', truncated: finish === 'MAX_TOKENS', note: finishNote(finish), usage: usage, model: model });
+  send('done', { finishReason: st.finish || 'STOP', truncated: st.finish === 'MAX_TOKENS', note: finishNote(st.finish), usage: st.usage, model: op.model });
+}
+
+/* Long video: cut it into pieces, transcribe several at once, and show the text in order. */
+async function relayChunks(o, duration) {
+  const send = o.send;
+  const n = Math.ceil(duration / CHUNK_SEC);
+  const len = Math.ceil(duration / n);
+  const segs = [];
+  for (let i = 0; i < n; i++) {
+    segs.push({ i: i, from: i * len, to: Math.min(duration, (i + 1) * len), buf: '', done: false, sh: makeShifter(i * len) });
+  }
+  const inner = new AbortController();
+  if (o.signal) o.signal.addEventListener('abort', function () { inner.abort(); }, { once: true });
+  let head = 0, emitted = false, failed = null, model = null, usageIn = 0, usageOut = 0, opened = false, anyText = false;
+  function emit(t) { if (t) { emitted = true; send('chunk', { text: t }); } }
+  function advance() {
+    while (head < segs.length) {
+      const s = segs[head];
+      if (s.buf) { emit(s.buf); s.buf = ''; }
+      if (!s.done) break;
+      head++;
+      if (head < segs.length) emit('\n\n');
+    }
+  }
+  async function runSeg(s) {
+    const op = await openStream({ key: o.key, videoId: o.videoId, range: { from: s.from, to: s.to }, signal: inner.signal, retry: true });
+    model = model || op.model;
+    if (!opened) { opened = true; send('status', { stage: 'watching', model: op.model, parts: n }); }
+    const st = await readSSE(op.resp, function (t) {
+      anyText = true;
+      s.buf += s.sh.push(t);
+      if (s.i === head) advance();
+    });
+    s.buf += s.sh.flush();
+    if (st.usage) { usageIn += st.usage.input || 0; usageOut += st.usage.output || 0; }
+    s.done = true;
+    advance();
+  }
+  let next = 0;
+  async function worker() {
+    while (next < segs.length && !failed) {
+      const s = segs[next++];
+      try { await runSeg(s); } catch (e) { if (!failed) { failed = e; inner.abort(); } }
+    }
+  }
+  const workers = [];
+  for (let k = 0; k < Math.min(PARALLEL, n); k++) workers.push(worker());
+  await Promise.all(workers);
+  if (o.signal && o.signal.aborted) return;
+
+  if (failed) {
+    /* Nothing shown yet and the failure looks like the sectioning was refused: do it the old way. */
+    if (!emitted && (!failed.upstream || failed.status === 400)) return relaySingle(o);
+    throw failed;
+  }
+  advance();
+  if (!anyText) { send('fail', { message: 'Gemini returned no text. The video may have no speech, or it may not be accessible.' }); return; }
+  send('done', { finishReason: 'STOP', truncated: false, note: '', usage: { input: usageIn, output: usageOut }, model: model, parts: n });
+}
+
+/* Picks the fastest way to transcribe this video. */
+async function relay(o) {
+  if (!o.startAt) {
+    const duration = await getDuration(o.videoId, o.signal);
+    if (duration > CHUNK_ABOVE && Math.ceil(duration / CHUNK_SEC) >= 2) return relayChunks(o, duration);
+  }
+  return relaySingle(o);
 }
 
 async function handleTranscribe(req, res) {
@@ -771,13 +964,16 @@ const server = http.createServer(async function (req, res) {
   try {
     const url = new URL(req.url, 'http://localhost');
     if (req.method === 'GET' && (url.pathname === '/' || url.pathname === '/index.html')) {
-      const html = PAGE;
+      const html = getPage();
       res.writeHead(200, headers({
         'content-type': 'text/html; charset=utf-8',
         'content-security-policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
       }));
       return res.end(html);
     }
+    if (req.method === 'GET' && url.pathname === '/manifest.webmanifest') { res.writeHead(200, headers({ 'content-type': 'application/manifest+json' })); return res.end(MANIFEST); }
+    if (req.method === 'GET' && url.pathname === '/icon-192.png') { res.writeHead(200, headers({ 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' })); return res.end(ICON192); }
+    if (req.method === 'GET' && url.pathname === '/icon-512.png') { res.writeHead(200, headers({ 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' })); return res.end(ICON512); }
     if (req.method === 'GET' && url.pathname === '/healthz') return sendJson(res, 200, { ok: true });
     if (req.method === 'GET' && url.pathname === '/favicon.ico') { res.writeHead(204); return res.end(); }
     if (req.method === 'GET' && url.pathname === '/api/config') {
