@@ -658,7 +658,8 @@ async function relay(opts) {
     lastErr = await readUpstreamError(r);
     const unknownModel = r.status === 404 ||
       (r.status === 400 && /model/i.test(lastErr.message) && /not found|not supported|unsupported|unknown|invalid/i.test(lastErr.message));
-    if (!unknownModel) break;
+    const busy = r.status === 429 || r.status === 500 || r.status === 503 || r.status === 504;
+    if (!unknownModel && !busy) break;
   }
   if (!resp) { send('fail', explain(lastErr || { status: 0, message: '' })); return; }
   send('status', { stage: 'watching', model: model });
