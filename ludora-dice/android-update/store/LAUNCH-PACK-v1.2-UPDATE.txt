@@ -1,0 +1,93 @@
+LUDORA: FAIR PLAY DICE GAME – v1.2 UPDATE PACK   (Goldenmayhem)
+Package: com.goldenmayhem.ludoradice · Version 1.2 · versionCode 3
+Only the parts that CHANGE are here. Everything else in LAUNCH-PACK.txt stays the same.
+
+============================================================
+1. RELEASE NOTES  (Test and release > your track > Create new release)
+============================================================
+<en-US>
+Big update! Brand-new 3D dice, bigger and brighter boards, a free monthly Season Pass, a weekly Token Hunt, gifts, player profiles with medals, 10 languages and a game that teaches you as you play.
+</en-US>
+(229/500 characters)
+
+============================================================
+2. SHORT DESCRIPTION  (replace, 78/80)
+============================================================
+Roll 3D dice, race your pawns home and bump rivals! Free season pass & events.
+
+============================================================
+3. FULL DESCRIPTION  (replace the whole text)
+============================================================
+Roll the dice, race all your pawns home and bump your rivals back to the start. Ludora is a bright, friendly dice and board game for 2 to 4 players, with seven ways to play, real 3D dice and a huge collection of boards, pawns, dice and frames to unlock.
+
+HOW TO PLAY
+• Roll a 6 to bring a pawn out of home
+• Race around the board and land on a rival to send them back
+• Stars are safe squares
+• Get every pawn into the center first to win
+• New players learn while playing, with a pointing hand that shows every step
+
+SEVEN GAME MODES
+• Classic: the standard race with four pawns each
+• Blitz: only 2 pawns each for short, fast games
+• Hunter: only start squares are safe, and every bump gives you another roll
+• Safe Haven: four extra safe squares to hide on
+• Speed Turns: only 6 seconds a turn, so be quick
+• Surprise Squares: hidden gold ? squares give you another roll
+• Daily Twist: a different rule every day
+
+PLAY YOUR WAY
+• Play vs the computer, 2 to 4 players
+• Team match: 2 vs 2 with a partner across the board
+• Pass & play with friends on one phone
+• Before each game a spinner picks whose board you play on
+
+ALWAYS SOMETHING TO EARN
+• Free Season Pass every month with 30 reward tiers
+• Weekly Token Hunt: collect tokens on the board before the computer does
+• 7-day daily bonus, daily goals and chests that open on a timer
+• 36 medals to win in 12 achievements
+• Send gifts and quick reactions during a game
+• Everything is earned by playing
+
+COLLECT AND CUSTOMIZE
+• 30+ boards: meadows, pharaoh sands, wizard castles, safari, arctic ice, coral reefs, sakura gardens, cyber cities, alien space, dragon realms and a glowing lava board
+• 40+ pawns: critters, robots, dragons, astronauts and more
+• 20 3D dice, themed frames and emoji packs
+• Preview every board in full before you unlock it
+
+10 LANGUAGES
+English, Español, Português, Français, Deutsch, Italiano, Bahasa Indonesia, Türkçe, हिन्दी and العربية
+
+FAIR AND FRIENDLY
+• No in-app purchases and no real money of any kind
+• No pop-up ads. Rewarded videos are always optional, and only when you tap to watch one
+
+Roll. Race. Get home first!
+
+============================================================
+4. NEW PHONE SCREENSHOTS  (store/screenshots-v1.2, 1080×1920, upload in this order)
+============================================================
+  1-gameplay.png ........ caption: Roll real 3D dice!
+  2-board-spinner.png ... caption: Play on a rival's board
+  3-season-pass.png ..... caption: Free Season Pass every month
+  4-achievements.png .... caption: Win 36 medals
+  5-gifts.png ........... caption: Send gifts to other players
+  6-home.png ............ caption: Chests, events and more
+  7-token-hunt.png ...... caption: Weekly Token Hunt
+Delete the old phone screenshots first. Tablet screenshots can stay as they are.
+
+============================================================
+5. CONTENT RATING  (Policy > App content > Content rating > Edit)
+============================================================
+The game now calls coin games "Entry fee" and "Prize pool", like a tournament. Coins are earned only by playing,
+can never be bought, and can never be turned into money. Keep your answers:
+  Gambling: No.   Simulated gambling: No.   Digital purchases: No.
+  User interaction: still No (gifts and reactions only go to computer players; online play is off).
+If Google's questionnaire asks about "rewards that can be exchanged for real money": No.
+
+============================================================
+6. NOTHING ELSE CHANGES
+============================================================
+Same app name, same package name, same privacy policy, same Data safety answers (offline-only), same ads setup
+(rewarded videos only). The app still has no in-app purchases.
