@@ -14,8 +14,6 @@ var hp_lag := 100.0
 var hurt_flash := 0.0
 var powers: Dictionary = {}
 var shield := 0
-var auto_dir := 0.0
-var hold_t := {}
 var coins := 0
 var bump := 0.0
 var stage_label := ""
@@ -111,17 +109,6 @@ func _process(dt: float) -> void:
 	combo_pop = maxf(combo_pop - dt * 3.0, 0.0)
 	hurt_flash = maxf(hurt_flash - dt * 2.5, 0.0)
 	hp_lag = move_toward(hp_lag, hp, dt * maxf(40.0, absf(hp_lag - hp) * 2.0)) if hp_lag > hp else hp
-	# auto-run: holding a D-pad arrow (or the stick fully to one side) for 0.35 s locks running that way
-	if Profile.setting("autorun") != "off":
-		for idx in hold_t.keys():
-			if not touches.has(idx):
-				hold_t.erase(idx)
-				continue
-			hold_t[idx] += dt
-			if hold_t[idx] > 0.35 and absf(move) > 0.9 and auto_dir != signf(move):
-				auto_dir = signf(move)
-				Sfx.play("ui", 1.4)
-				toast("Auto-run " + ("right" if auto_dir > 0.0 else "left") + "  (tap to stop)", pal.moss.lightened(0.5))
 	for tt in toasts:
 		tt.t += dt
 	toasts = toasts.filter(func(x): return x.t < 2.2)
@@ -150,19 +137,13 @@ func _input(ev: InputEvent) -> void:
 				"dash":
 					dash_pressed = true
 					dash_flash = 1.0
-				"stick", "dpad":
-					if role == "stick":
-						_stick(ev.position, g)
-					else:
-						_dpad(ev.position, g)
-					hold_t[ev.index] = 0.0
-					# while auto-running: tapping the same way stops, the other way turns around
-					if auto_dir != 0.0 and absf(move) > 0.5:
-						if signf(move) == auto_dir:
-							auto_dir = 0.0
-							toast("Auto-run off", Color(pal.moon, 0.8))
-						else:
-							auto_dir = signf(move)
+				"stick":
+					_stick(ev.position, g)
+				"dpad":
+					_dpad(ev.position, g)
+				"":
+					# tap on the game world: lock onto the monster under the finger
+					main.weapons.try_target(ev.position)
 		else:
 			var role2: String = touches.get(ev.index, "")
 			touches.erase(ev.index)
@@ -175,7 +156,6 @@ func _input(ev: InputEvent) -> void:
 				"stick", "dpad":
 					move = 0.0
 					knob = Vector2.ZERO
-					hold_t.erase(ev.index)
 	elif ev is InputEventScreenDrag:
 		var r = touches.get(ev.index, "")
 		if r == "stick":
@@ -193,8 +173,12 @@ func _role_at(p: Vector2, g: Dictionary) -> String:
 		return "fire"
 	if p.distance_to(g.dash) < g.dash_r * 1.35:
 		return "dash"
-	if p.x < size.x * 0.55 and p.y > size.y * 0.5:
-		return "dpad" if Profile.setting("control") == "dpad" else "stick"
+	if Profile.setting("control") == "dpad":
+		var pad_area = Rect2(g.left - Vector2.ONE * g.pad * 1.5, Vector2(g.right.x - g.left.x + g.pad * 3.0, g.pad * 3.0))
+		if pad_area.has_point(p):
+			return "dpad"
+	elif p.distance_to(g.stick) < g.stick_r * 1.5:
+		return "stick"
 	return ""
 
 
@@ -346,7 +330,7 @@ func _draw() -> void:
 		if Profile.setting("control") == "dpad":
 			for side in [-1.0, 1.0]:
 				var c: Vector2 = g.left if side < 0.0 else g.right
-				var on = signf(move) == side or auto_dir == side
+				var on = signf(move) == side
 				var rr = Rect2(c - Vector2.ONE * g.pad, Vector2.ONE * g.pad * 2.0)
 				var sb = StyleBoxFlat.new()
 				sb.bg_color = Color(pal.moss.darkened(0.4), 0.6) if on else Color(pal.ink, 0.45)
@@ -357,8 +341,7 @@ func _draw() -> void:
 				var a = 26.0 * k
 				var col = pal.moss.lightened(0.6) if on else Color(moon, 0.6)
 				draw_colored_polygon(PackedVector2Array([c + Vector2(side * a, 0), c + Vector2(-side * a * 0.6, -a), c + Vector2(-side * a * 0.6, a)]), col)
-			var lbl = "MOVE" if auto_dir == 0.0 else ("AUTO  >>" if auto_dir > 0.0 else "<<  AUTO")
-			draw_string(font, Vector2((g.left.x + g.right.x) * 0.5 - 80, g.left.y + g.pad + 30 * k), lbl, HORIZONTAL_ALIGNMENT_CENTER, 160, int(17 * k), Color(moon, 0.45) if auto_dir == 0.0 else pal.moss.lightened(0.5))
+			draw_string(font, Vector2((g.left.x + g.right.x) * 0.5 - 80, g.left.y + g.pad + 30 * k), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 160, int(17 * k), Color(moon, 0.45))
 		else:
 			draw_circle(g.stick, g.stick_r, Color(pal.ink, 0.38))
 			draw_arc(g.stick, g.stick_r, 0, TAU, 48, Color(moon, 0.22), 3.0, true)

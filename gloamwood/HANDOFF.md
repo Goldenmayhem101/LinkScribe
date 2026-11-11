@@ -13,7 +13,39 @@
 - **Budget:** $0. Free tools only (Godot, free Android tooling, GitHub). Google Play costs $25 one time, so sideload the APK instead (or itch.io).
 - **Model:** use Opus 5.5 for most work. It's cheaper on plan usage, and Fable costs about 2× per token. Switch to Fable only for a very hard problem.
 
-## 2. Current state (v0.4.0)
+## 2. Current state (v0.5.0)
+**What changed in v0.5.0, from owner feedback on v0.4.0** ("auto-run is buggy, take it out", "tap a monster to target it", "a melee weapon that fits the atmosphere and attacks automatically up close", "more polished effects", "stages all look the same", "endless worlds", "upgrades per character, cap 10, rising cost", "try wardrobe items before buying", "weapons look generic, add many more", "character more defined", "audio should change per world"):
+- **Auto-run removed** entirely (HUD and settings).
+- **Tap-to-target:** tap a monster on screen to lock on (red rotating brackets). All shots go to it while it lives; tap it again or tap empty ground to release. Aim assist still picks the nearest monster in front when nothing is locked. (`weapons.gd: try_target`; it uses the viewport canvas transform to turn screen taps into world positions.)
+- **Melee, automatic:** swings whenever a monster is within reach, and also parries enemy shots.
+  - 6 melee weapons, each drawn in the hero's hand with a swing animation: Lantern Staff (default), Moon Sickle, Thorn Lash, Crystal Rapier, Ember Hammer (shockwave), Void Scythe.
+- **8 ranged weapons, each with its own look and behavior:**
+  - Spark Bolt, Seeker Wisps (homing)
+  - Frost Shards (slow monsters 50%), Moon Lance (instant piercing beam)
+  - Ember Scatter (5 pellets), Leafwing (boomerang)
+  - Storm Orb (chain lightning), Star Mortar (lobbed AoE shell)
+  - All combat lives in `scripts/weapons.gd`.
+- **6 worlds** (`LevelGen.BIOMES`):
+  - Gloamwood (mixed forest), Crystal Caverns (crystal spires), Emberfen (dead swamp trees), Frostveil (snowy pines), Verdant Hollow (lush sunset grove), Void Reach (neon crystals, aurora).
+  - Each has its own baked palette and tree mix (`tools/bake/bake.js` STYLE), its own music, and its own sound-effect flavor (warm / glass / ember / synth).
+  - **5 stages per world, the 5th is a boss.** After world 6 the cycle repeats as "Gloamwood II", "III" and so on, forever, with difficulty still rising (monster HP, count and boss HP). Stage length is capped so deep stages don't get absurdly long.
+  - Per-stage variety from the seed: weather (rain, storm with lightning and thunder, snow, ash, motes, pollen, fireflies, aurora) and time of day (twilight, deep night, dawn, moonrise tint).
+  - Only the current world's textures stay loaded (VRAM on phones).
+- **Upgrades are per hero**: 8 upgrades with 10 levels each, cost = base × 1.45^level.
+  - The upgrades: Vitality +10 HP, Spark Power +10% ranged, Blade Edge +10% melee, Quick Hands +5% speed, Moss Armor −3.5% damage, Wind Step, Coin Magnet, Fortune.
+  - Old v0.4 global upgrades migrate (doubled, capped at 10) to whichever hero was selected.
+- **Wardrobe:** tap any item to **try it on** a live preview of the real hero before buying.
+  - 12 scarves (aurora gradient), 10 cloaks (starlit pattern), 10 hats (leaf, flower, horns, fox ears, toadstool, antenna, witch hat, halo, crown), 6 eye colors, 9 trails (sparkles, embers, petals, snowflakes, leaves, bubbles, stardust, rainbow).
+  - Free items always count as owned.
+- **Hero redesign:** ink outline, hem trim, mitten hands, a glowing belt lantern, eye glow in the chosen color, the melee weapon in hand, and aim and shoot poses.
+- **Effects polish:**
+  - Directional hit streaks and kill flashes with a short dynamic light and camera punch.
+  - Monster hit stagger, idle breathing, slowed-blue tint, a pop-then-dissolve death.
+  - Lightning flashes in storms, aurora ribbons.
+  - Monster health is now fractional, so damage numbers can show decimals.
+- **Test-mode safety:** `--autoplay`, `--showcase`, `--weapon`, `--melee` and `--hero` set `Profile.no_save` so tests never overwrite a real save.
+
+### Carried over from v0.4.0
 **What changed in v0.4.0, from owner feedback on v0.3.0** ("monsters too strong, no health bar, no power-ups, menu looks bad, want auto-run, can't fight flyers, want more weapons and customization, an annoying background sound, can't hear the music"):
 - **Health:** a real **health bar** (100 HP, varying by hero; *Vitality* upgrade adds +20) replaces hearts.
   - Every attack has its own damage: contact 8–20, quills/bolts 8, clods 10, beams 12–16, shockwaves 12–20, thorns 10, falls 15.
@@ -32,7 +64,7 @@
   - **Aim assist** makes every weapon aim at the nearest monster in front, flyers overhead included (can be turned off in Settings).
   - Holding the button charges a big shot with any weapon.
 - **Wardrobe:** scarf colors (8), cloak tints (6), hats (leaf, horns, star antenna, lantern crown), trails (sparkles, embers, petals), with a live preview.
-- **Auto-run** (Settings: Off / Hold / Always): hold an arrow for 0.35 s to lock running that way, tap the same arrow to stop, tap the other to turn around.
+- ~~Auto-run~~ (removed in v0.5.0 at the owner's request)
 - **Menus redesigned:**
   - Glass cards, raised press-down buttons, drawn icons, a consistent header (back · title · coins).
   - An icon-tile home screen with level and coin chips, and big star icons on stage clear.
@@ -88,7 +120,7 @@ Verified in a cloud session with a software renderer, recorded frames, and bot-p
 - All synthesized in code (`audio.gd`), so there are no files and no licenses: 30 SFX plus music loops for each biome, the menu and the boss, generated on a worker thread.
 - `tools/export_sounds.gd` writes them to WAV for checking.
 
-**Android:** `releases/gloamwood-v0.4.0.apk`. The owner reported that v0.2 gameplay was smooth on their phone.
+**Android:** `releases/gloamwood-v0.5.0.apk`. The owner reported that v0.2 gameplay was smooth on their phone.
 
 **Not verified yet:**
 - touch feel of the new buttons, the D-pad/analog switch and the dash button on a real phone
@@ -135,7 +167,7 @@ xvfb-run -a -s "-screen 0 800x1400x24" $G --path . --rendering-driver opengl3 --
 $G --headless --path . --export-debug "Android" build/gloamwood-debug.apk
 cp build/gloamwood-debug.apk releases/gloamwood-vX.Y.Z-debug.apk   # bump version/code + version/name in export_presets.cfg
 ```
-Testing flags (after `--`): `--showcase` (spawns every power-up plus a cyclops and a drone at the start), `--weapon=spark|seeker|lance|scatter`, `--autoplay` (bot demo, nothing saved), `--botplay` / `--botplay=continue` (bot plays a real saved run, so it exercises the stage clear screen and resume), `--stage=N`, `--menu=title|heroes|upgrades|quests|settings|daily`, `--hero=<id>`. Use `--audio-driver Dummy` in the container (it has no sound card; the ALSA `ERR_CANT_OPEN` message is harmless).
+Testing flags (after `--`): `--showcase` (spawns every power-up plus a cyclops, drone and slime, and locks onto the cyclops), `--weapon=spark|seeker|shard|lance|scatter|boomerang|thunder|cannon`, `--melee=staff|sickle|lash|rapier|hammer|scythe`, `--autoplay` (bot demo, nothing saved), `--botplay` / `--botplay=continue` (bot plays a real saved run, so it exercises the stage clear screen and resume), `--stage=N`, `--menu=title|heroes|upgrades|quests|settings|daily`, `--hero=<id>`. Use `--audio-driver Dummy` in the container (it has no sound card; the ALSA `ERR_CANT_OPEN` message is harmless).
 
 Gotchas learned:
 - GDScript `var x := dict.value` fails to parse (Variant inference). Use `var x = ...` or an explicit type.
@@ -173,3 +205,4 @@ Gotchas learned:
   - 4 new monster types, golden and elite variants, the Gloam Titan boss every 5 stages.
   - New level pieces (moving and crumbling ledges, thorns, bounce pads, chests, hidden ledges) and difficulty settings.
 - v0.4 (this): health bar and damage values, gentler early game, power-ups, 4 weapons with aim assist, wardrobe, auto-run, menu redesign, audio rebalance, 64-bit-only APK.
+- v0.5 (this): auto-run removed, tap-to-target, auto melee (6 weapons), 8 distinct ranged weapons, 6 worlds with weather and time of day, endless world cycle, per-hero upgrades to level 10, try-on wardrobe (5 slots), hero redesign, world-specific music and sound, effects polish.

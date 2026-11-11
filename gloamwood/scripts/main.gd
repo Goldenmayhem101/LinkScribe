@@ -11,6 +11,14 @@ const UI_FONT := preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 const COMBO_WINDOW := 2.6
 
 var player: Player
+var weapons: Weapons
+var weather: CPUParticles2D
+var aurora: Node2D
+var flash_rect: ColorRect
+var weather_kind := ""
+var lightning_t := 0.0
+var punch := 0.0
+var tod_tint = Color.WHITE
 var hud: Hud
 var menu: Menu
 var cam: Camera2D
@@ -104,12 +112,16 @@ func _ready() -> void:
 		var kv = a.trim_prefix("--").split("=")
 		args[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	autoplay = args.has("autoplay")
+	if autoplay or args.has("showcase") or args.has("weapon") or args.has("melee") or args.has("hero"):
+		Profile.no_save = true
 	get_tree().auto_accept_quit = false
 	_setup_input()
 	add_mat = CanvasItemMaterial.new()
 	add_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	for b in LevelGen.BIOMES:
-		_load_biome(b)
+		var f = FileAccess.open("res://assets/%s/meta.json" % b, FileAccess.READ)
+		metas[b] = JSON.parse_string(f.get_as_text())
+	_load_biome("gloamwood")
 	glow = tex["gloamwood"]["glow"]
 	leaf_tex = _make_leaf()
 	_build_layers()
@@ -120,6 +132,10 @@ func _ready() -> void:
 	if autoplay:
 		playing = true
 		run_seed = 4242
+		if args.has("melee"):
+			if not Profile.data.melees.has(args.melee):
+				Profile.data.melees.append(args.melee)
+			Profile.data.melee = args.melee
 		if args.has("weapon"):
 			if not Profile.has_weapon(args.weapon):
 				Profile.data.weapons.append(args.weapon)
@@ -133,6 +149,10 @@ func _ready() -> void:
 				_spawn_power(player.position + Vector2(60 + i * 34, -40), kinds[i])
 			spawn_monster({"kind": "cyclops", "pos": player.position + Vector2(240, -120), "min": player.position.x + 100, "max": player.position.x + 400})
 			spawn_monster({"kind": "drone", "pos": player.position + Vector2(330, -110), "min": player.position.x + 150, "max": player.position.x + 450})
+			spawn_monster({"kind": "slime", "pos": player.position + Vector2(140, 0), "min": player.position.x + 60, "max": player.position.x + 300})
+			for mo in monsters:
+				if mo.kind == "cyclops":
+					weapons.target = mo
 	else:
 		if args.has("menu"):
 			menu.daily_shown = args.menu != "daily"
@@ -164,8 +184,6 @@ func _load_biome(b: String) -> void:
 			"fog0", "fog1", "fog2", "monster_brute", "monster_spike", "monster_cyclops", "monster_charger", "monster_burrower", "monster_titan", "grass", "glow", "coin"]:
 		d[n] = load("res://assets/%s/%s.png" % [b, n])
 	tex[b] = d
-	var f = FileAccess.open("res://assets/%s/meta.json" % b, FileAccess.READ)
-	metas[b] = JSON.parse_string(f.get_as_text())
 
 
 func _make_leaf() -> Texture2D:
@@ -230,6 +248,11 @@ func _build_layers() -> void:
 		sky_root.add_child(tw)
 		twinkles.append(tw)
 	moon = Sprite2D.new(); sky_root.add_child(moon)
+	aurora = Node2D.new()
+	aurora.material = add_mat
+	aurora.visible = false
+	aurora.draw.connect(_draw_aurora)
+	sky_root.add_child(aurora)
 	for i in 7:
 		var r = Sprite2D.new()
 		r.centered = false
@@ -286,6 +309,12 @@ func _build_layers() -> void:
 	pm.shader = preload("res://shaders/post.gdshader")
 	post.material = pm
 	post_layer.add_child(post)
+	flash_rect = ColorRect.new()
+	flash_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	flash_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash_rect.color = Color(1, 1, 1, 0)
+	flash_rect.material = add_mat
+	post_layer.add_child(flash_rect)
 
 
 func _build_world() -> void:
@@ -299,6 +328,9 @@ func _build_world() -> void:
 	grass_mat.shader = preload("res://shaders/grass.gdshader")
 	player = Player.new()
 	world.add_child(player)
+	weapons = Weapons.new()
+	world.add_child(weapons)
+	weapons.setup(self)
 	fx_norm = Node2D.new()
 	fx_norm.z_index = 5
 	fx_norm.draw.connect(_draw_fx.bind(false))
@@ -318,6 +350,15 @@ func _build_world() -> void:
 	leaves.angular_velocity_min = -120.0
 	leaves.angular_velocity_max = 120.0
 	leaves.angle_max = 360.0
+	weather = CPUParticles2D.new()
+	weather.local_coords = false
+	weather.amount = 80
+	weather.lifetime = 3.0
+	weather.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	weather.emission_rect_extents = Vector2(260, 10)
+	weather.z_index = 7
+	weather.emitting = false
+	world.add_child(weather)
 
 
 func _ambient(n: int, life: float, ext: Vector2, vel: float, grav: Vector2, s0: float, s1: float, additive: bool, texture: Texture2D) -> CPUParticles2D:
@@ -380,6 +421,13 @@ func apply_upgrades() -> void:
 
 func _apply_biome(b: String) -> void:
 	biome = b
+	# keep only the current world's art in memory (phones have little VRAM)
+	if not tex.has(b):
+		_load_biome(b)
+	for k in tex.keys():
+		if k != b:
+			tex.erase(k)
+	Sfx.set_flavor(b)
 	var m: Dictionary = metas[b]
 	pal = {}
 	for k in m.palette:
@@ -551,7 +599,7 @@ func start_stage(n: int, resume: Dictionary = {}) -> void:
 	chest_nodes.clear()
 	power_nodes.clear()
 	bouncer_nodes.clear()
-	projectiles.clear()
+	weapons.clear()
 	fx_items.clear()
 	boss_node = null
 	boss_awake = false
@@ -561,7 +609,7 @@ func start_stage(n: int, resume: Dictionary = {}) -> void:
 	var b = LevelGen.biome_for(n)
 	if b != biome or pal.is_empty():
 		_apply_biome(b)
-	var luck = Profile.upgrade_level("luck")
+	var luck = int(Profile.upgrade_level("fortune") / 3)
 	level = gen.generate(n, LevelGen.seed_for(n, run_seed), {"difficulty": int(Profile.setting("difficulty")), "luck": luck})
 	solids = level.solids
 	got_coins = resume.get("got", []).duplicate()
@@ -590,13 +638,13 @@ func start_stage(n: int, resume: Dictionary = {}) -> void:
 	hp = clampf(hp, 1.0, max_hp)
 	hud.hp = hp
 	powers.clear()
-	hud.auto_dir = 1.0 if Profile.setting("autorun") == "always" else 0.0
 	hud.coins = int(Profile.data.coins)
 	cam.position = player.position + Vector2(0, -110)
-	var world_no = int((n - 1) / 2) + 1
-	hud.stage_label = "%s  %d-%d   ·   Stage %d" % [LevelGen.BIOME_NAMES[biome], world_no, (n - 1) % 2 + 1, n]
+	var wname = LevelGen.world_name(n)
+	hud.stage_label = "%s   ·   %d-%d" % [wname, LevelGen.world_of(n), LevelGen.stage_in_world(n)]
+	_apply_variant(n)
 	if playing or autoplay:
-		hud.show_title(LevelGen.BIOME_NAMES[biome], ("BOSS STAGE  ·  " if LevelGen.is_boss_stage(n) else "") + "Stage %d" % n)
+		hud.show_title(wname, ("BOSS  ·  " if LevelGen.is_boss_stage(n) else "") + "World %d-%d   ·   Stage %d" % [LevelGen.world_of(n), LevelGen.stage_in_world(n), n])
 		Sfx.music(biome)
 		Sfx.play("portal", 0.8, 0.0, -6.0)
 	print("Stage %d (%s) solids=%d coins=%d enemies=%d chests=%d boss=%s helpers=%d" % [n, biome, solids.size(), level.coins.size(), level.enemies.size(), level.chests.size(), str(not level.boss.is_empty()), level.helpers])
@@ -880,12 +928,10 @@ func _physics_process(dt: float) -> void:
 		fh = false
 		fr = false
 		dp = bot.dash
-	elif move == 0.0 and hud.auto_dir != 0.0:
-		move = hud.auto_dir
 	hud.consume()
 	# sparks: tap fires, holding charges a big shot released on let-go
 	if fp and player.fire_cd <= 0.0:
-		_fire(false)
+		weapons.fire(false)
 	if fh:
 		charge_t += dt
 		if charge_t > 0.2:
@@ -894,7 +940,7 @@ func _physics_process(dt: float) -> void:
 			player.charge = minf((charge_t - 0.2) / 0.75, 1.0)
 	if fr or not fh:
 		if player.charge >= 1.0:
-			_fire(true)
+			weapons.fire(true)
 		player.charge = 0.0
 		charge_t = 0.0
 	hud.charge = player.charge
@@ -906,7 +952,7 @@ func _physics_process(dt: float) -> void:
 	_update_platforms(dt)
 	player.physics_step(dt, move, jp, jh)
 	grass_mat.set_shader_parameter("hero", Vector3(player.position.x, player.position.y, 1.0 if player.on_ground else 0.0))
-	_update_projectiles(dt)
+	weapons.update(dt)
 	_update_coins(dt)
 	_update_monsters_contact()
 	_update_checkpoints()
@@ -924,89 +970,6 @@ func _physics_process(dt: float) -> void:
 	if portal and not portal_locked and player.position.distance_to(portal.position + Vector2(0, -20)) < 34.0:
 		_stage_clear()
 	hud.progress = clampf((player.position.x - level.start_x) / (level.end_x - level.start_x), 0.0, 1.0)
-
-
-func _aim_dir(max_range: float = 340.0) -> Vector2:
-	var fwd = Vector2(player.facing, 0)
-	if not Profile.setting("aim_assist"):
-		return fwd
-	var src = player.body_center()
-	var best = null
-	var best_d = max_range
-	for mo in monsters:
-		if not is_instance_valid(mo) or not mo.vulnerable():
-			continue
-		var to = mo.world_center() - src
-		var dl = to.length()
-		if dl < best_d and to.normalized().dot(fwd) > 0.3:
-			best = to.normalized()
-			best_d = dl
-	return best if best != null else fwd
-
-
-func _fire(big: bool) -> void:
-	var sp_lv = Profile.upgrade_level("spark")
-	var w = Profile.weapon_def()
-	var rate: float = float(w.rate) - Profile.upgrade_level("rapid") * 0.03
-	if powers.has("rapid"):
-		rate *= 0.5
-	player.fire_cd = maxf(rate, 0.08)
-	var dir = _aim_dir()
-	var o = player.body_center() + dir * 16.0 + Vector2(0, -4.0)
-	var hero_mod: String = player.hero.get("spark", "single") if not player.hero.is_empty() else "single"
-	var pierce = hero_mod == "pierce"
-	var homing = powers.has("homing") or w.id == "seeker"
-	if big:
-		projectiles.append({"kind": "big", "pos": o, "vel": dir * 360.0, "life": 0.0, "trail": [], "dmg": 4 + sp_lv, "r": 14.0, "pierce": true, "hit": [], "home": homing})
-		Sfx.play("bigshot")
-		shake(4.0)
-		fx_burst(o, pal.moss.lightened(0.5), 16, 160.0, 0.4, 0.0, 0.08)
-		return
-	var dmg = int(w.dmg) + (1 if sp_lv >= 2 else 0) + (1 if pierce else 0)
-	var spread: Array = [0.0]
-	if hero_mod == "spread":
-		spread = [0.0, -0.2, 0.2]
-	if powers.has("triple"):
-		spread = spread + [-0.32, 0.32]
-	if w.id == "lance":
-		for a in spread:
-			_lance(o, dir.rotated(a), dmg)
-		Sfx.play("lance")
-	elif w.id == "scatter":
-		for a in spread:
-			for k in 5:
-				var dd = dir.rotated(a + (k - 2) * 0.16 + randf_range(-0.04, 0.04))
-				projectiles.append({"kind": "spark", "pos": o, "vel": dd * randf_range(380.0, 440.0), "life": 0.55, "trail": [], "dmg": dmg, "r": 3.5 + sp_lv, "pierce": pierce, "hit": [], "home": false})
-		Sfx.play("spark", 0.8)
-		shake(2.0)
-	else:
-		var spd = 300.0 if w.id == "seeker" else 460.0
-		for a in spread:
-			projectiles.append({"kind": "spark", "pos": o, "vel": dir.rotated(a) * spd, "life": 0.0, "trail": [], "dmg": dmg, "r": 4.0 + sp_lv * 1.5, "pierce": pierce, "hit": [], "home": homing})
-		Sfx.play("spark")
-	fx_burst(o, pal.moss.lightened(0.5), 6, 80.0, 0.25, 0.0, 0.05)
-	hud.fire_flash = 1.0
-
-
-func _lance(o: Vector2, dir: Vector2, dmg: int) -> void:
-	var length = 290.0
-	var end = o + dir * length
-	for i in 29:
-		var q = o + dir * (i * 10.0)
-		if _solid_at(q):
-			end = q
-			break
-	var seg_len = (end - o).length()
-	for mo in monsters:
-		if not is_instance_valid(mo) or not mo.vulnerable():
-			continue
-		var rel = mo.world_center() - o
-		var along = rel.dot(dir)
-		if along > 0.0 and along < seg_len and absf(rel.cross(dir)) < mo.radius + 8.0:
-			mo.hit(dmg, o.x)
-			register_hit()
-	fx_items.append({"type": "lance", "pos": o, "end": end, "life": 0.0, "max": 0.22})
-	shake(2.5)
 
 
 func combo_mult() -> float:
@@ -1044,8 +1007,23 @@ func _update_camera(dt: float) -> void:
 	cam.position.x = lerpf(cam.position.x, target.x, k)
 	cam.position.y = lerpf(cam.position.y, target.y, 1.0 - exp(-3.2 * dt))
 	shake_amt = maxf(shake_amt - dt * 30.0, 0.0)
+	punch = maxf(punch - dt * 6.0, 0.0)
+	cam.zoom = Vector2.ONE * ZOOM * (1.0 + 0.035 * punch)
 	cam.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_amt
 	fireflies.position = cam.position
+	weather.position = cam.position + Vector2(40, -view_h() * 0.5 - 20.0)
+	if weather_kind == "storm" or weather_kind == "rain":
+		lightning_t -= dt
+		if lightning_t <= 0.0 and weather_kind == "storm":
+			lightning_t = randf_range(6.0, 12.0)
+			var tw = create_tween()
+			flash_rect.color = Color(0.8, 0.85, 1.0, 0.0)
+			tw.tween_property(flash_rect, "color:a", 0.45, 0.05)
+			tw.tween_property(flash_rect, "color:a", 0.0, 0.12)
+			tw.tween_property(flash_rect, "color:a", 0.3, 0.05)
+			tw.tween_property(flash_rect, "color:a", 0.0, 0.4)
+			Sfx.play("thunder", 1.0, 0.1, -2.0)
+	aurora.queue_redraw()
 	pollen.position = cam.position
 	leaves.position = cam.position + Vector2(0, -view_h() * 0.5 - 20.0)
 
@@ -1132,64 +1110,9 @@ func _update_platforms(dt: float) -> void:
 			s["stood"] = false
 
 
-func _update_projectiles(dt: float) -> void:
-	var keep: Array = []
-	for p in projectiles:
-		p.life += dt
-		if p.get("home", false):
-			var tgt = null
-			var bd = 360.0
-			for mo in monsters:
-				if is_instance_valid(mo) and mo.vulnerable():
-					var dd = p.pos.distance_to(mo.world_center())
-					if dd < bd:
-						bd = dd
-						tgt = mo
-			if tgt != null:
-				var want = (tgt.world_center() - p.pos).normalized() * p.vel.length()
-				p.vel = p.vel.lerp(want, minf(1.0, dt * 7.0))
-		p.pos += p.vel * dt
-		if p.kind == "quill":
-			p.vel.y += 160.0 * dt
-		elif p.kind == "clod":
-			p.vel.y += 900.0 * dt
-		p.trail.push_front(p.pos)
-		if p.trail.size() > 8:
-			p.trail.pop_back()
-		var friendly = p.kind == "spark" or p.kind == "big"
-		var alive = p.life < ((1.6 if p.get("home", false) else 1.0) if friendly else 2.5)
-		if alive and _solid_at(p.pos):
-			alive = false
-			fx_burst(p.pos, pal.moss.lightened(0.4) if friendly else pal.dusk, 6, 70.0, 0.3, 100.0, 0.05)
-			if p.kind == "clod":
-				fx_dust(p.pos, 6, 50.0)
-		if alive and friendly:
-			for mo in monsters:
-				if not is_instance_valid(mo) or not mo.vulnerable() or p.hit.has(mo):
-					continue
-				if p.pos.distance_to(mo.world_center()) < mo.radius + p.r:
-					p.hit.append(mo)
-					mo.hit(int(p.dmg), p.pos.x - p.vel.x)
-					register_hit()
-					hitstop(0.05 if p.kind == "spark" else 0.08)
-					shake(3.0 if p.kind == "spark" else 6.0)
-					fx_burst(p.pos, pal.moss.lightened(0.5), 12, 160.0, 0.35, 0.0, 0.06)
-					fx_ring(p.pos, pal.moss.lightened(0.5), 22.0 if p.kind == "spark" else 40.0)
-					if not p.pierce:
-						alive = false
-						break
-		elif alive:
-			if p.pos.distance_to(player.body_center()) < 14.0:
-				_hurt(p.pos.x, {"quill": 8.0, "bolt": 8.0, "clod": 10.0}.get(p.kind, 8.0))
-				alive = false
-		if alive:
-			keep.append(p)
-	projectiles = keep
-
-
 func _update_coins(dt: float) -> void:
 	var c = player.body_center()
-	var magnet = 40.0 + Profile.upgrade_level("magnet") * 35.0 + (220.0 if powers.has("magnet") else 0.0)
+	var magnet = 40.0 + Profile.upgrade_level("magnet") * 15.0 + (220.0 if powers.has("magnet") else 0.0)
 	for cd in coin_list:
 		if cd.got:
 			continue
@@ -1214,7 +1137,7 @@ func _update_coins(dt: float) -> void:
 
 
 func _collect(n: Node2D) -> void:
-	coin_frac += combo_mult()
+	coin_frac += combo_mult() * (1.0 + 0.06 * Profile.upgrade_level("fortune"))
 	var gained = int(coin_frac)
 	coin_frac -= gained
 	st_coins += 1
@@ -1321,7 +1244,7 @@ func _open_chest(cn: Node2D) -> void:
 	Sfx.play("chest")
 	rec("chest")
 	var roll = randf()
-	var luck = Profile.upgrade_level("luck")
+	var luck = int(Profile.upgrade_level("fortune") / 3)
 	var p = cn.position + Vector2(0, -16)
 	if roll < 0.15 + luck * 0.04:
 		for i in 14 + luck * 3:
@@ -1371,6 +1294,9 @@ func on_monster_killed(mo: Monster) -> void:
 	fx_burst(c, mo.body_color.lightened(0.4), 26, 200.0, 0.8, -30.0, 0.08)
 	fx_burst(c, pal.ember.lightened(0.3), 10, 120.0, 0.6, 0.0, 0.05)
 	fx_ring(c, mo.body_color.lightened(0.5), 40.0)
+	fx_flash(c, mo.body_color.lightened(0.5), 0.7 if not mo.boss else 1.5)
+	fx_streaks(c, Color(1, 1, 1), 14)
+	punch = 1.0
 	shake(6.0)
 	Sfx.play("kill" if mo.kind != "slime" else "splat")
 	buzz(25)
@@ -1386,7 +1312,7 @@ func on_monster_killed(mo: Monster) -> void:
 		_boss_defeated(mo)
 	for i in drops:
 		_add_coin(c, true)
-	var luck = Profile.upgrade_level("luck")
+	var luck = int(Profile.upgrade_level("fortune") / 3)
 	if randf() < (0.45 if mo.elite else 0.16) + luck * 0.04:
 		_spawn_power(c, "orb", true)
 	if mo.golden or randf() < (0.25 if mo.elite else 0.05) + luck * 0.02:
@@ -1438,7 +1364,7 @@ func _hurt(from_x: float, dmg: float = 10.0, fell: bool = false) -> void:
 		float_text(player.body_center() + Vector2(0, -30), "Blocked!", pal.moss.lightened(0.6))
 		return
 	var dif = int(Profile.setting("difficulty"))
-	dmg *= [0.6, 1.0, 1.3][dif] * (1.0 - 0.12 * Profile.upgrade_level("armor"))
+	dmg *= [0.6, 1.0, 1.3][dif] * (1.0 - 0.035 * Profile.upgrade_level("armor"))
 	hp -= dmg
 	st_damage += 1
 	combo = 0
@@ -1585,7 +1511,7 @@ func _update_powers(dt: float) -> void:
 	if trail_fx:
 		trail_fx.position = player.position + Vector2(-player.facing * 8.0, -16.0)
 		trail_fx.emitting = (absf(player.vel.x) > 40.0 or not player.on_ground) and (player.trail != "none" or powers.has("star"))
-		if powers.has("star"):
+		if powers.has("star") or player.trail == "rainbow":
 			trail_fx.color = Color.from_hsv(fmod(t * 1.5, 1.0), 0.6, 1.0)
 
 
@@ -1667,15 +1593,143 @@ func _setup_trail() -> void:
 		trail_fx.emitting = false
 		world.add_child(trail_fx)
 	var kind = player.trail
-	trail_fx.gravity = Vector2(0, -30.0) if kind == "ember" else (Vector2(0, 60.0) if kind == "petal" else Vector2.ZERO)
-	trail_fx.color = {"sparkle": Color(0.9, 1.0, 1.0), "ember": Color(1.0, 0.6, 0.3), "petal": Color(1.0, 0.6, 0.75)}.get(kind, Color(1, 1, 1))
+	trail_fx.gravity = {"ember": Vector2(0, -30), "bubble": Vector2(0, -40), "petal": Vector2(0, 60), "leaf": Vector2(0, 60), "snow": Vector2(0, 40)}.get(kind, Vector2.ZERO)
+	var cdef = Profile.cos_def("trail", kind)
+	trail_fx.color = Color(cdef.col[0], cdef.col[1], cdef.col[2]) if cdef.has("col") else Color(1, 1, 1)
 	trail_fx.scale_amount_min = 0.03
 	trail_fx.scale_amount_max = 0.07
 	trail_fx.spread = 180.0
 	trail_fx.initial_velocity_max = 20.0
 
 
+# ---------------- world variety ----------------
+const WEATHER := {
+	"gloamwood": ["fireflies", "rain", "mist", "storm"],
+	"crystal": ["motes", "motes", "none"],
+	"emberfen": ["ash", "ash", "storm"],
+	"frostveil": ["snow", "snow", "aurora"],
+	"verdant": ["pollen", "rain", "fireflies"],
+	"voidreach": ["motes", "aurora", "aurora"],
+}
+const TIMES := [
+	["Twilight", Color(1, 1, 1)], ["Deep night", Color(0.78, 0.82, 1.0)], ["Dawn", Color(1.05, 0.92, 0.95)], ["Moonrise", Color(0.92, 0.98, 1.05)],
+]
+
+
+func _apply_variant(n: int) -> void:
+	var r = RandomNumberGenerator.new()
+	r.seed = LevelGen.seed_for(n, run_seed) + 77
+	var opts: Array = WEATHER.get(biome, ["none"])
+	weather_kind = opts[r.randi() % opts.size()]
+	var tod = TIMES[r.randi() % TIMES.size()]
+	tod_tint = tod[1]
+	canvas_mod.color = Color(0.86, 0.86, 0.96).lerp(pal.moon, 0.1) * tod_tint
+	sky.modulate = tod_tint
+	aurora.visible = weather_kind == "aurora" or (biome == "voidreach")
+	fireflies.emitting = weather_kind in ["fireflies", "pollen", "mist"] or biome == "gloamwood"
+	lightning_t = 3.0
+	var w = weather
+	w.emitting = weather_kind not in ["none", "mist", "fireflies", "aurora"]
+	w.texture = glow
+	w.material = add_mat
+	w.scale_amount_min = 0.03
+	w.scale_amount_max = 0.06
+	w.angle_min = 0.0
+	w.angle_max = 0.0
+	w.direction = Vector2.DOWN
+	w.spread = 10.0
+	match weather_kind:
+		"rain", "storm":
+			w.texture = _streak_tex()
+			w.material = null
+			w.amount = 140
+			w.lifetime = 1.1
+			w.gravity = Vector2(-60, 900)
+			w.initial_velocity_min = 300.0
+			w.initial_velocity_max = 380.0
+			w.scale_amount_min = 0.9
+			w.scale_amount_max = 1.2
+			w.color = Color(pal.moon, 0.35)
+			w.particle_flag_align_y = true
+		"snow":
+			w.amount = 90
+			w.lifetime = 5.0
+			w.gravity = Vector2(10, 22)
+			w.initial_velocity_min = 10.0
+			w.initial_velocity_max = 30.0
+			w.spread = 60.0
+			w.scale_amount_min = 0.02
+			w.scale_amount_max = 0.05
+			w.color = Color(1, 1, 1, 0.85)
+			w.particle_flag_align_y = false
+		"ash":
+			w.amount = 60
+			w.lifetime = 5.0
+			w.gravity = Vector2(6, -10)
+			w.direction = Vector2.UP
+			w.initial_velocity_min = 5.0
+			w.initial_velocity_max = 20.0
+			w.spread = 90.0
+			w.color = pal.ember.lightened(0.2)
+			w.particle_flag_align_y = false
+		"motes", "pollen":
+			w.amount = 50
+			w.lifetime = 6.0
+			w.gravity = Vector2(4, 6)
+			w.initial_velocity_min = 4.0
+			w.initial_velocity_max = 14.0
+			w.spread = 180.0
+			w.color = (pal.moss.lightened(0.5) if weather_kind == "motes" else pal.ember.lightened(0.4))
+			w.particle_flag_align_y = false
+	if weather_kind in ["ash", "motes", "pollen", "snow"]:
+		w.emission_rect_extents = Vector2(260, 400)
+		w.preprocess = 4.0
+	else:
+		w.emission_rect_extents = Vector2(300, 10)
+		w.preprocess = 1.0
+	(post.material as ShaderMaterial).set_shader_parameter("vignette", 0.95 if weather_kind == "storm" else 0.8)
+
+
+var _streak: Texture2D
+func _streak_tex() -> Texture2D:
+	if _streak == null:
+		var img = Image.create(2, 18, false, Image.FORMAT_RGBA8)
+		for y in 18:
+			for x in 2:
+				img.set_pixel(x, y, Color(1, 1, 1, float(y) / 18.0))
+		_streak = ImageTexture.create_from_image(img)
+	return _streak
+
+
+func _draw_aurora() -> void:
+	var cols = [pal.moss.lightened(0.3), pal.dusk.lightened(0.3), pal.ember.lightened(0.2)]
+	for band in 3:
+		var pts = PackedVector2Array()
+		var cl = PackedColorArray()
+		var base_y = 70.0 + band * 26.0
+		var steps = 24
+		for i in steps + 1:
+			var x = -20.0 + (VW + 40.0) * i / steps
+			var y = base_y + sin(x * 0.012 + t * 0.3 + band) * 22.0 + sin(x * 0.03 + t * 0.7) * 6.0
+			pts.append(Vector2(x, y))
+			cl.append(Color(cols[band], 0.0))
+		for i in range(steps, -1, -1):
+			var x2 = -20.0 + (VW + 40.0) * i / steps
+			var y2 = base_y + sin(x2 * 0.012 + t * 0.3 + band) * 22.0 + sin(x2 * 0.03 + t * 0.7) * 6.0 + 60.0 + sin(x2 * 0.02 + t) * 14.0
+			pts.append(Vector2(x2, y2))
+			cl.append(Color(cols[band], 0.16 + 0.06 * sin(t + i * 0.3)))
+		aurora.draw_polygon(pts, cl)
+
+
 # ---------------- helpers ----------------
+func solid_at(p: Vector2) -> bool:
+	return _solid_at(p)
+
+
+func hurt(from_x: float, dmg: float) -> void:
+	_hurt(from_x, dmg)
+
+
 func _solid_at(p: Vector2) -> bool:
 	for s in solids:
 		if s.kind == "ground" and s.r.has_point(p):
@@ -1761,6 +1815,27 @@ func fx_dust(pos: Vector2, n: int, spread: float) -> void:
 	get_tree().create_timer(0.9, false).timeout.connect(p.queue_free)
 
 
+func fx_streaks(pos: Vector2, col: Color, n: int = 10) -> void:
+	var lines = []
+	for i in n:
+		lines.append([Vector2.from_angle(randf() * TAU), randf_range(18.0, 40.0)])
+	fx_items.append({"type": "streaks", "pos": pos, "col": col.lightened(0.3), "lines": lines, "life": 0.0, "max": 0.28})
+
+
+func fx_flash(pos: Vector2, col: Color, strength: float = 0.5) -> void:
+	fx_items.append({"type": "flash", "pos": pos, "col": col, "s": strength, "life": 0.0, "max": 0.3})
+	var lt = PointLight2D.new()
+	lt.texture = glow
+	lt.texture_scale = 2.0 + strength * 3.0
+	lt.color = col
+	lt.energy = 1.4 * strength
+	lt.position = pos
+	world.add_child(lt)
+	var tw = create_tween()
+	tw.tween_property(lt, "energy", 0.0, 0.3)
+	tw.tween_callback(lt.queue_free)
+
+
 func fx_ring(pos: Vector2, col: Color, r: float) -> void:
 	fx_items.append({"type": "ring", "pos": pos, "col": col, "r": r, "life": 0.0, "max": 0.4})
 
@@ -1777,7 +1852,7 @@ func shockwave(pos: Vector2, col: Color, power: int, dmg: int = 12) -> void:
 
 
 func spawn_shot(kind: String, pos: Vector2, vel: Vector2) -> void:
-	projectiles.append({"kind": kind, "pos": pos, "vel": vel, "life": 0.0, "trail": [], "dmg": 1, "r": 4.0, "pierce": false, "hit": []})
+	weapons.enemy_shot("ebolt" if kind == "bolt" else kind, pos, vel)
 
 
 func fire_beam(from: Vector2, dir: Vector2, dmg: int = 12) -> void:
@@ -1833,6 +1908,28 @@ func _draw_fx(additive: bool) -> void:
 						node.draw_line(Vector2(x, f.pos.y), Vector2(x - side * 30.0, f.pos.y), Color(f.col.lightened(0.4), a), 3.0, true)
 				else:
 					node.draw_arc(f.pos + Vector2(0, 6), r, PI * 1.05, PI * 1.95, 24, Color(pal.ink, 0.35 * a), 4.0, true)
+			"streaks":
+				if additive:
+					for st in f.lines:
+						var a5 = 1.0 - k
+						var p0: Vector2 = f.pos + st[0] * (4.0 + k * st[1] * 0.6)
+						var p1: Vector2 = f.pos + st[0] * (4.0 + k * st[1] * 0.6 + st[1] * (1.0 - k) * 0.5)
+						node.draw_line(p0, p1, Color(f.col, a5), 2.2 * a5 + 0.4, true)
+			"flash":
+				if additive:
+					var fr = 30.0 + k * 50.0 * f.s
+					node.draw_texture_rect(glow, Rect2(f.pos - Vector2(fr, fr), Vector2(fr, fr) * 2.0), false, Color(f.col, (1.0 - k) * f.s))
+			"zap":
+				if additive:
+					var rz = RandomNumberGenerator.new()
+					rz.seed = int(f.seed) + int(f.life * 40.0)
+					var zp = PackedVector2Array([f.pos])
+					for zi in 6:
+						var u = float(zi + 1) / 7.0
+						zp.append(f.pos.lerp(f.end, u) + Vector2(rz.randf_range(-7, 7), rz.randf_range(-7, 7)))
+					zp.append(f.end)
+					node.draw_polyline(zp, Color(f.col, 0.6 * (1.0 - k)), 5.0, true)
+					node.draw_polyline(zp, Color(1, 1, 0.9, 1.0 - k), 1.6, true)
 			"lance":
 				if additive:
 					var lc = Color(0.85, 0.95, 1.0)
@@ -1849,36 +1946,6 @@ func _draw_fx(additive: bool) -> void:
 					node.draw_line(f.pos, end, Color(bc, 0.9 * (1.0 - k)), w, true)
 					node.draw_line(f.pos, end, Color(1, 1, 1, 1.0 - k), w * 0.35, true)
 					node.draw_texture_rect(glow, Rect2(f.pos - Vector2(30, 30), Vector2(60, 60)), false, Color(bc, 1.0 - k))
-	for p in projectiles:
-		match p.kind:
-			"spark", "big":
-				if additive:
-					var tr: Array = p.trail
-					var col = pal.moss.lightened(0.5) if p.kind == "spark" else Color(1, 0.95, 0.7)
-					for i in range(tr.size() - 1):
-						var a2 = 1.0 - float(i) / tr.size()
-						node.draw_line(tr[i], tr[i + 1], Color(col, a2 * 0.8), p.r * 1.2 * a2 + 1.0, true)
-					var rr = p.r * 4.5
-					node.draw_texture_rect(glow, Rect2(p.pos - Vector2(rr, rr), Vector2(rr, rr) * 2.0), false, col)
-					node.draw_circle(p.pos, p.r * 0.7, Color(1, 1, 1))
-			"quill":
-				if additive:
-					node.draw_texture_rect(glow, Rect2(p.pos - Vector2(10, 10), Vector2(20, 20)), false, Color(pal.dusk.lightened(0.4), 0.6))
-				else:
-					var d: Vector2 = p.vel.normalized()
-					var tail: Vector2 = p.pos - d * 12.0
-					var nrm = d.orthogonal() * 2.2
-					node.draw_colored_polygon(PackedVector2Array([p.pos + d * 4.0, tail + nrm, tail - nrm]), pal.dusk.lightened(0.15))
-			"bolt":
-				if additive:
-					var d2: Vector2 = p.vel.normalized()
-					node.draw_line(p.pos - d2 * 14.0, p.pos, Color(1, 0.35, 0.3), 4.0, true)
-					node.draw_line(p.pos - d2 * 10.0, p.pos, Color(1, 0.9, 0.85), 1.5, true)
-					node.draw_texture_rect(glow, Rect2(p.pos - Vector2(12, 12), Vector2(24, 24)), false, Color(1, 0.3, 0.25, 0.8))
-			"clod":
-				if not additive:
-					node.draw_circle(p.pos, 5.0, pal.ink.lerp(pal.ember, 0.25))
-					node.draw_circle(p.pos + Vector2(-1.5, -1.5), 2.0, pal.ink.lerp(pal.ember, 0.45))
 
 
 func _draw_edge(n: Node2D, r: Rect2) -> void:

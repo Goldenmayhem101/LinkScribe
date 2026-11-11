@@ -11,8 +11,10 @@ const JUMP_V := 760.0
 const MAX_RISE := 135.0
 const SOIL := 1400.0
 
-const BIOMES := ["gloamwood", "crystal", "emberfen"]
-const BIOME_NAMES := {"gloamwood": "Gloamwood", "crystal": "Crystal Caverns", "emberfen": "Emberfen"}
+const BIOMES := ["gloamwood", "crystal", "emberfen", "frostveil", "verdant", "voidreach"]
+const BIOME_NAMES := {"gloamwood": "Gloamwood", "crystal": "Crystal Caverns", "emberfen": "Emberfen",
+	"frostveil": "Frostveil", "verdant": "Verdant Hollow", "voidreach": "Void Reach"}
+const STAGES_PER_WORLD := 5
 const BUDGET_MULT := [0.6, 1.0, 1.3]
 const POWERUPS := {"heal": 3.0, "shield": 1.6, "triple": 1.4, "homing": 1.4, "rapid": 1.2, "magnet": 0.8, "star": 0.5}
 
@@ -33,8 +35,23 @@ var luck := 0
 var difficulty := 1
 
 
+## Worlds: 5 stages each, the 5th is the boss. After the 6th world the cycle repeats, harder (tier II, III, ...).
+static func world_of(s: int) -> int:
+	return int((s - 1) / STAGES_PER_WORLD) + 1
+
+
+static func stage_in_world(s: int) -> int:
+	return (s - 1) % STAGES_PER_WORLD + 1
+
+
 static func biome_for(s: int) -> String:
-	return BIOMES[int((s - 1) / 2) % BIOMES.size()]
+	return BIOMES[(world_of(s) - 1) % BIOMES.size()]
+
+
+static func world_name(s: int) -> String:
+	var tier = int((world_of(s) - 1) / BIOMES.size())
+	var roman = ["", " II", " III", " IV", " V", " VI", " VII", " VIII", " IX", " X"]
+	return BIOME_NAMES[biome_for(s)] + (roman[tier] if tier < roman.size() else " +" + str(tier))
 
 
 static func is_boss_stage(s: int) -> bool:
@@ -84,14 +101,14 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 	helpers_added = 0
 	var base_diff = 1.0 - exp(-(s - 1) / 7.0)
 	diff = clampf(base_diff * [0.6, 1.0, 1.25][difficulty] + (0.12 if difficulty == 2 else 0.0), 0.0, 1.0)
-	var budget = (1.0 + s * 0.9 + maxf(s - 3, 0) * 0.3) * BUDGET_MULT[difficulty]
+	var budget = minf(1.0 + s * 0.7 + maxf(s - 3, 0) * 0.15, 12.0 + s * 0.1) * BUDGET_MULT[difficulty]
 	var boss_stage = is_boss_stage(s)
 	var x = -240.0
 	var h = 0.0
 	_ground(x, 560.0, h)
 	checkpoints.append(Vector2(-150.0, h))
 	x += 560.0
-	var target_len = (1500.0 + s * 160.0) if boss_stage else (2400.0 + s * 340.0)
+	var target_len = (1500.0 + mini(s, 20) * 160.0) if boss_stage else (2400.0 + mini(s, 18) * 340.0)
 	var last_cp = x
 	var guard = 0
 	while x < target_len and guard < 300:

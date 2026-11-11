@@ -5,6 +5,9 @@ extends Node
 const RATE := 22050
 
 var sfx := {}
+var flavor_sfx := {}
+var flavor := ""
+var flavor_cache := {}
 var players: Array[AudioStreamPlayer] = []
 var music_player: AudioStreamPlayer
 var music_cache := {}
@@ -34,8 +37,48 @@ func apply_volumes() -> void:
 	music_player.volume_db = linear_to_db(maxf(_setting("music", 0.85), 0.0005)) + 1.0
 
 
+## Each world gives the most frequent sounds its own timbre:
+##   warm (forest worlds) · glass (crystal / frost) · ember (lower, rounder) · synth (void: retro square)
+const FLAVORS := {"gloamwood": "warm", "verdant": "warm", "crystal": "glass", "frostveil": "glass", "emberfen": "ember", "voidreach": "synth"}
+
+
+func set_flavor(biome: String) -> void:
+	var f: String = FLAVORS.get(biome, "warm")
+	if f == flavor:
+		return
+	flavor = f
+	if not flavor_cache.has(f):
+		flavor_cache[f] = _build_flavor(f)
+	flavor_sfx = flavor_cache[f]
+
+
+func _build_flavor(f: String) -> Dictionary:
+	var d = {}
+	match f:
+		"glass":
+			d.jump = _wav(_mix(_tone(0.16, 600, 1100, 0, 0.18, 2.2), _tone(0.16, 1800, 3300, 0, 0.05, 2.5)))
+			d.coin = _wav(_mix(_tone(0.12, 1760, 1760, 0, 0.22, 2.5), _tone(0.25, 2637, 2637, 0, 0.14, 3.0), 0.05))
+			d.spark = _wav(_mix(_tone(0.14, 2200, 900, 0, 0.2, 2.5), _tone(0.1, 3300, 1500, 0, 0.06, 3.0)))
+			d.hit = _wav(_tone(0.1, 1200, 700, 0, 0.2, 3.0, 0.15))
+			d.kill = _wav(_seq([1318.0, 1760.0, 2637.0], 0.05, 0, 0.18, 3.0))
+		"ember":
+			d.jump = _wav(_tone(0.15, 200, 420, 3, 0.24, 2.0))
+			d.coin = _wav(_mix(_tone(0.07, 988, 988, 3, 0.26, 1.6), _tone(0.15, 1318, 1318, 3, 0.24, 2.0), 0.05))
+			d.spark = _wav(_tone(0.14, 900, 300, 3, 0.3, 2.2, 0.35))
+			d.hit = _wav(_tone(0.11, 160, 90, 3, 0.3, 2.5, 0.5))
+			d.kill = _wav(_mix(_tone(0.12, 440, 440, 3, 0.18, 2.0), _tone(0.22, 660, 880, 3, 0.16, 2.5), 0.07))
+		"synth":
+			d.jump = _wav(_tone(0.13, 330, 990, 1, 0.12, 2.0))
+			d.coin = _wav(_mix(_tone(0.06, 1568, 1568, 1, 0.12, 1.5), _tone(0.14, 2093, 2093, 1, 0.12, 2.0), 0.05))
+			d.spark = _wav(_tone(0.11, 1600, 400, 1, 0.12, 2.0))
+			d.hit = _wav(_tone(0.08, 300, 120, 1, 0.16, 3.0, 0.3))
+			d.kill = _wav(_seq([523.0, 784.0, 1046.0, 1568.0], 0.04, 1, 0.1, 3.0))
+	return d
+
+
 func play(name: String, pitch: float = 1.0, jitter: float = 0.05, vol_db: float = 0.0) -> void:
-	if not sfx.has(name):
+	var stream = flavor_sfx.get(name, sfx.get(name))
+	if stream == null:
 		return
 	var v = _setting("sfx", 0.85)
 	if v <= 0.01:
@@ -48,7 +91,7 @@ func play(name: String, pitch: float = 1.0, jitter: float = 0.05, vol_db: float 
 	if p == null:
 		p = players[_rr % players.size()]
 		_rr += 1
-	p.stream = sfx[name]
+	p.stream = stream
 	p.pitch_scale = pitch * (1.0 + randf_range(-jitter, jitter))
 	p.volume_db = linear_to_db(v) + vol_db
 	p.play()
@@ -174,6 +217,16 @@ func _build_sfx() -> void:
 	sfx.burrow = _wav(_tone(0.35, 90, 60, 2, 0.3, 1.0, 0.9))
 	sfx.laser = _wav(_tone(0.12, 1100, 600, 3, 0.14, 2.0))
 	sfx.bounce = _wav(_tone(0.22, 200, 700, 3, 0.35, 1.5))
+	sfx.lock = _wav(_seq([880.0, 1320.0], 0.05, 0, 0.22, 2.5))
+	sfx.scatter = _wav(_mix(_tone(0.16, 500, 150, 0, 0.35, 2.0, 0.6), _tone(0.1, 900, 300, 3, 0.15, 2.5)))
+	sfx.shard = _wav(_mix(_tone(0.12, 2600, 1400, 0, 0.16, 2.5), _tone(0.12, 3900, 2100, 0, 0.06, 3.0)))
+	sfx.whoosh = _wav(_tone(0.3, 300, 700, 0, 0.3, 1.0, 0.85, 0.05))
+	sfx.zap = _wav(_tone(0.25, 900, 300, 2, 0.16, 1.5, 0.45, 0.004, 0.3))
+	sfx.mortar = _wav(_mix(_tone(0.2, 160, 90, 0, 0.45, 2.0), _tone(0.12, 400, 200, 3, 0.15, 2.0, 0.5)))
+	sfx.wisp = _wav(_tone(0.2, 700, 1200, 0, 0.18, 1.5, 0.0, 0.01, 0.15))
+	sfx.boom = _wav(_mix(_tone(0.6, 90, 35, 0, 0.7, 1.5), _tone(0.5, 120, 50, 2, 0.25, 2.0, 0.9)))
+	sfx.slash = _wav(_tone(0.16, 900, 250, 0, 0.32, 2.0, 0.8, 0.01))
+	sfx.thunder = _wav(_mix(_tone(1.4, 70, 30, 0, 0.5, 1.2, 0.9, 0.02), _tone(1.2, 50, 25, 2, 0.2, 1.5, 0.95, 0.08)))
 	sfx.crumble = _wav(_tone(0.3, 160, 80, 3, 0.2, 1.4, 0.5))
 	sfx.power = _wav(_seq([659.0, 880.0, 1175.0, 1568.0], 0.06, 0, 0.3, 2.0))
 	sfx.heal = _wav(_seq([523.0, 784.0, 1046.0], 0.08, 0, 0.28, 2.0))
@@ -187,6 +240,9 @@ const SONGS := {
 	"gloamwood": {"bpm": 84.0, "chords": [[220.0, 0], [174.6, 1], [130.8, 1], [196.0, 1]], "bright": 0.0, "boss": false},
 	"crystal": {"bpm": 92.0, "chords": [[164.8, 0], [130.8, 1], [196.0, 1], [146.8, 1]], "bright": 1.0, "boss": false},
 	"emberfen": {"bpm": 78.0, "chords": [[146.8, 0], [116.5, 1], [196.0, 0], [220.0, 1]], "bright": 0.0, "boss": false},
+	"frostveil": {"bpm": 66.0, "chords": [[174.6, 1], [146.8, 0], [130.8, 1], [196.0, 1]], "bright": 1.0, "boss": false, "bell": true},
+	"verdant": {"bpm": 100.0, "chords": [[196.0, 1], [164.8, 0], [130.8, 1], [146.8, 1]], "bright": 0.6, "boss": false},
+	"voidreach": {"bpm": 112.0, "chords": [[155.6, 0], [123.5, 1], [138.6, 1], [185.0, 0]], "bright": 0.4, "boss": false, "synth": true},
 	"boss": {"bpm": 132.0, "chords": [[220.0, 0], [220.0, 0], [174.6, 1], [164.8, 1]], "bright": 0.5, "boss": true},
 	"menu": {"bpm": 70.0, "chords": [[220.0, 0], [196.0, 1], [174.6, 1], [164.8, 1]], "bright": 0.3, "boss": false},
 }
@@ -201,6 +257,8 @@ func _gen_music(key: String) -> AudioStreamWAV:
 	buf.resize(n)
 	var boss: bool = song.boss
 	var bright: float = song.bright
+	var bell: bool = song.get("bell", false)
+	var synth: bool = song.get("synth", false)
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(key)
 	var arp_pat = [0, 1, 2, 1, 0, 2, 1, 2]
@@ -221,16 +279,24 @@ func _gen_music(key: String) -> AudioStreamWAV:
 		var tt = t - step * st
 		var note: float = tones[arp_pat[step % 8]] * (2.0 if (bar >= 4 or bright > 0.5) else 1.0) * (2.0 if boss else 1.0)
 		var tri = sin(TAU * note * tt) * 0.8 + sin(TAU * note * 2.0 * tt) * 0.15
-		var arp = tri * exp(-tt * (6.0 if not boss else 10.0)) * (0.07 + bright * 0.025)
+		if bell:
+			tri = sin(TAU * note * tt) * 0.6 + sin(TAU * note * 2.76 * tt) * 0.25 + sin(TAU * note * 5.4 * tt) * 0.1
+		elif synth:
+			var ph = fmod(note * tt, 1.0)
+			tri = (1.0 if ph < 0.3 else -1.0) * 0.45 + sin(TAU * note * tt) * 0.35
+		var arp = tri * exp(-tt * (6.0 if not boss else 10.0) * (0.5 if bell else 1.0)) * (0.07 + bright * 0.025)
 		# bass
 		var bt = fmod(t, beat * 2.0)
 		var bass = sin(TAU * root * 0.5 * t) * exp(-bt * 2.0) * 0.12
+		if synth:
+			var pulse = exp(-fmod(t, beat * 0.5) * 8.0)
+			bass = sin(TAU * root * 0.5 * t) * pulse * 0.16
 		if boss:
 			var saw = 2.0 * fmod(root * 0.5 * t, 1.0) - 1.0
 			bass = saw * exp(-fmod(t, beat * 0.5) * 6.0) * 0.08
 		# percussion
 		var hb = fmod(t + beat * 0.5, beat)
-		var hat = sin(TAU * 4200.0 * hb) * exp(-hb * 70.0) * (0.012 if boss else 0.0)
+		var hat = sin(TAU * 4200.0 * hb) * exp(-hb * 70.0) * (0.012 if (boss or synth) else 0.0)
 		var kick = 0.0
 		if boss:
 			var kb = fmod(t, beat)

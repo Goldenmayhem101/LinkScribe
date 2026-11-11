@@ -22,22 +22,39 @@ const CHARACTERS := [
 		"hp": 85, "hearts": 2, "speed": 1.15, "air_jumps": 2, "spark": "single", "tint": [0.75, 0.95, 0.92], "scarf": [0.3, 0.9, 0.8]},
 ]
 
+## Per-hero upgrades: 10 levels each, every level costs more (base * 1.45^level).
+const UPGRADE_MAX := 10
 const UPGRADES := [
-	{"id": "hearts", "name": "Vitality", "desc": "+20 max health", "costs": [120, 350, 800]},
-	{"id": "armor", "name": "Moss Armor", "desc": "Take 12% less damage", "costs": [150, 450, 900]},
-	{"id": "spark", "name": "Spark Core", "desc": "Bigger, stronger sparks", "costs": [100, 300, 700]},
-	{"id": "rapid", "name": "Quick Hands", "desc": "Faster spark rate", "costs": [80, 250, 600]},
-	{"id": "magnet", "name": "Coin Magnet", "desc": "Pull coins from farther", "costs": [60, 200, 500]},
-	{"id": "dash", "name": "Wind Step", "desc": "Shorter dash cooldown", "costs": [120, 450]},
-	{"id": "luck", "name": "Lucky Charm", "desc": "More chests and golden monsters", "costs": [100, 350, 800]},
+	{"id": "vitality", "name": "Vitality", "desc": "+10 max health per level", "base": 60},
+	{"id": "power", "name": "Spark Power", "desc": "+10% ranged damage per level", "base": 80},
+	{"id": "blade", "name": "Blade Edge", "desc": "+10% melee damage per level", "base": 70},
+	{"id": "haste", "name": "Quick Hands", "desc": "+5% attack speed per level", "base": 70},
+	{"id": "armor", "name": "Moss Armor", "desc": "-3.5% damage taken per level", "base": 90},
+	{"id": "swift", "name": "Wind Step", "desc": "Faster dash recharge and run speed", "base": 60},
+	{"id": "magnet", "name": "Coin Magnet", "desc": "Pull coins from farther away", "base": 40},
+	{"id": "fortune", "name": "Fortune", "desc": "+6% coins, more chests and golden monsters", "base": 100},
 ]
 
-## Weapons: permanent, equip one. Every weapon auto-aims at the nearest monster in front (including flyers above).
+## Ranged weapons: equip one. Aim assist (or a tapped target) picks what they fire at.
 const WEAPONS := [
-	{"id": "spark", "name": "Spark", "desc": "Quick bolts that seek the nearest monster.", "cost": 0, "level": 1, "rate": 0.28, "dmg": 1},
-	{"id": "seeker", "name": "Seeker Wisps", "desc": "Homing wisps that curve into flying monsters.", "cost": 300, "level": 2, "rate": 0.36, "dmg": 1},
-	{"id": "lance", "name": "Moon Lance", "desc": "Instant piercing beam. Hits everything in a line.", "cost": 650, "level": 4, "rate": 0.5, "dmg": 2},
-	{"id": "scatter", "name": "Ember Scatter", "desc": "Five-shot burst. Huge damage up close.", "cost": 1000, "level": 6, "rate": 0.55, "dmg": 1},
+	{"id": "spark", "name": "Spark Bolt", "desc": "Quick bolts of lantern light.", "cost": 0, "level": 1, "rate": 0.28, "dmg": 1.0, "col": [0.55, 1.0, 0.92]},
+	{"id": "seeker", "name": "Seeker Wisps", "desc": "Homing wisps that curve into their target.", "cost": 300, "level": 2, "rate": 0.36, "dmg": 1.0, "col": [0.75, 0.62, 1.0]},
+	{"id": "shard", "name": "Frost Shards", "desc": "Three ice shards. Hit monsters are slowed.", "cost": 450, "level": 3, "rate": 0.42, "dmg": 0.8, "col": [0.7, 0.9, 1.0]},
+	{"id": "lance", "name": "Moon Lance", "desc": "Instant piercing beam through a whole line.", "cost": 650, "level": 4, "rate": 0.5, "dmg": 2.0, "col": [0.9, 0.95, 1.0]},
+	{"id": "scatter", "name": "Ember Scatter", "desc": "Five-shot burst. Huge damage up close.", "cost": 900, "level": 6, "rate": 0.55, "dmg": 0.9, "col": [1.0, 0.6, 0.3]},
+	{"id": "boomerang", "name": "Leafwing", "desc": "Spinning leaf blade that flies out and comes back.", "cost": 1200, "level": 7, "rate": 0.6, "dmg": 1.6, "col": [0.55, 0.95, 0.45]},
+	{"id": "thunder", "name": "Storm Orb", "desc": "Slow orb that chains lightning to nearby monsters.", "cost": 1600, "level": 9, "rate": 0.7, "dmg": 1.5, "col": [1.0, 0.95, 0.45]},
+	{"id": "cannon", "name": "Star Mortar", "desc": "Lobbed star shell that explodes in an area.", "cost": 2200, "level": 11, "rate": 0.9, "dmg": 3.0, "col": [1.0, 0.75, 0.95]},
+]
+
+## Melee weapons: swing automatically when a monster gets close.
+const MELEE := [
+	{"id": "staff", "name": "Lantern Staff", "desc": "A wide sweep of lantern light.", "cost": 0, "level": 1, "rate": 0.45, "dmg": 2.0, "reach": 40.0, "arc": 150.0, "col": [1.0, 0.8, 0.45]},
+	{"id": "sickle", "name": "Moon Sickle", "desc": "Crescent slash that hits all around you.", "cost": 350, "level": 3, "rate": 0.5, "dmg": 2.2, "reach": 42.0, "arc": 220.0, "col": [0.85, 0.92, 1.0]},
+	{"id": "lash", "name": "Thorn Lash", "desc": "Long-reach vine whip.", "cost": 600, "level": 5, "rate": 0.55, "dmg": 1.8, "reach": 68.0, "arc": 70.0, "col": [0.5, 0.95, 0.45]},
+	{"id": "rapier", "name": "Crystal Rapier", "desc": "Lightning-fast thrusts.", "cost": 900, "level": 7, "rate": 0.24, "dmg": 1.2, "reach": 50.0, "arc": 50.0, "col": [0.6, 0.95, 1.0]},
+	{"id": "hammer", "name": "Ember Hammer", "desc": "Slow, crushing blows with a shockwave.", "cost": 1300, "level": 9, "rate": 0.85, "dmg": 4.5, "reach": 42.0, "arc": 160.0, "col": [1.0, 0.5, 0.25]},
+	{"id": "scythe", "name": "Void Scythe", "desc": "Huge spinning reap. The ultimate blade.", "cost": 2000, "level": 12, "rate": 0.7, "dmg": 3.4, "reach": 58.0, "arc": 260.0, "col": [0.8, 0.45, 1.0]},
 ]
 
 ## Wardrobe: cosmetic only.
@@ -49,8 +66,12 @@ const COSMETICS := {
 		{"id": "mint", "name": "Mint", "cost": 60, "col": [0.4, 0.95, 0.75]},
 		{"id": "violet", "name": "Violet", "cost": 90, "col": [0.68, 0.48, 1.0]},
 		{"id": "crimson", "name": "Crimson", "cost": 120, "col": [0.9, 0.2, 0.25]},
-		{"id": "gold", "name": "Gold", "cost": 250, "col": [1.0, 0.85, 0.3]},
 		{"id": "snow", "name": "Snow", "cost": 150, "col": [0.95, 0.97, 1.0]},
+		{"id": "forest", "name": "Forest", "cost": 150, "col": [0.25, 0.6, 0.35]},
+		{"id": "midnight", "name": "Midnight", "cost": 200, "col": [0.2, 0.25, 0.55]},
+		{"id": "coral", "name": "Coral", "cost": 200, "col": [1.0, 0.55, 0.45]},
+		{"id": "gold", "name": "Gold", "cost": 300, "col": [1.0, 0.85, 0.3]},
+		{"id": "aurora", "name": "Aurora", "cost": 500, "col": [0.5, 1.0, 0.85], "col2": [0.75, 0.5, 1.0]},
 	],
 	"cloak": [
 		{"id": "moon", "name": "Moonlight", "cost": 0, "col": [1.0, 1.0, 1.0]},
@@ -59,19 +80,41 @@ const COSMETICS := {
 		{"id": "fern", "name": "Fern", "cost": 120, "col": [0.8, 1.0, 0.85]},
 		{"id": "dusk", "name": "Dusk", "cost": 160, "col": [0.82, 0.74, 1.0]},
 		{"id": "ash", "name": "Ash", "cost": 200, "col": [0.66, 0.66, 0.74]},
+		{"id": "honey", "name": "Honey", "cost": 220, "col": [1.0, 0.9, 0.62]},
+		{"id": "blossom", "name": "Blossom", "cost": 260, "col": [1.0, 0.8, 0.88]},
+		{"id": "shadow", "name": "Shadow", "cost": 350, "col": [0.45, 0.45, 0.58]},
+		{"id": "starlit", "name": "Starlit", "cost": 600, "col": [0.85, 0.85, 1.0], "stars": true},
 	],
 	"hat": [
 		{"id": "none", "name": "None", "cost": 0},
 		{"id": "leaf", "name": "Leaf Sprout", "cost": 100},
+		{"id": "flower", "name": "Moonflower", "cost": 140},
 		{"id": "horns", "name": "Little Horns", "cost": 180},
-		{"id": "antenna", "name": "Star Antenna", "cost": 220},
-		{"id": "crown", "name": "Lantern Crown", "cost": 400},
+		{"id": "ears", "name": "Fox Ears", "cost": 200},
+		{"id": "mushroom", "name": "Toadstool", "cost": 240},
+		{"id": "antenna", "name": "Star Antenna", "cost": 260},
+		{"id": "witch", "name": "Witch Hat", "cost": 320},
+		{"id": "halo", "name": "Halo", "cost": 380},
+		{"id": "crown", "name": "Lantern Crown", "cost": 500},
+	],
+	"eyes": [
+		{"id": "mint", "name": "Mint", "cost": 0, "col": [0.85, 1.0, 0.95]},
+		{"id": "gold", "name": "Gold", "cost": 80, "col": [1.0, 0.85, 0.35]},
+		{"id": "rose", "name": "Rose", "cost": 80, "col": [1.0, 0.55, 0.7]},
+		{"id": "violet", "name": "Violet", "cost": 120, "col": [0.75, 0.55, 1.0]},
+		{"id": "ice", "name": "Ice", "cost": 120, "col": [0.6, 0.85, 1.0]},
+		{"id": "fire", "name": "Fire", "cost": 200, "col": [1.0, 0.45, 0.2]},
 	],
 	"trail": [
 		{"id": "none", "name": "None", "cost": 0},
-		{"id": "sparkle", "name": "Sparkles", "cost": 150},
-		{"id": "ember", "name": "Embers", "cost": 200},
-		{"id": "petal", "name": "Petals", "cost": 250},
+		{"id": "sparkle", "name": "Sparkles", "cost": 150, "col": [0.9, 1.0, 1.0]},
+		{"id": "ember", "name": "Embers", "cost": 200, "col": [1.0, 0.6, 0.3]},
+		{"id": "petal", "name": "Petals", "cost": 250, "col": [1.0, 0.6, 0.75]},
+		{"id": "snow", "name": "Snowflakes", "cost": 250, "col": [0.92, 0.97, 1.0]},
+		{"id": "leaf", "name": "Leaves", "cost": 250, "col": [0.5, 0.9, 0.45]},
+		{"id": "bubble", "name": "Bubbles", "cost": 300, "col": [0.6, 0.9, 1.0]},
+		{"id": "star", "name": "Stardust", "cost": 400, "col": [1.0, 0.95, 0.6]},
+		{"id": "rainbow", "name": "Rainbow", "cost": 700, "col": [1.0, 1.0, 1.0]},
 	],
 }
 
@@ -103,6 +146,8 @@ const ACHIEVEMENTS := [
 
 var data: Dictionary = {}
 var dirty := false
+## Test/demo modes set this so they never touch the player's real save.
+var no_save := false
 var _save_t := 0.0
 
 
@@ -120,15 +165,15 @@ func _process(dt: float) -> void:
 
 func defaults() -> Dictionary:
 	return {
-		"version": 2, "coins": 0, "xp": 0, "level": 1,
+		"version": 3, "coins": 0, "xp": 0, "level": 1,
 		"upgrades": {}, "heroes": ["lumen"], "hero": "lumen",
-		"weapons": ["spark"], "weapon": "spark",
-		"owned_cos": ["scarf:amber", "scarf:rose", "cloak:moon", "hat:none", "trail:none"],
-		"look": {"scarf": "amber", "cloak": "moon", "hat": "none", "trail": "none"},
+		"weapons": ["spark"], "weapon": "spark", "melees": ["staff"], "melee": "staff", "hupg": {},
+		"owned_cos": ["scarf:amber", "scarf:rose", "cloak:moon", "hat:none", "trail:none", "eyes:mint"],
+		"look": {"scarf": "amber", "cloak": "moon", "hat": "none", "trail": "none", "eyes": "mint"},
 		"stats": {"kills": 0, "stomps": 0, "coins_collected": 0, "best_stage": 0, "bosses": 0, "max_combo": 0,
 			"chests": 0, "days_played": 0, "heroes": 1, "runs": 0, "deaths": 0, "stages_cleared": 0, "dashes": 0},
 		"ach": {},
-		"settings": {"music": 0.85, "sfx": 0.7, "control": "dpad", "autorun": "hold", "control_scale": 1.0, "vibration": true, "difficulty": 1, "quality": 1, "aim_assist": true},
+		"settings": {"music": 0.85, "sfx": 0.7, "control": "dpad", "control_scale": 1.0, "vibration": true, "difficulty": 1, "quality": 1, "aim_assist": true},
 		"daily": {"last_claim": "", "streak": 0, "quest_date": "", "quests": []},
 		"last_day": "",
 		"run": {"active": false},
@@ -148,6 +193,16 @@ func load_profile() -> void:
 		data.settings.music = maxf(float(data.settings.music), 0.85)
 		data.settings.sfx = minf(float(data.settings.sfx), 0.7)
 		data.version = 2
+	# v3: upgrades became per-hero with 10 levels; old global upgrades move to Lumen
+	if int(data.get("version", 1)) < 3:
+		var rename = {"hearts": "vitality", "spark": "power", "rapid": "haste", "armor": "armor", "magnet": "magnet", "dash": "swift", "luck": "fortune"}
+		var moved = {}
+		for k in data.get("upgrades", {}):
+			if rename.has(k):
+				moved[rename[k]] = mini(int(data.upgrades[k]) * 2, UPGRADE_MAX)
+		data.hupg = {str(data.get("hero", "lumen")): moved}
+		data.upgrades = {}
+		data.version = 3
 
 
 func _merge(into: Dictionary, src: Dictionary) -> void:
@@ -159,6 +214,9 @@ func _merge(into: Dictionary, src: Dictionary) -> void:
 
 
 func save() -> void:
+	if no_save:
+		dirty = false
+		return
 	var f = FileAccess.open(PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify(data))
@@ -351,20 +409,26 @@ func pending_rewards() -> int:
 
 
 # ---------------- upgrades & heroes ----------------
-func upgrade_level(id: String) -> int:
-	return int(data.upgrades.get(id, 0))
+func upgrade_level(id: String, hero: String = "") -> int:
+	var h: String = data.hero if hero == "" else hero
+	return int(data.hupg.get(h, {}).get(id, 0))
 
 
-func upgrade_cost(u: Dictionary) -> int:
-	var lv = upgrade_level(u.id)
-	return -1 if lv >= u.costs.size() else int(u.costs[lv])
+func upgrade_cost(u: Dictionary, hero: String = "") -> int:
+	var lv = upgrade_level(u.id, hero)
+	if lv >= UPGRADE_MAX:
+		return -1
+	return int(round(float(u.base) * pow(1.45, lv) / 5.0)) * 5
 
 
 func buy_upgrade(u: Dictionary) -> bool:
 	var c = upgrade_cost(u)
 	if c < 0 or not spend(c):
 		return false
-	data.upgrades[u.id] = upgrade_level(u.id) + 1
+	var h: String = data.hero
+	if not data.hupg.has(h):
+		data.hupg[h] = {}
+	data.hupg[h][u.id] = upgrade_level(u.id) + 1
 	mark()
 	return true
 
@@ -459,7 +523,7 @@ func cos_def(slot: String, id: String) -> Dictionary:
 
 
 func owns_cos(slot: String, id: String) -> bool:
-	return data.owned_cos.has(slot + ":" + id)
+	return data.owned_cos.has(slot + ":" + id) or int(cos_def(slot, id).cost) == 0
 
 
 func buy_cos(slot: String, c: Dictionary) -> bool:
@@ -476,4 +540,29 @@ func buy_cos(slot: String, c: Dictionary) -> bool:
 
 
 func max_hp() -> int:
-	return int(hero_def().get("hp", 100)) + upgrade_level("hearts") * 20
+	return int(hero_def().get("hp", 100)) + upgrade_level("vitality") * 10
+
+
+func melee_def(id: String = "") -> Dictionary:
+	var want: String = data.melee if id == "" else id
+	if not data.melees.has(want):
+		want = "staff"
+	for w in MELEE:
+		if w.id == want:
+			return w
+	return MELEE[0]
+
+
+func buy_melee(w: Dictionary) -> bool:
+	if data.melees.has(w.id) or int(data.level) < int(w.level) or not spend(int(w.cost)):
+		return false
+	data.melees.append(w.id)
+	data.melee = w.id
+	mark()
+	return true
+
+
+func equip_melee(id: String) -> void:
+	if data.melees.has(id):
+		data.melee = id
+		mark()

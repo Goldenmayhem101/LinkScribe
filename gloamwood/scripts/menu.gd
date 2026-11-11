@@ -17,6 +17,9 @@ var scroll: ScrollContainer
 var t := 0.0
 var wardrobe_slot := "scarf"
 var preview: Control = null
+var preview_player: Player = null
+var try_look: Dictionary = {}
+var armory_tab := "ranged"
 
 const UI_FONT := preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 const TITLE_FONT := preload("res://assets/fonts/DejaVuSerif-Bold.ttf")
@@ -56,8 +59,13 @@ func _ready() -> void:
 
 func _process(dt: float) -> void:
 	t += dt
-	if screen == "wardrobe" and is_instance_valid(preview):
-		preview.queue_redraw()
+	if screen == "wardrobe" and is_instance_valid(preview_player):
+		preview_player.t += dt
+		preview_player.blink_t -= dt
+		if preview_player.blink_t < -0.12:
+			preview_player.blink_t = randf_range(2.0, 4.0)
+		preview_player._scarf_step(dt)
+		preview_player.queue_redraw()
 
 
 var _refresh_pending := false
@@ -322,6 +330,7 @@ func _header(title: String, back_to: String = "title") -> void:
 		if back_from != "" and back_to == "title":
 			dest = back_from
 			back_from = ""
+		try_look = {}
 		show_screen(dest, last_result))
 	header.add_child(b)
 	var tl = _label(title, 40, pal.moon.lightened(0.15), HORIZONTAL_ALIGNMENT_LEFT, false)
@@ -436,6 +445,7 @@ func _tile(icon: String, text: String, dest: String, badge: int) -> Control:
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.pressed.connect(func():
 		Sfx.play("ui")
+		try_look = {}
 		show_screen(dest))
 	var v = VBoxContainer.new()
 	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -540,7 +550,10 @@ func _heroes() -> void:
 		row.add_child(info)
 		info.add_child(_label(h.name, 32, null, HORIZONTAL_ALIGNMENT_LEFT))
 		info.add_child(_label(h.desc, 20, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
-		info.add_child(_label("%d HP   ·   speed %d%%   ·   %d jumps" % [int(h.hp), int(float(h.speed) * 100), int(h.air_jumps) + 1], 18, Color(pal.moss.lightened(0.5), 0.9), HORIZONTAL_ALIGNMENT_LEFT))
+		var total = 0
+		for u in Profile.UPGRADES:
+			total += Profile.upgrade_level(u.id, h.id)
+		info.add_child(_label("%d HP   ·   speed %d%%   ·   %d jumps   ·   upgrades %d" % [int(h.hp) + Profile.upgrade_level("vitality", h.id) * 10, int(float(h.speed) * 100), int(h.air_jumps) + 1, total], 17, Color(pal.moss.lightened(0.5), 0.9), HORIZONTAL_ALIGNMENT_LEFT))
 		var b: Button
 		if owned:
 			var sel = Profile.data.hero == h.id
@@ -559,47 +572,172 @@ func _heroes() -> void:
 
 func _armory() -> void:
 	_header("Armory")
-	box.add_child(_label("Every weapon aims at the nearest monster in front of you, flyers overhead included. Hold SPARK to charge any weapon.", 20, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
-	for w in Profile.WEAPONS:
-		var owned = Profile.has_weapon(w.id)
+	var tabs = _row(box)
+	for tb in [["ranged", "Ranged"], ["melee", "Melee"]]:
+		var b = Button.new()
+		b.text = tb[1]
+		b.custom_minimum_size = Vector2(0, 66)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if armory_tab == tb[0]:
+			_primary(b)
+		var id = tb[0]
+		b.pressed.connect(func():
+			Sfx.play("ui")
+			armory_tab = id
+			show_screen("armory", last_result))
+		tabs.add_child(b)
+	var ranged = armory_tab == "ranged"
+	box.add_child(_label("Ranged: tap SPARK to fire, hold to charge. Shots go to your locked target (tap a monster) or the nearest one in front." if ranged else "Melee swings by itself whenever a monster gets close, and knocks enemy shots out of the air.", 19, Color(pal.moon, 0.65), HORIZONTAL_ALIGNMENT_LEFT))
+	var list = Profile.WEAPONS if ranged else Profile.MELEE
+	var owned_list: Array = Profile.data.weapons if ranged else Profile.data.melees
+	var equipped: String = Profile.weapon_def().id if ranged else Profile.melee_def().id
+	for w in list:
+		var owned = owned_list.has(w.id)
 		var v = _card()
 		var row = _row(v)
-		var ic = _icon("weapon", 70, (pal.moss.lightened(0.5) if owned else Color(pal.moon, 0.3)))
+		var col = Color(w.col[0], w.col[1], w.col[2])
+		var ic = Control.new()
+		ic.custom_minimum_size = Vector2(76, 76)
 		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var wid = w.id
+		ic.draw.connect(func(): _draw_weapon_icon(ic, wid, 76.0, col if owned else Color(pal.moon, 0.3)))
 		row.add_child(ic)
 		var info = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
-		info.add_child(_label(w.name, 30, null, HORIZONTAL_ALIGNMENT_LEFT))
-		info.add_child(_label(w.desc, 20, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
-		info.add_child(_label("damage %d   ·   %.1f shots/s" % [int(w.dmg), 1.0 / float(w.rate)], 18, Color(pal.moss.lightened(0.5), 0.9), HORIZONTAL_ALIGNMENT_LEFT))
-		var b: Button
+		info.add_child(_label(w.name, 28, col.lerp(pal.moon, 0.5) if owned else null, HORIZONTAL_ALIGNMENT_LEFT))
+		info.add_child(_label(w.desc, 19, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
+		var stat = "damage %s   ·   %.1f per second" % [_num(float(w.dmg)), 1.0 / float(w.rate)]
+		if not ranged:
+			stat += "   ·   reach %d" % int(w.reach)
+		info.add_child(_label(stat, 17, Color(pal.moss.lightened(0.5), 0.9), HORIZONTAL_ALIGNMENT_LEFT))
+		var b2: Button
 		if owned:
-			var sel = Profile.data.weapon == w.id
-			b = _chip_btn("EQUIPPED" if sel else "EQUIP", func(): Profile.equip_weapon(w.id), not sel, true)
+			var sel = equipped == w.id
+			b2 = _chip_btn("EQUIPPED" if sel else "EQUIP", func():
+				if ranged:
+					Profile.equip_weapon(wid)
+				else:
+					Profile.equip_melee(wid)
+				main.apply_upgrades(), not sel, true)
 		else:
 			var lv_ok = int(Profile.data.level) >= int(w.level)
-			b = _chip_btn(str(int(w.cost)) if lv_ok else "Lv %d" % int(w.level), func():
-				if Profile.buy_weapon(w):
+			b2 = _chip_btn(str(int(w.cost)) if lv_ok else "Lv %d" % int(w.level), func():
+				var ok = Profile.buy_weapon(w) if ranged else Profile.buy_melee(w)
+				if ok:
 					Sfx.play("buy")
+					main.apply_upgrades()
 					main.hud.toast("%s unlocked!" % w.name), lv_ok and int(Profile.data.coins) >= int(w.cost), true, lv_ok)
-		row.add_child(b)
+		row.add_child(b2)
+
+
+func _num(v: float) -> String:
+	return str(int(round(v))) if absf(v - round(v)) < 0.05 else "%.1f" % v
+
+
+func _draw_weapon_icon(c: Control, id: String, s: float, col: Color) -> void:
+	var m = Vector2(s, s) * 0.5
+	var u = s / 48.0
+	c.draw_circle(m, 22 * u, Color(col, 0.1))
+	match id:
+		"spark":
+			c.draw_line(m + Vector2(-16, 8) * u, m + Vector2(12, -6) * u, Color(col, 0.5), 6 * u, true)
+			c.draw_circle(m + Vector2(12, -6) * u, 5 * u, col)
+			c.draw_circle(m + Vector2(12, -6) * u, 2.2 * u, Color.WHITE)
+		"seeker":
+			c.draw_arc(m + Vector2(-2, 4) * u, 12 * u, PI * 0.9, PI * 2.2, 16, Color(col, 0.6), 3 * u, true)
+			c.draw_circle(m + Vector2(9, -6) * u, 6 * u, col)
+			c.draw_circle(m + Vector2(9, -6) * u, 2.5 * u, Color.WHITE)
+		"shard":
+			for k in 3:
+				var o = Vector2(-10 + k * 10, -2 + abs(k - 1) * 6) * u
+				c.draw_colored_polygon(PackedVector2Array([m + o + Vector2(0, -12) * u, m + o + Vector2(4, 0) * u, m + o + Vector2(0, 10) * u, m + o + Vector2(-4, 0) * u]), col)
+		"lance":
+			c.draw_line(m + Vector2(-18, 14) * u, m + Vector2(18, -14) * u, Color(col, 0.4), 9 * u, true)
+			c.draw_line(m + Vector2(-18, 14) * u, m + Vector2(18, -14) * u, col, 3 * u, true)
+		"scatter":
+			for k in 5:
+				var a = -0.6 + k * 0.3
+				c.draw_circle(m + Vector2(-12, 6) * u + Vector2.from_angle(a - 0.3) * 22 * u, 3.2 * u, col)
+		"boomerang":
+			var pts = PackedVector2Array()
+			for i in 12:
+				var uu = float(i) / 11.0
+				pts.append(m + Vector2(lerpf(-16, 16, uu), sin(uu * PI) * 8 - 2).rotated(-0.4) * u)
+			for i in range(11, -1, -1):
+				var uu2 = float(i) / 11.0
+				pts.append(m + Vector2(lerpf(-16, 16, uu2), -sin(uu2 * PI) * 6 - 2).rotated(-0.4) * u)
+			c.draw_colored_polygon(pts, col)
+		"thunder":
+			c.draw_circle(m, 10 * u, col)
+			c.draw_polyline(PackedVector2Array([m + Vector2(-2, -18) * u, m + Vector2(-6, -2) * u, m + Vector2(4, -2) * u, m + Vector2(0, 18) * u]), Color(1, 1, 0.9), 3 * u, true)
+		"cannon":
+			var st = PackedVector2Array()
+			for i in 10:
+				var a2 = TAU * i / 10.0 - PI / 2.0
+				st.append(m + Vector2(cos(a2), sin(a2)) * (16.0 if i % 2 == 0 else 7.0) * u)
+			c.draw_colored_polygon(st, col)
+		"staff":
+			c.draw_line(m + Vector2(-14, 16) * u, m + Vector2(10, -10) * u, Color(0.6, 0.4, 0.28), 4 * u, true)
+			c.draw_circle(m + Vector2(12, -12) * u, 7 * u, Color(col, 0.4))
+			c.draw_rect(Rect2(m + Vector2(8, -17) * u, Vector2(8, 10) * u), col)
+		"sickle":
+			c.draw_line(m + Vector2(-10, 16) * u, m + Vector2(0, 2) * u, Color(0.6, 0.4, 0.28), 4 * u, true)
+			c.draw_arc(m + Vector2(4, -4) * u, 13 * u, -PI * 0.95, PI * 0.15, 16, col, 4 * u, true)
+		"lash":
+			var lp = PackedVector2Array()
+			for i in 10:
+				var uu3 = float(i) / 9.0
+				lp.append(m + Vector2(lerpf(-16, 16, uu3), sin(uu3 * 9.0) * 6.0) * u)
+			c.draw_polyline(lp, col, 3 * u, true)
+		"rapier":
+			c.draw_line(m + Vector2(-14, 14) * u, m + Vector2(16, -16) * u, col, 2.5 * u, true)
+			c.draw_line(m + Vector2(-14, 4) * u, m + Vector2(-4, 14) * u, Color(1, 0.85, 0.45), 3 * u, true)
+		"hammer":
+			c.draw_line(m + Vector2(-14, 16) * u, m + Vector2(4, -2) * u, Color(0.6, 0.4, 0.28), 4 * u, true)
+			c.draw_colored_polygon(PackedVector2Array([m + Vector2(-2, -14) * u, m + Vector2(16, 4) * u, m + Vector2(22, -2) * u, m + Vector2(4, -20) * u]), col)
+		"scythe":
+			c.draw_line(m + Vector2(-12, 18) * u, m + Vector2(6, -16) * u, Color(0.45, 0.35, 0.55), 3 * u, true)
+			c.draw_arc(m + Vector2(-6, -12) * u, 14 * u, -PI * 0.15, PI * 0.9, 16, col, 4 * u, true)
 
 
 func _wardrobe() -> void:
 	_header("Wardrobe")
+	if try_look.is_empty():
+		try_look = Profile.data.look.duplicate()
 	var prev = Control.new()
-	prev.custom_minimum_size = Vector2(0, 200)
-	prev.draw.connect(func(): _draw_preview(prev))
-	preview = prev
+	prev.custom_minimum_size = Vector2(0, 230)
 	box.add_child(prev)
+	preview = prev
+	var holder = Node2D.new()
+	holder.position = Vector2(324, 200)
+	holder.scale = Vector2(2.6, 2.6)
+	prev.add_child(holder)
+	prev.resized.connect(func(): holder.position = Vector2(prev.size.x * 0.5, 205))
+	var pp = Player.new()
+	holder.add_child(pp)
+	pp.setup(main, main.glow, main.pal)
+	pp.light.visible = false
+	pp.on_ground = true
+	pp.hero = Profile.hero_def()
+	pp.melee_id = Profile.melee_def().id
+	pp.apply_look(try_look)
+	pp.reset_scarf()
+	preview_player = pp
+	var changed = try_look != Profile.data.look
+	box.add_child(_label("Tap any item to try it on." if not changed else "Trying on. Buy or wear to keep it.", 19, Color(pal.moon, 0.6)))
 	var tabs = _row(box)
-	for slot in [["scarf", "Scarf"], ["cloak", "Cloak"], ["hat", "Hat"], ["trail", "Trail"]]:
+	for slot in [["scarf", "Scarf"], ["cloak", "Cloak"], ["hat", "Hat"], ["eyes", "Eyes"], ["trail", "Trail"]]:
 		var b = Button.new()
 		b.text = slot[1]
-		b.custom_minimum_size = Vector2(0, 64)
+		b.custom_minimum_size = Vector2(0, 62)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.add_theme_font_size_override("font_size", 22)
+		b.add_theme_font_size_override("font_size", 20)
+		b.add_theme_constant_override("h_separation", 0)
+		var sbn = _sb(Color(pal.ink.lerp(pal.dusk, 0.32), 0.96), Color(0, 0, 0, 0), 22, 0, 5)
+		sbn.content_margin_left = 6
+		sbn.content_margin_right = 6
+		b.add_theme_stylebox_override("normal", sbn)
 		if wardrobe_slot == slot[0]:
 			_primary(b)
 		var sl = slot[0]
@@ -616,25 +754,44 @@ func _wardrobe() -> void:
 	for c in Profile.COSMETICS[wardrobe_slot]:
 		var owned = Profile.owns_cos(wardrobe_slot, c.id)
 		var worn = Profile.data.look[wardrobe_slot] == c.id
+		var trying = try_look.get(wardrobe_slot, "") == c.id
 		var pc = PanelContainer.new()
 		pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		if worn:
+		if trying:
+			pc.add_theme_stylebox_override("panel", _sb(_card_bg(), pal.ember.lightened(0.2), 24, 3, 0, 10))
+		elif worn:
 			pc.add_theme_stylebox_override("panel", _sb(_card_bg(), pal.moss.lightened(0.4), 24, 3, 0, 10))
+		var slot_now = wardrobe_slot
+		var cid = c.id
+		pc.gui_input.connect(func(ev):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				try_look[slot_now] = cid
+				Sfx.play("ui", 1.2)
+				show_screen("wardrobe"))
 		grid.add_child(pc)
 		var v = VBoxContainer.new()
+		v.mouse_filter = Control.MOUSE_FILTER_PASS
 		pc.add_child(v)
 		var row = _row(v)
+		row.mouse_filter = Control.MOUSE_FILTER_PASS
 		if c.has("col"):
 			var sw = Panel.new()
+			sw.mouse_filter = Control.MOUSE_FILTER_PASS
 			sw.custom_minimum_size = Vector2(40, 40)
-			sw.add_theme_stylebox_override("panel", _sb(Color(c.col[0], c.col[1], c.col[2]), Color(1, 1, 1, 0.3), 20, 2))
+			var swc = Color(c.col[0], c.col[1], c.col[2])
+			if c.id == "rainbow":
+				swc = Color.from_hsv(0.8, 0.5, 1.0)
+			sw.add_theme_stylebox_override("panel", _sb(swc, Color(1, 1, 1, 0.3), 20, 2))
 			row.add_child(sw)
-		row.add_child(_label(c.name, 22, null, HORIZONTAL_ALIGNMENT_LEFT, false))
+		var nl = _label(c.name, 21, null, HORIZONTAL_ALIGNMENT_LEFT, false)
+		nl.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(nl)
 		var slot2 = wardrobe_slot
 		var txt = "WEARING" if worn else ("WEAR" if owned else str(int(c.cost)))
 		var b2 = _chip_btn(txt, func():
 			if Profile.buy_cos(slot2, c):
 				Sfx.play("buy" if not owned else "ui")
+				try_look[slot2] = c.id
 				main.apply_upgrades(), not worn and (owned or int(Profile.data.coins) >= int(c.cost)), not owned, not owned)
 		b2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		v.add_child(b2)
@@ -682,21 +839,25 @@ func _draw_preview(c: Control) -> void:
 
 func _upgrades() -> void:
 	_header("Upgrades")
+	var h = Profile.hero_def()
+	box.add_child(_label("Upgrades for %s. Each hero has their own, up to level %d." % [h.name, Profile.UPGRADE_MAX], 20, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
 	for u in Profile.UPGRADES:
 		var v = _card()
 		var row = _row(v)
 		var info = VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
-		info.add_child(_label(u.name, 28, null, HORIZONTAL_ALIGNMENT_LEFT))
-		info.add_child(_label(u.desc, 20, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
 		var lv = Profile.upgrade_level(u.id)
+		var title_row = _row(info)
+		title_row.add_child(_label(u.name, 27, null, HORIZONTAL_ALIGNMENT_LEFT, false))
+		title_row.add_child(_label("%d / %d" % [lv, Profile.UPGRADE_MAX], 20, pal.moss.lightened(0.5) if lv < Profile.UPGRADE_MAX else pal.ember.lightened(0.3), HORIZONTAL_ALIGNMENT_LEFT, false))
+		info.add_child(_label(u.desc, 19, Color(pal.moon, 0.7), HORIZONTAL_ALIGNMENT_LEFT))
 		var pips = HBoxContainer.new()
-		pips.add_theme_constant_override("separation", 6)
-		for i in u.costs.size():
+		pips.add_theme_constant_override("separation", 4)
+		for i in Profile.UPGRADE_MAX:
 			var pip = Panel.new()
-			pip.custom_minimum_size = Vector2(34, 10)
-			pip.add_theme_stylebox_override("panel", _sb(pal.moss.lightened(0.35) if i < lv else Color(0, 0, 0, 0.35), Color(0, 0, 0, 0), 5))
+			pip.custom_minimum_size = Vector2(22, 9)
+			pip.add_theme_stylebox_override("panel", _sb(pal.moss.lightened(0.35) if i < lv else Color(0, 0, 0, 0.35), Color(0, 0, 0, 0), 4))
 			pips.add_child(pip)
 		info.add_child(pips)
 		var cost = Profile.upgrade_cost(u)
@@ -798,11 +959,8 @@ func _settings() -> void:
 	_section("Controls")
 	var c2 = _card()
 	_choice(c2, "Movement", [["dpad", "D-PAD"], ["analog", "ANALOG"]], Profile.setting("control"), func(v): Profile.set_setting("control", v))
-	_choice(c2, "Auto-run", [["off", "OFF"], ["hold", "HOLD"], ["always", "ALWAYS"]], Profile.setting("autorun"), func(v):
-		Profile.set_setting("autorun", v)
-		main.hud.auto_dir = 1.0 if v == "always" else 0.0)
-	c2.add_child(_label("HOLD: keep an arrow pressed for a moment and you keep running that way. Tap the same arrow to stop, the other arrow to turn around.", 18, Color(pal.moon, 0.55), HORIZONTAL_ALIGNMENT_LEFT))
 	_choice(c2, "Aim assist", [[true, "ON"], [false, "OFF"]], Profile.setting("aim_assist"), func(v): Profile.set_setting("aim_assist", v))
+	c2.add_child(_label("Tap a monster to lock on: your shots go to it until it falls or you tap it again. With aim assist on, shots otherwise go to the nearest monster in front of you.", 18, Color(pal.moon, 0.55), HORIZONTAL_ALIGNMENT_LEFT))
 	_slider(c2, "Button size", "control_scale", 0.8, 1.3)
 	_choice(c2, "Vibration", [[true, "ON"], [false, "OFF"]], Profile.setting("vibration"), func(v): Profile.set_setting("vibration", v))
 	_section("Game")
@@ -818,7 +976,8 @@ func _pause() -> void:
 	var ttl = _label("Paused", 64, pal.moon.lightened(0.2))
 	ttl.add_theme_font_override("font", TITLE_FONT)
 	box.add_child(ttl)
-	box.add_child(_label("Stage %d  ·  %s  ·  %s" % [main.stage, Profile.hero_def().name, Profile.weapon_def().name], 22, Color(pal.moon, 0.7)))
+	box.add_child(_label("%s  ·  Stage %d" % [LevelGen.world_name(main.stage), main.stage], 24, Color(pal.moon, 0.8)))
+	box.add_child(_label("%s  ·  %s  ·  %s" % [Profile.hero_def().name, Profile.weapon_def().name, Profile.melee_def().name], 20, Color(pal.moon, 0.6)))
 	_gap(40)
 	_btn("RESUME", func(): main.toggle_pause(), true, true, null, 100)
 	_btn("SETTINGS", func(): show_screen("settings"))
@@ -842,7 +1001,8 @@ func _stars_row(n: int) -> void:
 
 func _clear_screen(r: Dictionary) -> void:
 	_gap(20)
-	var ttl = _label("Stage %d Clear!" % int(r.stage), 54, pal.moss.lightened(0.55))
+	var stg = int(r.stage)
+	var ttl = _label("World %d-%d Clear!" % [LevelGen.world_of(stg), LevelGen.stage_in_world(stg)], 52, pal.moss.lightened(0.55))
 	ttl.add_theme_font_override("font", TITLE_FONT)
 	box.add_child(ttl)
 	_stars_row(int(r.stars))
@@ -863,7 +1023,8 @@ func _clear_screen(r: Dictionary) -> void:
 	_level_chip(top)
 	_coin_chip(top)
 	var nxt = int(r.stage) + 1
-	_btn("NEXT  ·  STAGE %d%s" % [nxt, "  ·  BOSS" if LevelGen.is_boss_stage(nxt) else ""], func(): main.menu_next(), true, true, null, 100)
+	var nlabel = "BOSS FIGHT" if LevelGen.is_boss_stage(nxt) else ("NEW WORLD  ·  %s" % LevelGen.world_name(nxt) if LevelGen.stage_in_world(nxt) == 1 else "NEXT  ·  %d-%d" % [LevelGen.world_of(nxt), LevelGen.stage_in_world(nxt)])
+	_btn(nlabel, func(): main.menu_next(), true, true, null, 100)
 	var row = _row(box)
 	for pair in [["Upgrades", "upgrades"], ["Armory", "armory"]]:
 		var dest = pair[1]

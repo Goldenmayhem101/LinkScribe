@@ -20,8 +20,10 @@ var elite := false
 var golden := false
 var boss := false
 var mini := false
-var hp := 3
-var max_hp := 3
+var hp := 3.0
+var max_hp := 3.0
+var slow_t := 0.0
+var stagger := 0.0
 var lo := 0.0
 var hi := 0.0
 var home = Vector2.ZERO
@@ -80,9 +82,9 @@ func setup(m: Node, data: Dictionary, tex: Texture2D, mdata: Dictionary, glow: T
 		"burrower": hp = 2; speed = 40.0; radius = 22.0; center_off = Vector2(0, -26); state = "under"
 		"drone": hp = 2; speed = 30.0; radius = 18.0; center_off = Vector2.ZERO
 		"slime": hp = 1 if mini else 2; speed = 0.0; radius = 20.0; center_off = Vector2(0, -16)
-		"titan": hp = int(data.get("hp", 60)); speed = 40.0; radius = 62.0; center_off = Vector2(0, -70); state = "intro"
+		"titan": hp = float(data.get("hp", 60)); speed = 40.0; radius = 62.0; center_off = Vector2(0, -70); state = "intro"
 	if not boss:
-		hp = maxi(1, hp + hpb + (2 if elite else 0) + (1 if golden else 0))
+		hp = maxf(1.0, hp + hpb + (2 if elite else 0) + (1 if golden else 0))
 	max_hp = hp
 	radius *= size_k
 	center_off *= size_k
@@ -193,6 +195,11 @@ func touch_damage() -> bool:
 func _process(dt: float) -> void:
 	if dead:
 		return
+	# frost shards slow monsters down
+	slow_t = maxf(slow_t - dt, 0.0)
+	stagger = maxf(stagger - dt * 5.0, 0.0)
+	if slow_t > 0.0:
+		dt *= 0.5
 	t += dt
 	# early stages: slower wind-ups and longer rests between attacks
 	st += dt / (main.tele_k if state == "warn" else 1.0)
@@ -227,7 +234,11 @@ func _process(dt: float) -> void:
 	if sprite:
 		var base = _sprite_base()
 		sprite.position = base + Vector2(sin(t * 60.0) * 1.5 if state == "warn" else 0.0, bob + hop_y)
-		sprite.scale = Vector2((1.0 / 3.0) / sq * (-1.0 if dir > 0.0 else 1.0), (1.0 / 3.0) * sq) * size_k
+		var breathe = 1.0 + sin(t * 2.2 + home.x) * 0.018
+		var hitsq = 1.0 + stagger * 0.12
+		sprite.scale = Vector2((1.0 / 3.0) / sq * hitsq * (-1.0 if dir > 0.0 else 1.0), (1.0 / 3.0) * sq * breathe / hitsq) * size_k
+		sprite.rotation = stagger * 0.22 * signf(knock if absf(knock) > 1.0 else 1.0)
+		sprite.modulate = (Color(1.25, 1.05, 0.6) if golden else Color.WHITE) * (Color(0.7, 0.85, 1.3) if slow_t > 0.0 else Color.WHITE)
 		if kind == "burrower":
 			var vis = 0.0
 			match state:
@@ -538,15 +549,17 @@ func _titan(dt: float, to_p: Vector2) -> void:
 
 
 # ---------------- damage ----------------
-func hit(dmg: int, from_x: float) -> void:
+func hit(dmg: float, from_x: float) -> void:
 	if not vulnerable():
 		return
 	hp -= dmg
+	stagger = 1.0
 	flash = 1.0
 	bar_t = 2.5
 	knock = signf(position.x - from_x) * (60.0 if boss else 220.0)
 	main.fx_burst(world_center(), body_color, 10, 120.0, 0.45, 220.0, 0.07, false)
-	main.float_text(world_center() + Vector2(0, -radius - 6), str(dmg), main.pal.moon)
+	var txt = str(int(round(dmg))) if absf(dmg - round(dmg)) < 0.05 else "%.1f" % dmg
+	main.float_text(world_center() + Vector2(0, -radius - 6), txt, main.pal.moon if dmg < 3.0 else main.pal.ember.lightened(0.3))
 	Sfx.play("hit", 0.8 if boss else 1.0)
 	if kind == "charger" and state == "warn":
 		_set_state("dazed")
@@ -561,7 +574,12 @@ func _die() -> void:
 	main.on_monster_killed(self)
 	var tw = create_tween()
 	if mat:
-		tw.tween_method(func(v: float): mat.set_shader_parameter("dissolve", v), 0.0, 1.0, 0.9 if boss else 0.55)
+		# pop, then burn away with a glowing edge
+		mat.set_shader_parameter("flash", 1.0)
+		tw.tween_property(sprite, "scale", sprite.scale * 1.22, 0.07).set_trans(Tween.TRANS_BACK)
+		tw.tween_method(func(v: float):
+			mat.set_shader_parameter("dissolve", v)
+			mat.set_shader_parameter("flash", maxf(0.0, 1.0 - v * 3.0)), 0.0, 1.0, 0.9 if boss else 0.5)
 	else:
 		tw.tween_property(self, "scale", Vector2(1.4, 0.3), 0.25)
 		tw.parallel().tween_property(self, "modulate:a", 0.0, 0.3)

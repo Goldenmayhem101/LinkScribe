@@ -44,6 +44,13 @@ var charge := 0.0
 var riding = null
 var ghosts: Array = []
 var hat := "none"
+var eye_col = Color(0.88, 1.0, 0.96)
+var scarf_col2 = null
+var starlit := false
+var melee_id := "staff"
+var shoot_t := 0.0
+var swing_t := 0.0
+var swing_id := ""
 var trail := "none"
 var scarf_col = Color(1.0, 0.69, 0.35)
 var shield := 0
@@ -106,18 +113,30 @@ func setup(m: Node, glow: Texture2D, pal: Dictionary) -> void:
 
 func apply_hero(h: Dictionary) -> void:
 	hero = h
-	var look: Dictionary = Profile.data.look
-	var cl = Profile.cos_def("cloak", look.cloak).col
-	var sc = Profile.cos_def("scarf", look.scarf).col
-	tint = Color(h.tint[0], h.tint[1], h.tint[2]) * Color(cl[0], cl[1], cl[2])
-	scarf_col = Color(sc[0], sc[1], sc[2])
-	hat = look.hat
-	trail = look.trail
-	run_speed = 150.0 * float(h.speed)
+	apply_look(Profile.data.look)
+	melee_id = Profile.melee_def().id
+	var swift = Profile.upgrade_level("swift")
+	run_speed = 150.0 * float(h.speed) * (1.0 + 0.015 * swift)
 	max_air_jumps = int(h.air_jumps)
-	dash_cd_max = 0.8 - 0.18 * Profile.upgrade_level("dash")
+	dash_cd_max = 0.8 * pow(0.94, swift)
+
+
+## Cosmetics only (also used by the wardrobe preview to try things on).
+func apply_look(look: Dictionary) -> void:
+	var h = hero if not hero.is_empty() else Profile.hero_def()
+	var cl = Profile.cos_def("cloak", look.get("cloak", "moon"))
+	var sc = Profile.cos_def("scarf", look.get("scarf", "amber"))
+	var ey = Profile.cos_def("eyes", look.get("eyes", "mint"))
+	tint = Color(h.tint[0], h.tint[1], h.tint[2]) * Color(cl.col[0], cl.col[1], cl.col[2])
+	starlit = cl.get("stars", false)
+	scarf_col = Color(sc.col[0], sc.col[1], sc.col[2])
+	scarf_col2 = Color(sc.col2[0], sc.col2[1], sc.col2[2]) if sc.has("col2") else null
+	eye_col = Color(ey.col[0], ey.col[1], ey.col[2])
+	hat = look.get("hat", "none")
+	trail = look.get("trail", "none")
 	if not palette.is_empty():
 		recolor(palette)
+	queue_redraw()
 
 
 func recolor(pal: Dictionary) -> void:
@@ -127,7 +146,7 @@ func recolor(pal: Dictionary) -> void:
 		em = scarf_col
 	var g = Gradient.new()
 	g.set_color(0, em.lightened(0.15))
-	g.set_color(1, em.lerp(Color(0.86, 0.3, 0.27), 0.45))
+	g.set_color(1, scarf_col2 if scarf_col2 != null else em.lerp(Color(0.86, 0.3, 0.27), 0.45))
 	scarf_line.gradient = g
 	aura.modulate = Color(pal.moon * tint, 0.32)
 	pool.modulate = Color(pal.moon * tint, 0.42)
@@ -174,6 +193,8 @@ func physics_step(dt: float, move: float, jump_pressed: bool, jump_held: bool) -
 	t += dt
 	invuln = maxf(invuln - dt, 0.0)
 	fire_cd = maxf(fire_cd - dt, 0.0)
+	shoot_t = maxf(shoot_t - dt, 0.0)
+	swing_t = maxf(swing_t - dt, 0.0)
 	dash_cd = maxf(dash_cd - dt, 0.0)
 	wall_lock = maxf(wall_lock - dt, 0.0)
 	if wall_lock > 0.0:
@@ -427,6 +448,15 @@ func _draw() -> void:
 		var k = clampf(((10.0 - p.x) * 0.45 + (p.y + 44.0) * 0.8) / 42.0, 0.0, 1.0)
 		cols.append(hi.lerp(moon.lerp(dusk, 0.12), minf(k * 2.2, 1.0)).lerp(lo, maxf(k - 0.45, 0.0) / 0.55))
 	draw_polygon(pts, cols)
+	if starlit:
+		for i in 7:
+			var sp = Vector2(-9 + (i * 37) % 19, -40 + (i * 23) % 30)
+			draw_circle(sp, 0.9 + 0.4 * sin(t * 3.0 + i), Color(1, 1, 0.85, 0.9))
+	# hem trim in scarf color + ink outline for a crisp silhouette
+	draw_line(Vector2(-13.5 - fl * 0.7, hem - 1.5), Vector2(14.5 + fl * 0.7, hem - 1.5), Color(ember, 0.55), 1.4, true)
+	var outline = PackedVector2Array(pts)
+	outline.append(pts[0])
+	draw_polyline(outline, Color(ink.darkened(0.4), 0.75), 1.3, true)
 	var rimc = Color(0.75, 0.94, 1.0, 0.95)
 	for i in pts.size():
 		var a3 = pts[i]
@@ -440,11 +470,25 @@ func _draw() -> void:
 	draw_rect(Rect2(-14.5, -20, 29, 3), dusk.lerp(ink, 0.3))
 	draw_rect(Rect2(1, -20.5, 3.2, 4), ember)
 	var sw = sin(phase + PI) * 0.8 if (run > 0.1 and not air) else (-1.2 if air else 0.15)
+	if swing_t > 0.0:
+		var sk = 1.0 - swing_t / 0.22
+		sw = lerpf(-2.4, 1.2, clampf(sk, 0.0, 1.0))
+	elif shoot_t > 0.0:
+		sw = -1.55
 	if charge > 0.15:
 		sw = -1.45
 	var hand = Vector2(4, -27) + Vector2(-sin(sw), cos(sw)) * 11.0
+	_draw_melee(hand, sw, ember, ink)
 	draw_line(Vector2(4, -27), hand, moon.lerp(dusk, 0.25), 6.0, true)
-	draw_circle(hand, 2.3, moon.lerp(ember, 0.25))
+	draw_line(Vector2(4, -27), hand, Color(ink.darkened(0.4), 0.5), 1.0, true)
+	draw_circle(hand, 2.8, moon.lerp(ember, 0.3))
+	draw_arc(hand, 2.8, 0, TAU, 10, Color(ink.darkened(0.4), 0.6), 0.8, true)
+	# belt lantern
+	var lp = Vector2(-9, -15 + sin(t * 3.0) * 0.6)
+	draw_line(Vector2(-9, -19), lp, ink.lerp(dusk, 0.5), 1.0)
+	draw_rect(Rect2(lp + Vector2(-2.5, 0), Vector2(5, 6)), ember.lightened(0.35))
+	draw_rect(Rect2(lp + Vector2(-3, -0.5), Vector2(6, 1.5)), ink.lerp(dusk, 0.4))
+	draw_circle(lp + Vector2(0, 3), 1.2, Color(1, 1, 0.9))
 	var collar = PackedVector2Array()
 	collar.append(Vector2(-11, -27))
 	_quad(Vector2(-11, -27), Vector2(0, -23.5), Vector2(12, -27.5), collar)
@@ -455,7 +499,9 @@ func _draw() -> void:
 	_draw_ellipse(Vector2(4.5, -33), Vector2(7.6, 6.6), ink.darkened(0.3))
 	draw_arc(Vector2(4.5, -33), 7.4, PI * 0.95, PI * 2.05, 16, moon.lerp(dusk, 0.35), 1.4, true)
 	var eh = 0.4 if blink_t < 0.0 else 2.6
-	var eye_c = Color(0.92, 1.0, 0.98) if hero.is_empty() else Color(0.92, 1.0, 0.98).lerp(ember.lightened(0.5), 0.25)
+	var eye_c = eye_col
+	draw_circle(Vector2(2.2, -33.5), 3.2, Color(eye_col, 0.25))
+	draw_circle(Vector2(7.6, -33.5), 3.2, Color(eye_col, 0.25))
 	_draw_ellipse(Vector2(2.2, -33.5), Vector2(1.5, eh), eye_c)
 	_draw_ellipse(Vector2(7.6, -33.5), Vector2(1.5, eh), eye_c)
 	var tip = PackedVector2Array([Vector2(-6, -43)])
@@ -486,8 +532,74 @@ func _draw_ellipse(c: Vector2, r: Vector2, col: Color) -> void:
 	draw_colored_polygon(p, col)
 
 
+func _draw_melee(hand: Vector2, sw: float, ember: Color, ink: Color) -> void:
+	var ang = PI * 0.5 - sw - 0.5
+	var d = Vector2.from_angle(ang)
+	var n = d.orthogonal()
+	var wood = Color(0.55, 0.36, 0.24)
+	var metal = Color(0.82, 0.88, 0.95)
+	match melee_id:
+		"staff":
+			draw_line(hand - d * 8.0, hand + d * 20.0, wood, 2.4, true)
+			var head = hand + d * 22.0
+			draw_circle(head, 4.0, Color(ember, 0.35))
+			draw_rect(Rect2(head - Vector2(2.5, 3), Vector2(5, 6)), ember.lightened(0.4))
+			draw_circle(head, 1.4, Color(1, 1, 0.9))
+		"sickle":
+			draw_line(hand - d * 3.0, hand + d * 9.0, wood, 2.2, true)
+			draw_arc(hand + d * 9.0 + n * 5.0, 7.0, ang - PI * 0.9, ang + 0.2, 10, metal, 2.4, true)
+		"lash":
+			var pts = PackedVector2Array()
+			for i in 9:
+				var u = float(i) / 8.0
+				pts.append(hand + d * (u * 26.0) + n * sin(u * 7.0 + t * 8.0) * 3.0 * u)
+			draw_line(hand - d * 4.0, hand + d * 2.0, wood, 2.6, true)
+			draw_polyline(pts, Color(0.35, 0.75, 0.35), 1.8, true)
+			for i in range(2, 9, 2):
+				draw_circle(pts[i], 1.2, Color(0.55, 0.95, 0.5))
+		"rapier":
+			draw_line(hand - n * 3.5, hand + n * 3.5, Color(1.0, 0.85, 0.45), 1.8, true)
+			draw_line(hand, hand + d * 26.0, Color(0.7, 0.95, 1.0), 1.6, true)
+			draw_line(hand - d * 4.0, hand, wood, 2.2, true)
+		"hammer":
+			draw_line(hand - d * 3.0, hand + d * 16.0, wood, 2.6, true)
+			var hh = hand + d * 17.0
+			var corners = PackedVector2Array([hh - n * 6.0 - d * 3.0, hh + n * 6.0 - d * 3.0, hh + n * 6.0 + d * 4.0, hh - n * 6.0 + d * 4.0])
+			draw_colored_polygon(corners, Color(0.45, 0.3, 0.3))
+			draw_line(hh - n * 6.0 + d * 0.5, hh + n * 6.0 + d * 0.5, Color(1.0, 0.55, 0.25), 1.5, true)
+		"scythe":
+			draw_line(hand - d * 10.0, hand + d * 22.0, Color(0.3, 0.22, 0.35), 2.2, true)
+			var top = hand + d * 22.0
+			draw_arc(top + n * 9.0, 10.0, ang + PI * 0.55, ang + PI * 1.45, 12, Color(0.8, 0.55, 1.0), 2.6, true)
+
+
 func _draw_hat(moon: Color, ember: Color, ink: Color) -> void:
 	match hat:
+		"flower":
+			for i in 5:
+				var a = TAU * i / 5.0
+				draw_circle(Vector2(-3, -46) + Vector2(cos(a), sin(a)) * 3.2, 2.4, Color(1.0, 0.75, 0.9))
+			draw_circle(Vector2(-3, -46), 1.8, Color(1, 0.9, 0.4))
+		"ears":
+			for k in [-1.0, 1.0]:
+				var b = Vector2(k * 7 + 1, -42)
+				draw_colored_polygon(PackedVector2Array([b + Vector2(-4, 0), b + Vector2(4, 0), b + Vector2(k * 2, -11)]), Color(0.95, 0.6, 0.35))
+				draw_colored_polygon(PackedVector2Array([b + Vector2(-2, -1), b + Vector2(2, -1), b + Vector2(k * 1.5, -7)]), Color(1.0, 0.85, 0.8))
+		"mushroom":
+			var cap = PackedVector2Array()
+			for i in 13:
+				var a2 = PI + PI * i / 12.0
+				cap.append(Vector2(0, -44) + Vector2(cos(a2) * 13.0, sin(a2) * 8.0))
+			draw_colored_polygon(cap, Color(0.88, 0.25, 0.25))
+			for sp in [Vector2(-6, -48), Vector2(3, -50), Vector2(8, -46)]:
+				draw_circle(sp, 1.7, Color(1, 0.95, 0.9))
+		"witch":
+			draw_colored_polygon(PackedVector2Array([Vector2(-15, -43), Vector2(15, -43), Vector2(13, -41), Vector2(-13, -41)]), Color(0.2, 0.15, 0.3))
+			draw_colored_polygon(PackedVector2Array([Vector2(-8, -43), Vector2(8, -43), Vector2(-6, -64)]), Color(0.25, 0.18, 0.38))
+			draw_line(Vector2(-7, -45), Vector2(7, -45), ember, 2.0)
+		"halo":
+			draw_arc(Vector2(1, -56), 8.0, 0, TAU, 20, Color(1, 0.95, 0.6, 0.9), 2.2, true)
+			draw_arc(Vector2(1, -56), 10.0, 0, TAU, 20, Color(1, 0.95, 0.6, 0.3), 3.0, true)
 		"leaf":
 			draw_line(Vector2(1, -46), Vector2(2, -52), Color(0.35, 0.6, 0.35), 1.6, true)
 			draw_colored_polygon(PackedVector2Array([Vector2(2, -52), Vector2(10, -57), Vector2(13, -53), Vector2(6, -50)]), Color(0.45, 0.85, 0.5))
