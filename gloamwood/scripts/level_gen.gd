@@ -1,8 +1,9 @@
 class_name LevelGen
 extends RefCounted
-## Builds a stage from a seed: chunks of terrain, platforms, coins, enemies,
-## checkpoints and an exit portal. Every hop is checked against the hero's
-## jump physics so a generated stage is always completable.
+## Builds a stage from a seed. Chunks: flat, gap, step, floaters, tower, drop, arena,
+## mover (moving ledge), crumble (falling ledges), thorns, bounce (bonus ledge up high).
+## Every hop on the main path is checked against the hero's jump physics; a helper ledge
+## is inserted wherever a jump is impossible. Every 5th stage ends in a boss arena.
 
 const RUN := 150.0
 const GRAV := 1900.0
@@ -12,27 +13,39 @@ const SOIL := 1400.0
 
 const BIOMES := ["gloamwood", "crystal", "emberfen"]
 const BIOME_NAMES := {"gloamwood": "Gloamwood", "crystal": "Crystal Caverns", "emberfen": "Emberfen"}
+const BUDGET_MULT := [0.7, 1.0, 1.35]
 
-var rng = RandomNumberGenerator.new()
+var rng := RandomNumberGenerator.new()
 var solids: Array = []
+var bonus: Array = []
 var coins: Array = []
 var enemies: Array = []
 var checkpoints: Array = []
-var helpers_added = 0
+var hazards: Array = []
+var bouncers: Array = []
+var chests: Array = []
+var helpers_added := 0
+var stage := 1
+var diff := 0.0
+var luck := 0
+var difficulty := 1
 
 
-static func biome_for(stage: int) -> String:
-	return BIOMES[int((stage - 1) / 2) % BIOMES.size()]
+static func biome_for(s: int) -> String:
+	return BIOMES[int((s - 1) / 2) % BIOMES.size()]
 
 
-static func seed_for(stage: int, run_seed: int) -> int:
+static func is_boss_stage(s: int) -> bool:
+	return s % 5 == 0
+
+
+static func seed_for(s: int, run_seed: int) -> int:
 	var r = RandomNumberGenerator.new()
-	r.seed = hash("gloamwood:%d:%d" % [run_seed, stage * 7919 + 13])
+	r.seed = hash("gloamwood:%d:%d" % [run_seed, s * 7919 + 13])
 	r.randi()
 	return r.randi()
 
 
-## Time in the air before landing on a surface `rise` px above take-off (negative = below).
 static func air_time(rise: float) -> float:
 	var disc = JUMP_V * JUMP_V - 2.0 * GRAV * rise
 	if disc < 0.0:
@@ -52,26 +65,35 @@ static func reachable(a: Rect2, b: Rect2) -> bool:
 	return t > 0.0 and RUN * t * 0.85 >= dx
 
 
-func generate(stage: int, seed_value: int) -> Dictionary:
+func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
+	stage = s
 	rng.seed = seed_value
+	difficulty = int(opts.get("difficulty", 1))
+	luck = int(opts.get("luck", 0))
 	solids = []
+	bonus = []
 	coins = []
 	enemies = []
 	checkpoints = []
+	hazards = []
+	bouncers = []
+	chests = []
 	helpers_added = 0
-	var diff = clampf((stage - 1) / 9.0, 0.0, 1.0)
-	var budget = 2.0 + stage * 1.25
+	var base_diff = 1.0 - exp(-(s - 1) / 7.0)
+	diff = clampf(base_diff * [0.6, 1.0, 1.25][difficulty] + (0.12 if difficulty == 2 else 0.0), 0.0, 1.0)
+	var budget = (2.0 + s * 1.1) * BUDGET_MULT[difficulty]
+	var boss_stage = is_boss_stage(s)
 	var x = -240.0
 	var h = 0.0
 	_ground(x, 560.0, h)
 	checkpoints.append(Vector2(-150.0, h))
 	x += 560.0
-	var target_len = 2400.0 + stage * 380.0
+	var target_len = (1500.0 + s * 160.0) if boss_stage else (2400.0 + s * 340.0)
 	var last_cp = x
 	var guard = 0
 	while x < target_len and guard < 300:
 		guard += 1
-		var kind = _pick_chunk(diff, h)
+		var kind = _pick_chunk(h)
 		match kind:
 			"flat":
 				var w = rng.randf_range(170.0, 320.0)
@@ -79,8 +101,9 @@ func generate(stage: int, seed_value: int) -> Dictionary:
 				if rng.randf() < 0.55:
 					_coin_line(x + 30.0, h - 26.0, int(w / 34.0) - 1)
 				if budget >= 1.0 and w > 210.0 and rng.randf() < 0.65:
-					_enemy("brute", Vector2(x + w * 0.65, h), x + 24.0, x + w - 24.0, diff)
+					_enemy(_ground_kind(), Vector2(x + w * 0.65, h), x + 24.0, x + w - 24.0)
 					budget -= 1.0
+				_maybe_chest(Vector2(x + w * 0.35, h))
 				if x - last_cp > 1100.0:
 					checkpoints.append(Vector2(x + w * 0.3, h))
 					last_cp = x
@@ -118,7 +141,7 @@ func generate(stage: int, seed_value: int) -> Dictionary:
 					_plat(px, py, pw)
 					_coin_line(px + 14.0, py - 24.0, int(pw / 30.0))
 					if budget >= 1.0 and rng.randf() < 0.45 + diff * 0.3:
-						_enemy("spike", Vector2(px + pw * 0.5, py), px + 16.0, px + pw - 16.0, diff)
+						_enemy("spike" if rng.randf() < 0.6 or s < 2 else "slime", Vector2(px + pw * 0.5, py), px + 16.0, px + pw - 16.0)
 						budget -= 1.0
 					px += pw
 					ph = py
@@ -129,7 +152,6 @@ func generate(stage: int, seed_value: int) -> Dictionary:
 				_ground(x, w4, h)
 				x += w4
 			"tower":
-				# vertical climb: zig-zag ledges up to a high plateau
 				var base_w = 150.0
 				_ground(x, base_w, h)
 				var levels = 3 + rng.randi() % 3 + int(diff * 2.0)
@@ -138,17 +160,21 @@ func generate(stage: int, seed_value: int) -> Dictionary:
 				for i in levels:
 					y -= rng.randf_range(78.0, 96.0)
 					var lx = col_x + (10.0 if i % 2 == 0 else 120.0)
-					_plat(lx, y, 96.0)
+					if i == 2 and rng.randf() < 0.4:
+						_crumble(lx, y, 96.0)
+					else:
+						_plat(lx, y, 96.0)
 					if rng.randf() < 0.5:
 						coins.append(Vector2(lx + 48.0, y - 30.0))
-				if budget >= 1.0 and stage >= 2:
-					_enemy("cyclops", Vector2(col_x + 120.0, h - 160.0), col_x - 40.0, col_x + 260.0, diff)
+				if budget >= 1.0 and s >= 2:
+					_enemy(_air_kind(), Vector2(col_x + 120.0, h - 160.0), col_x - 40.0, col_x + 260.0)
 					budget -= 1.0
 				x = col_x + 250.0
 				h = clampf(y - rng.randf_range(0.0, 30.0), -900.0, 0.0)
 				var w5 = rng.randf_range(220.0, 320.0)
 				_ground(x, w5, h)
 				_coin_line(x + 40.0, h - 26.0, 5)
+				_maybe_chest(Vector2(x + w5 - 50.0, h), 0.15)
 				if x - last_cp > 900.0:
 					checkpoints.append(Vector2(x + 50.0, h))
 					last_cp = x
@@ -164,36 +190,102 @@ func generate(stage: int, seed_value: int) -> Dictionary:
 				var w7 = rng.randf_range(360.0, 460.0)
 				_ground(x, w7, h)
 				if budget >= 1.0:
-					_enemy("brute", Vector2(x + w7 * 0.7, h), x + 30.0, x + w7 - 30.0, diff)
+					_enemy(_ground_kind(), Vector2(x + w7 * 0.7, h), x + 30.0, x + w7 - 30.0)
 					budget -= 1.0
-				if budget >= 1.0 and stage >= 2:
-					_enemy("cyclops", Vector2(x + w7 * 0.5, h - 170.0), x, x + w7, diff)
+				if budget >= 1.0 and s >= 2:
+					_enemy(_air_kind(), Vector2(x + w7 * 0.5, h - 170.0), x, x + w7)
+					budget -= 1.0
+				if budget >= 1.0 and s >= 4:
+					_enemy(_ground_kind(), Vector2(x + w7 * 0.35, h), x + 30.0, x + w7 - 30.0)
 					budget -= 1.0
 				_coin_line(x + 60.0, h - 26.0, 6)
+				_maybe_chest(Vector2(x + w7 - 40.0, h), 0.3)
 				x += w7
-	# exit runway + portal
+			"mover":
+				var gap_w = rng.randf_range(190.0, 250.0)
+				var mw = 90.0
+				var mx = x + (gap_w - mw) * 0.5
+				var my = h - rng.randf_range(10.0, 50.0)
+				solids.append({"r": Rect2(mx, my, mw, 18.0), "kind": "move", "base": Vector2(mx, my), "range": rng.randf_range(34.0, 52.0), "speed": rng.randf_range(0.9, 1.4), "phase": rng.randf() * TAU})
+				_coin_line(mx + 18.0, my - 26.0, 3)
+				x += gap_w
+				_ground(x, rng.randf_range(170.0, 240.0), h)
+				x += solids[-1].r.size.x
+			"crumble":
+				var cn = 2 + rng.randi() % 2
+				var cx = x
+				for i in cn:
+					cx += rng.randf_range(50.0, 70.0)
+					_crumble(cx, h - rng.randf_range(10.0, 40.0), 58.0)
+					coins.append(Vector2(cx + 29.0, solids[-1].r.position.y - 30.0))
+					cx += 58.0
+				x = cx + rng.randf_range(50.0, 70.0)
+				_ground(x, rng.randf_range(170.0, 240.0), h)
+				x += solids[-1].r.size.x
+			"thorns":
+				var tw = rng.randf_range(280.0, 360.0)
+				_ground(x, tw, h)
+				var thw = rng.randf_range(36.0, lerpf(44.0, 66.0, diff))
+				var tx = x + tw * 0.5 - thw * 0.5
+				hazards.append(Rect2(tx, h - 10.0, thw, 10.0))
+				_coin_arc(tx - 40.0, h, thw + 80.0, h)
+				x += tw
+			"bounce":
+				var bw = rng.randf_range(240.0, 300.0)
+				_ground(x, bw, h)
+				var bx = x + 70.0
+				bouncers.append(Vector2(bx, h))
+				# bonus ledge high above, only reachable with the bounce pad
+				var top = h - rng.randf_range(250.0, 300.0)
+				bonus.append({"r": Rect2(bx + 30.0, top, 110.0, 18.0), "kind": "plat"})
+				_coin_line(bx + 40.0, top - 26.0, 4)
+				for i in 5:
+					coins.append(Vector2(bx, h - 80.0 - i * 34.0))
+				if rng.randf() < 0.55 + luck * 0.1:
+					chests.append(Vector2(bx + 120.0, top))
+				x += bw
+	if boss_stage:
+		var aw = 640.0
+		_ground(x, aw, h)
+		checkpoints.append(Vector2(x + 40.0, h))
+		var boss_hp = int((36 + s * 4) * [0.7, 1.0, 1.3][difficulty])
+		var boss = {"pos": Vector2(x + 430.0, h), "min": x + 120.0, "max": x + aw - 60.0, "hp": boss_hp}
+		var portal = Vector2(x + aw - 70.0, h)
+		x += aw
+		_ground(x, 500.0, h)
+		_validate()
+		return _pack(portal, boss)
 	var end_w = 420.0
 	_ground(x, end_w, h)
-	var portal = Vector2(x + 280.0, h)
+	var portal2 = Vector2(x + 280.0, h)
 	x += end_w
 	_ground(x, 600.0, h)
 	_validate()
+	return _pack(portal2, {})
+
+
+func _pack(portal: Vector2, boss: Dictionary) -> Dictionary:
 	var min_y = 0.0
 	for s in solids:
 		min_y = minf(min_y, s.r.position.y)
+	var all_solids = solids.duplicate()
+	all_solids.append_array(bonus)
 	return {
-		"stage": stage, "seed": seed_value, "biome": biome_for(stage),
-		"solids": solids, "coins": coins, "enemies": enemies,
-		"checkpoints": checkpoints, "portal": portal,
+		"stage": stage, "biome": biome_for(stage),
+		"solids": all_solids, "coins": coins, "enemies": enemies,
+		"checkpoints": checkpoints, "portal": portal, "boss": boss,
+		"hazards": hazards, "bouncers": bouncers, "chests": chests,
 		"start_x": -240.0, "end_x": portal.x, "min_y": min_y,
-		"helpers": helpers_added,
+		"helpers": helpers_added, "path_count": solids.size(),
 	}
 
 
-func _pick_chunk(diff: float, h: float) -> String:
+func _pick_chunk(h: float) -> String:
 	var table = {
 		"flat": 3.0, "gap": 3.0 + diff * 2.0, "step": 2.0, "floaters": 1.5 + diff * 2.0,
 		"tower": 0.6 + diff * 1.6, "arena": 0.5 + diff * 1.2, "drop": 0.0,
+		"mover": (0.8 + diff) if stage >= 2 else 0.0, "crumble": (0.7 + diff) if stage >= 3 else 0.0,
+		"thorns": (0.8 + diff) if stage >= 2 else 0.3, "bounce": 0.7,
 	}
 	if h < -320.0:
 		table["drop"] = 3.0
@@ -209,12 +301,37 @@ func _pick_chunk(diff: float, h: float) -> String:
 	return "flat"
 
 
+func _ground_kind() -> String:
+	var table = {"brute": 3.0, "charger": 2.0 if stage >= 2 else 0.0, "slime": 2.0 if stage >= 2 else 0.0, "burrower": 1.5 if stage >= 3 else 0.0}
+	return _weighted(table)
+
+
+func _air_kind() -> String:
+	return _weighted({"cyclops": 2.0, "drone": 1.6 if stage >= 4 else 0.0})
+
+
+func _weighted(table: Dictionary) -> String:
+	var total = 0.0
+	for k in table:
+		total += table[k]
+	var r = rng.randf() * total
+	for k in table:
+		r -= table[k]
+		if r <= 0.0:
+			return k
+	return table.keys()[0]
+
+
 func _ground(x: float, w: float, top: float) -> void:
 	solids.append({"r": Rect2(x, top, w, SOIL), "kind": "ground"})
 
 
 func _plat(x: float, top: float, w: float) -> void:
 	solids.append({"r": Rect2(x, top, w, 18.0), "kind": "plat"})
+
+
+func _crumble(x: float, top: float, w: float) -> void:
+	solids.append({"r": Rect2(x, top, w, 18.0), "kind": "crumble", "base": Vector2(x, top)})
 
 
 func _coin_line(x: float, y: float, n: int) -> void:
@@ -225,16 +342,21 @@ func _coin_line(x: float, y: float, n: int) -> void:
 func _coin_arc(x: float, h: float, span: float, nh: float) -> void:
 	for i in 3:
 		var t = (i + 1) / 4.0
-		var y = lerpf(h, nh, t) - 26.0 - sin(t * PI) * 70.0
-		coins.append(Vector2(x + span * t, y))
+		coins.append(Vector2(x + span * t, lerpf(h, nh, t) - 26.0 - sin(t * PI) * 70.0))
 
 
-func _enemy(kind: String, pos: Vector2, lo: float, hi: float, diff: float) -> void:
-	var elite = rng.randf() < 0.08 + diff * 0.22
-	enemies.append({"kind": kind, "pos": pos, "min": lo, "max": hi, "elite": elite})
+func _maybe_chest(p: Vector2, extra: float = 0.0) -> void:
+	if rng.randf() < 0.1 + extra + luck * 0.04:
+		chests.append(p)
 
 
-## Walk the path in build order; insert a helper ledge wherever a hop is impossible.
+func _enemy(kind: String, pos: Vector2, lo: float, hi: float) -> void:
+	var elite = rng.randf() < 0.06 + diff * 0.22
+	var golden = not elite and rng.randf() < 0.03 + luck * 0.015
+	var hpb = int(stage / 6) + (1 if difficulty == 2 else 0) - (1 if difficulty == 0 else 0)
+	enemies.append({"kind": kind, "pos": pos, "min": lo, "max": hi, "elite": elite, "golden": golden, "hpb": hpb})
+
+
 func _validate() -> void:
 	var i = 0
 	while i < solids.size() - 1:

@@ -12,9 +12,12 @@ coins, monsters, checkpoints and an exit portal. Biomes rotate every two stages.
 | Install | Debug APK in `releases/` (sideload on Android) |
 
 ## Play / controls
-- **Phone:** left thumb = move stick, right thumb = **JUMP** (tap again in the air for a double jump) and **SPARK** (shoot). Top-right = pause.
 - **Desktop:** arrows / A-D move, Space / W jump, J / X spark, Esc pause.
-- Land on a monster's head to stomp it. Touch a checkpoint crystal to save your respawn point. Walk into the portal to finish the stage.
+- **Phone:** D-pad (or analog stick in Settings) on the left; JUMP, SPARK (tap to shoot, hold to charge) and DASH on the right.
+- **Keyboard:** L / Shift dashes.
+- Land on a monster's head to stomp it. Dash through enemies to hit them. Slide down walls and jump off them.
+- Touch a checkpoint crystal to save your respawn point. Walk into the portal to finish the stage. Every 5th stage has a boss.
+- Coins buy upgrades and heroes. Daily rewards, quests and achievements are in Quests & Rewards. The run resumes where you left off.
 
 ## Project layout
 ```
@@ -24,14 +27,19 @@ gloamwood/
   scenes/main.tscn         single scene; everything else is built from code
   scripts/
     main.gd                orchestrator: layers, parallax, stage build, combat, FX, camera, autoplay bot
-    level_gen.gd           seeded chunk generator + jump-reachability validator
-    player.gd              hero physics, moves, procedural drawing, scarf
-    monster.gd             brute / spike / cyclops AI, telegraphs, attacks, hit + death
-    hud.gd                 HUD + multi-touch controls, drawn in code
+    level_gen.gd           seeded chunk generator, hazards, chests, boss arenas + jump-reachability validator
+    player.gd              hero physics, dash, wall jump, charge, per-hero stats, drawing, scarf
+    monster.gd             8 monster types + Titan boss: AI, telegraphs, attacks, health bars, deaths
+    hud.gd                 HUD + multi-touch controls (D-pad/analog), combo, boss bar, toasts
+    menu.gd                title, heroes, upgrades, quests, settings, pause, stage clear, game over
+    profile.gd             autoload "Profile": save data, resume, upgrades, heroes, daily rewards, quests, achievements, XP
+    audio.gd               autoload "Sfx": synthesized sound effects + threaded music generation
   shaders/                 monster (flash/dissolve/elite), grass wind, post (vignette/grain/hurt), portal
   assets/<biome>/          baked art + meta.json (gloamwood, crystal, emberfen)
   tools/bake/              bake.html + bake.js: regenerate the art (needs Node + Playwright)
-  tools/test_levels.gd     headless test: 600 stages, every hop must be reachable
+  tools/test_levels.gd     headless test: 600 stages x 3 difficulties, every hop must be reachable
+  tools/export_sounds.gd   render all synthesized sounds/music to WAV
+  assets/fonts/            DejaVu fonts (free license, see DEJAVU-LICENSE.txt)
   releases/                built APKs
 ```
 

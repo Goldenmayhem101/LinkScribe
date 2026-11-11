@@ -13,32 +13,59 @@
 - **Budget:** $0. Free tools only (Godot, free Android tooling, GitHub). Google Play costs $25 one time, so sideload the APK instead (or itch.io).
 - **Model:** use Opus 5.5 for most work. It's cheaper on plan usage, and Fable costs about 2× per token. Switch to Fable only for a very hard problem.
 
-## 2. Current state (v0.2.0)
-Working and verified in a cloud session (software rendering, recorded frames):
-- **Self-generating stages** (`scripts/level_gen.gd`):
-  - Seeded chunk generator with these chunk types: flat, gap, step, floaters (floating ledges), tower (vertical zig-zag climb to a plateau), drop, arena.
-  - Difficulty rises per stage (gap width, enemy budget, elite chance). The run seed and stage number are mixed into each stage seed.
-  - **Reachability validator:** every hop is simulated against the hero's jump physics, and a helper ledge is inserted wherever a jump is impossible.
-  - `tools/test_levels.gd` passes: **600 stages, 0 unreachable hops**.
-- **Biomes:** Gloamwood → Crystal Caverns → Emberfen, rotating every 2 stages. Each has its own 5-color palette, and the monsters are recolored per biome.
-- **Hero:**
-  - Run, variable-height jump, double jump, coyote time, jump buffer, Spark projectile, stomp.
-  - Squash & stretch, dust puffs, a ribbon scarf (Line2D verlet sim), aura + PointLight2D, ground light pool, hit flicker.
-- **Monsters:** each has a readable warning before attacking, a white hit flash, knockback, damage numbers, fur-burst particles, a dissolve death with a glowing edge, and drops coins that pop out and get pulled toward the hero.
-  - **Brute:** chest glow and shake, then a leap and **ground-pound shockwave**.
-  - **Spike:** bristles, then fires a **fan of quills**.
-  - **Cyclops** (winged flyer): eye charge, then a **beam** aimed at the hero.
-  - **Elites:** bigger, more HP, purple shimmer + aura.
-- **Effects:**
-  - 6 parallax layers + sky (stars, twinkles, moon, god rays), drifting fog, lantern glows that ride the near-tree layer, fireflies, pollen, falling leaves.
-  - Wind-shader grass that parts around the hero, CanvasModulate + dynamic lights (hero, portal, checkpoints).
-  - Additive glow sprites, screen shake, hit-stop, vignette + grain + red hurt pulse, and a multiply color grade per biome.
-- **Game loop:** 3 hearts, checkpoints (crystal shrines), falling into a pit costs a heart, "Try again" respawn, a swirling exit portal with a fade transition and title card, coin total saved to `user://save.cfg`.
-- **HUD/controls:** hearts, coin counter with bump, stage name + progress bar, pause; a multi-touch stick + JUMP + SPARK with press feedback. Keyboard works for desktop.
-- **Autoplay bot:** `-- --autoplay` plays the game for demos and automated visual checks. It reaches stage 2 by itself and sometimes dies on towers; it's a simple bot, not a game bug.
-- **Android:** `releases/gloamwood-v0.2.0-debug.apk` (55 MB, armv7 + arm64, debug-signed). Install on the phone after allowing "install unknown apps".
+## 2. Current state (v0.3.0)
+Verified in a cloud session with a software renderer, recorded frames, and bot-played runs.
 
-**Not verified:** performance and touch feel on a real phone (only tested in a headless Linux renderer), audio (none yet), the GitHub Actions workflow (added but not yet confirmed green).
+**Gameplay**
+- **Stages generate themselves** (`level_gen.gd`).
+  - Chunk types: flat, gap, step, floating ledges, climbing tower, drop, monster arena, moving ledge, crumbling ledges, thorn strip, and a bounce pad leading to a hidden treasure ledge.
+  - A jump-physics validator inserts a helper ledge wherever a hop is impossible. `tools/test_levels.gd` passes 600 stages across all 3 difficulties with 0 unreachable hops.
+  - **Every 5th stage is a boss stage**: a shorter level, then an arena with the **Gloam Titan**. The portal stays locked until the boss dies.
+- **Biomes:** Gloamwood → Crystal Caverns → Emberfen, rotating every 2 stages, with monsters recolored per biome.
+- **Hero moves:** run, variable jump, air jumps, coyote time, jump buffer, **dash** (i-frames, damages enemies, afterimages), **wall slide and wall jump**, stomp, tap **Spark**, **hold to charge a big piercing Spark**.
+- **Heroes (unlockable):** Lumen (balanced), Vesper (3-way spark, Lv 3, 350 coins), Cinder (piercing sparks, sturdier, Lv 5, 800 coins), Nyx (triple jump, fast, Lv 8, 1500 coins).
+- **Monsters:** each has a readable warning before attacking and a health bar. Elites are bigger and shimmer. **Golden** variants drop a coin shower.
+  - Brute: ground-pound shockwave.
+  - Spike: quill fan.
+  - Cyclops (flyer): beam.
+  - **Charger:** paws the ground, charges, then is dazed.
+  - **Burrower:** invulnerable underground, pops up, throws a dirt clod.
+  - **Drone** (sci-fi, drawn in code): 3-bolt laser burst.
+  - **Slime** (drawn in code): splits into 2 minis.
+  - **Gloam Titan boss**, 3 phases: ground-pound with debris, charge, quill storm, summons minis, triple-eye beams. It has a boss health bar with phase markers, an intro card, roars and boss music.
+- **Combo counter:** hits, kills, stomps and dash hits chain within 2.6 s. The coin multiplier is ×1.5 per 5 combo, up to ×3, with toasts at 10, 25 and 50.
+- **Stage props:** chests (random coins, jackpot or a heart), bounce mushrooms, thorns, moving and crumbling ledges, checkpoints, the portal.
+- **Difficulty:** Relaxed / Normal / Hard changes enemy count, HP, gap widths and boss HP. The curve also rises per stage.
+
+**Reasons to keep playing** (researched retention patterns, kept fair, no purchases)
+- Coins → **permanent upgrades**: Heart Vessel, Spark Core, Quick Hands, Coin Magnet, Wind Step, Lucky Charm.
+- **Player level / XP** with coin rewards per level. Heroes are gated by level and coins, and the next unlock always shows a progress bar.
+- **7-day daily reward calendar** (50 → 500). Missing a day only restarts the calendar; nothing is lost.
+- **3 daily quests** chosen by date from 9 types.
+- **9 tiered achievements** with claimable rewards.
+- **3-star stage rating** (clear / 70% coins / no damage), new-record callouts and best-stage stats.
+- Variable rewards: chests and golden monsters.
+
+**Menus and persistence**
+- **Screens:** title (the bot plays behind it), Continue / New run, Heroes, Upgrades, Quests & Rewards (with badge count), Settings, daily reward popup, pause, stage clear, game over.
+- **Settings:**
+  - music and SFX volume
+  - **D-pad or analog stick**, control size
+  - vibration, difficulty, graphics Low/High
+- **Resume:** the run auto-saves on checkpoints, pause, the app going to the background, and app close. It stores stage, seed, position, hearts, collected coins, killed monsters, opened chests, boss state and stage stats. **Continue** restores it exactly; levels regenerate identically from the seed.
+- Profile is saved in `user://profile.json` (`profile.gd`).
+
+**Audio**
+- All synthesized in code (`audio.gd`), so there are no files and no licenses: 30 SFX plus music loops for each biome, the menu and the boss, generated on a worker thread.
+- `tools/export_sounds.gd` writes them to WAV for checking.
+
+**Android:** `releases/gloamwood-v0.3.0-debug.apk`. The owner reported that v0.2 gameplay was smooth on their phone.
+
+**Not verified yet:**
+- touch feel of the new buttons, the D-pad/analog switch and the dash button on a real phone
+- vibration on device
+- whether the music sounds good to the owner (the levels were checked numerically: no clipping)
+- GitHub Actions (the push was blocked)
 
 ## 3. Fresh session setup (cloud container, ~5 min)
 The container is wiped between sessions, so re-run this. `dl.google.com` was **blocked** by the environment's network policy, so the Android SDK comes from Ubuntu's `apksigner`/`zipalign` packages plus a small fake SDK folder.
@@ -79,11 +106,15 @@ xvfb-run -a -s "-screen 0 800x1400x24" $G --path . --rendering-driver opengl3 --
 $G --headless --path . --export-debug "Android" build/gloamwood-debug.apk
 cp build/gloamwood-debug.apk releases/gloamwood-vX.Y.Z-debug.apk   # bump version/code + version/name in export_presets.cfg
 ```
+Testing flags (after `--`): `--autoplay` (bot demo, nothing saved), `--botplay` / `--botplay=continue` (bot plays a real saved run, so it exercises the stage clear screen and resume), `--stage=N`, `--menu=title|heroes|upgrades|quests|settings|daily`, `--hero=<id>`. Use `--audio-driver Dummy` in the container (it has no sound card; the ALSA `ERR_CANT_OPEN` message is harmless).
+
 Gotchas learned:
 - GDScript `var x := dict.value` fails to parse (Variant inference). Use `var x = ...` or an explicit type.
 - `ShaderMaterial.get_shader_parameter` returns null until the parameter is set, so initialize parameters in setup.
 - Repeating textures bleed their opposite edge into the top row; region rects are inset by 1 px.
 - Don't pipe Godot's output into `head` while recording: SIGPIPE kills the run. Redirect to a file instead.
+- `--script` tools run without autoloads: use `get_node_or_null("/root/Profile")` in code those tools load.
+- The default Godot font lacks ★ ● ✓ ♥: the UI uses the bundled DejaVu fonts (`assets/fonts`, free license).
 - Art changes: edit palettes in `tools/bake/bake.js` (or painting code in `bake.html`), run `node tools/bake/bake.js`, then re-import.
 
 ## 5. Architecture notes
@@ -94,20 +125,20 @@ Gotchas learned:
 - **FX:** `fx_burst`/`fx_dust` spawn one-shot CPUParticles2D. Rings, text, shockwaves and beams are dict items drawn by `fx_norm`/`fx_add` (additive). Projectiles are dicts in `main.projectiles`.
 - **Monster art:** PNG at 3× scale with `meta.json` (origin, eye positions, colors). Eyes are drawn live so they track the hero.
 
-## 6. Roadmap (owner-approved direction, in priority order)
-1. **Test on the owner's phone:** install the APK, check FPS and touch feel, and tune control sizes and positions. Add a quality setting (particles/lights) if it's slow.
-2. **Audio ($0):** generate SFX procedurally (jsfxr-style) or use CC0 packs (Kenney, OpenGameArt). Add ambient forest loops and music that shifts with the action.
-3. **More monster effects:**
-   - Fur/horn jiggle via a vertex shader, a spawn-from-portal animation, eyes that glow in darkness.
-   - Status tints (freeze/burn), an elite trail.
-   - A **boss every 5 stages** with phases and arena effects.
-4. **Hero moves:** dash with afterimages, wall slide sparks, charged Spark, combo counter, upgrades bought with coins between stages.
-5. **Sci-fi biome:** "Derelict Starship" (neon, steam vents, sparks, laser drones), plus "Sky Ruins" (wind gusts). Bake new palettes and painted props.
-6. **Generator:** secret coin rooms, moving platforms, hazards (thorns, crumbling ledges), weather per stage (rain + puddle reflections, aurora, lightning flashes).
-7. **Lighting upgrade:** normal maps for monsters/trees so the hero's light shades them, and light occluders for soft shadows.
-8. **Release pipeline:** a release keystore (kept out of git; GitHub secret), a release APK/AAB, an itch.io page.
-9. **Menus:** title screen, settings (volume, quality, control layout), stage select by seed.
+## 6. Roadmap (next ideas)
+1. Owner playtest of v0.3.0: control sizes, D-pad vs analog, difficulty curve, boss fairness, music taste.
+2. More bosses: one per biome (Crystal Wyrm, Ember Hag) with their own arenas and attacks.
+3. The sci-fi biome "Derelict Starship" (drones, laser gates, steam vents) and "Sky Ruins" (wind gusts).
+4. Weather per stage (rain and puddle reflections, aurora, lightning), normal-mapped lighting.
+5. Cosmetics bought with coins: scarf colors, trails. A weekly challenge seed with a local best score.
+6. Release pipeline: release keystore as a GitHub secret, release APK/AAB, itch.io page.
+7. Optional: a cloud save (needs a free backend), but local-only keeps it $0 and simple.
 
 ## 7. History
 - v0.1: an HTML canvas preview (portrait twilight forest) went through 4 rounds of visual critique and fixes. The owner approved the direction and asked for more effects, better monster effects and self-generating stages.
-- v0.2 (this): moved to Godot 4.3. Art was baked from the preview's painting code into 3 biome palettes. Self-generating stages with a validator, monster AI and attacks, the full effects pass, HUD/touch, autoplay bot, debug APK export, and a CI workflow.
+- v0.2: moved to Godot 4.3. Art was baked from the preview's painting code into 3 biome palettes. Self-generating stages with a validator, monster AI and attacks, the full effects pass, HUD/touch, autoplay bot, debug APK export, and a CI workflow.
+- v0.3 (this):
+  - Sound and music, menus, upgrades, heroes, daily rewards, quests, achievements, XP and levels, stars.
+  - Resume, D-pad or analog, dash, wall jump, charged spark, combo counter, monster health bars.
+  - 4 new monster types, golden and elite variants, the Gloam Titan boss every 5 stages.
+  - New level pieces (moving and crumbling ledges, thorns, bounce pads, chests, hidden ledges) and difficulty settings.

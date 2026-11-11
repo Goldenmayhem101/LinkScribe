@@ -286,7 +286,7 @@ function mouth(g,cx,cy,w,h,R,fangs=true){
 function limb(g,x,y,rx,ry,c,R,ang){g.save();g.translate(x,y);g.rotate(ang);const p=furShape(0,0,rx,ry,R,40,2.2);furFill(g,p,0,0,rx,ry,c,R,.25);
   for(let k=-1;k<=1;k++){g.fillStyle=rgba(tone(P.moon,.2));g.beginPath();g.moveTo(k*rx*.45-1.4,ry*.8);g.lineTo(k*rx*.45+1.4,ry*.8);g.lineTo(k*rx*.5,ry*1.25);g.fill();}g.restore();}
 function makeMonster(kind){
-  const W=120,H=120,l=layer(W,H,S),g=l.g,R=rng(kind.length*977+3);const m={l,kind,eyes:[],ox:60,oy:112};
+  const W=kind==='titan'?220:120,H=W,l=layer(W,H,S),g=l.g,R=rng(kind.length*977+3);const m={l,kind,eyes:[],ox:W/2,oy:H-8};
   if(kind==='brute'){const c=mix(P.moss,P.moon,.06),cx=60,cy=72,rx=33,ry=30;m.body=c;
     limb(g,cx-rx-2,cy+6,9,14,tone(c,-.15),R,.5);limb(g,cx+rx+2,cy+6,9,14,tone(c,-.05),R,-.5);
     horn(g,cx-18,cy-22,-1,30,10,1.9);horn(g,cx+18,cy-22,1,30,10,1.9);
@@ -306,6 +306,36 @@ function makeMonster(kind){
     mouth(g,cx+1,cy+6,26,11,R,false);
     for(const k of[-1,1]){g.fillStyle=rgba(tone(c,-.55));g.beginPath();g.ellipse(cx+k*10,cy+ry+1,8,4.5,0,0,TAU);g.fill();}
     m.eyes=[{x:cx-8,y:cy-9,r:7},{x:cx+9,y:cy-10,r:7.5}];m.iris=P.moss;m.oy=cy+ry+5;
+  }else if(kind==='charger'){const c=mix(P.dusk,P.ember,.35),cx=60,cy=80,rx=36,ry=22;m.body=c;
+    limb(g,cx-24,cy+14,8,9,tone(c,-.25),R,.2);limb(g,cx+22,cy+14,8,9,tone(c,-.1),R,-.2);
+    horn(g,cx-30,cy-8,-1,34,12,.6);
+    const p=furShape(cx,cy,rx,ry,R,96,3.4);furFill(g,p,cx,cy,rx,ry,c,R);
+    // armored back plates
+    for(let i=0;i<4;i++){const px=cx-14+i*12,py=cy-ry+4+Math.abs(i-1.5)*2;const pg=g.createLinearGradient(px,py-8,px,py+8);pg.addColorStop(0,rgba(mix(P.moss,P.moon,.35)));pg.addColorStop(1,rgba(tone(P.moss,-.4)));
+      g.fillStyle=pg;g.beginPath();g.ellipse(px,py,8,6,0,Math.PI,0);g.fill();g.strokeStyle=rgba(P.moon,.5);g.lineWidth=1;g.beginPath();g.ellipse(px,py,8,6,0,Math.PI*1.1,Math.PI*1.7);g.stroke();}
+    mouth(g,cx-16,cy+4,22,8,R,true);
+    for(const k of[-1,1]){g.fillStyle=rgba(tone(c,-.55));g.beginPath();g.ellipse(cx+k*20,cy+ry+1,9,4.5,0,0,TAU);g.fill();}
+    m.eyes=[{x:cx-20,y:cy-8,r:5.5},{x:cx-6,y:cy-11,r:6}];m.iris=P.ember;m.oy=cy+ry+5;
+  }else if(kind==='burrower'){const c=mix(P.moon,P.dusk,.55),cx=60,cy=78,rx=24,ry=24;m.body=c;
+    limb(g,cx-rx-2,cy+4,8,10,tone(c,-.2),R,.9);limb(g,cx+rx+2,cy+4,8,10,tone(c,-.05),R,-.9);
+    const p=furShape(cx,cy,rx,ry,R,90,3);furFill(g,p,cx,cy,rx,ry,c,R);
+    // snout + buck teeth
+    g.fillStyle=rgba(mix(P.ember,[230,120,150],.5));g.beginPath();g.ellipse(cx,cy+2,9,6,0,0,TAU);g.fill();
+    g.fillStyle=rgba(tone(P.ink,-.3));g.beginPath();g.ellipse(cx,cy-1,4,2.6,0,0,TAU);g.fill();
+    g.fillStyle='#fff8ec';g.fillRect(cx-4,cy+7,3.6,6);g.fillRect(cx+.4,cy+7,3.6,6);g.strokeStyle=rgba(P.ink,.5);g.lineWidth=.8;g.strokeRect(cx-4,cy+7,8,6);
+    // dirt clumps on head
+    for(let i=0;i<5;i++){g.fillStyle=rgba(mix(P.ink,P.ember,.25),.9);g.beginPath();g.ellipse(cx-14+i*7+R()*3,cy-ry+2+R()*4,4,3,0,0,TAU);g.fill();}
+    m.eyes=[{x:cx-9,y:cy-11,r:5},{x:cx+9,y:cy-12,r:5}];m.iris=P.moss;m.oy=cy+ry+5;
+  }else if(kind==='titan'){const c=mix(P.moss,P.dusk,.45),cx=110,cy=128,rx=64,ry=58;m.body=c;
+    limb(g,cx-rx-4,cy+14,18,26,tone(c,-.2),R,.5);limb(g,cx+rx+4,cy+14,18,26,tone(c,-.05),R,-.5);
+    horn(g,cx-40,cy-38,-1,56,18,1.9);horn(g,cx+40,cy-38,1,56,18,1.9);horn(g,cx-16,cy-52,-1,30,10,1.2);horn(g,cx+16,cy-52,1,30,10,1.2);
+    const p=furShape(cx,cy,rx,ry,R,140,6);furFill(g,p,cx,cy,rx,ry,c,R,2.4);
+    const bp=furShape(cx+4,cy+26,36,24,R,70,3);g.save();p(g);g.clip();furFill(g,bp,cx+4,cy+26,36,24,mix(mix(P.moss,P.ember,.4),P.moon,.15),R,.8);g.restore();
+    mouth(g,cx+4,cy,74,26,R,true);
+    // glowing rune scars
+    g.strokeStyle=rgba(tone(P.ember,.4),.85);g.lineWidth=2.2;for(const k of[-1,1]){g.beginPath();g.moveTo(cx+k*44,cy-10);g.lineTo(cx+k*52,cy+6);g.lineTo(cx+k*46,cy+18);g.stroke();}
+    for(const k of[-1,1]){g.fillStyle=rgba(tone(c,-.55));g.beginPath();g.ellipse(cx+k*30,cy+ry+3,22,10,0,0,TAU);g.fill();}
+    m.eyes=[{x:cx-26,y:cy-26,r:10},{x:cx,y:cy-34,r:12},{x:cx+27,y:cy-27,r:10}];m.iris=P.ember;m.oy=cy+ry+12;
   }else{const c=mix(P.dusk,P.moon,.12),cx=60,cy=60,rx=25,ry=23;m.body=c;
     horn(g,cx-12,cy-17,-1,15,7,1.4);horn(g,cx+12,cy-17,1,15,7,1.4);
     const p=furShape(cx,cy,rx,ry,R,90,3.4);furFill(g,p,cx,cy,rx,ry,c,R);
@@ -314,7 +344,7 @@ function makeMonster(kind){
   }
   return m;
 }
-function buildMonsters(){L.mon={brute:makeMonster('brute'),spike:makeMonster('spike'),eye:makeMonster('cyclops')};}
+function buildMonsters(){L.mon={brute:makeMonster('brute'),spike:makeMonster('spike'),eye:makeMonster('cyclops'),charger:makeMonster('charger'),burrower:makeMonster('burrower'),titan:makeMonster('titan')};}
 function buildPost(){
   const v=layer(LW,LH,S*.25),g=v.g;const gr=g.createRadialGradient(LW*.45,LH*.5,LH*.22,LW*.5,LH*.5,LH*.72);gr.addColorStop(0,rgba(P.ink,0));gr.addColorStop(.7,rgba(P.ink,.35));gr.addColorStop(1,rgba(tone(P.ink,-.6),.85));g.fillStyle=gr;g.fillRect(0,0,LW,LH);L.vig=v;
   const c=layer(LW,LH,S*.25),cg=c.g;const lg=cg.createLinearGradient(0,0,0,LH);lg.addColorStop(0,rgba(mix(P.moss,P.dusk,.4)));lg.addColorStop(.55,rgba(mix(P.dusk,P.moon,.3)));lg.addColorStop(1,rgba(mix(P.dusk,P.ember,.35)));cg.fillStyle=lg;cg.fillRect(0,0,LW,LH);L.grade=c;
@@ -619,7 +649,7 @@ window.__bake=(pal,scale)=>{P=pal;LH=800;GY=565;S=scale||2;
    const gr=g.createRadialGradient(-3,-4,0,0,0,r);gr.addColorStop(0,'#fffbe8');gr.addColorStop(.4,rgba(tone(P.ember,.35)));gr.addColorStop(1,rgba(tone(P.ember,-.15)));g.fillStyle=gr;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();
    g.strokeStyle=rgba(tone(P.ember,-.45),.8);g.lineWidth=1;g.beginPath();g.arc(0,0,r*.68,0,TAU);g.stroke();
    g.fillStyle=rgba(tone(P.ember,-.3));g.beginPath();for(let i=0;i<8;i++){const a=i/8*TAU-Math.PI/2,rr=i%2?2:4.6;g.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}g.fill();put('coin',g2);}
-  const mon={};for(const k in L.mon){const m=L.mon[k];mon[m.kind]={ox:m.ox,oy:m.oy,eyes:m.eyes,iris:m.iris.map(v=>v/255),body:m.body.map(v=>v/255),fly:!!m.fly};}
+  const mon={};for(const k in L.mon){const m=L.mon[k];mon[m.kind]={w:m.l.w,h:m.l.h,ox:m.ox,oy:m.oy,eyes:m.eyes,iris:m.iris.map(v=>v/255),body:m.body.map(v=>v/255),fly:!!m.fly};}
   const pal01={};for(const k in P)pal01[k]=P[k].map(v=>v/255);
   return{out,meta:{scale:S,monster_scale:3,ground_y:GY,ground_tile_y0:L.ground.y0,platform_top:L.plat.top,mountains_top:L.mount.top,sizes,
     lanterns:L.near.lanterns,shrooms:L.ground.shrooms,crystals:L.ground.crystals,monsters:mon,palette:pal01}};};

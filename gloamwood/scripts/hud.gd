@@ -1,50 +1,67 @@
 class_name Hud
 extends Control
-## Screen-space HUD + multi-touch controls, all drawn in code.
+## In-game HUD and multi-touch controls, all drawn in code.
+## Movement: D-pad (default) or analog stick (Settings). Right thumb: JUMP, SPARK (hold to charge), DASH.
 
 var main: Node
-var pal: Dictionary
+var pal: Dictionary = {}
 var coin_tex: Texture2D
 var font: Font
 
-var hearts = 3
-var max_hearts = 3
-var coins = 0
-var bump = 0.0
-var stage_label = ""
-var progress = 0.0
-var title = ""
-var subtitle = ""
-var title_t = 0.0
-var fade = 0.0
-var paused = false
-var autoplay = false
+var hearts := 3
+var max_hearts := 3
+var coins := 0
+var bump := 0.0
+var stage_label := ""
+var progress := 0.0
+var title := ""
+var subtitle := ""
+var title_t := 0.0
+var fade := 0.0
+var autoplay := false
+var visible_controls := true
+var combo := 0
+var combo_k := 0.0
+var combo_mult := 1.0
+var combo_pop := 0.0
+var boss_name := ""
+var boss_k := -1.0
+var boss_phase := 1
+var toasts: Array = []
+var charge := 0.0
 
 # control state read by main
-var move = 0.0
-var jump_held = false
-var jump_pressed = false
-var fire_pressed = false
-var fire_flash = 0.0
-var jump_flash = 0.0
+var move := 0.0
+var jump_held := false
+var jump_pressed := false
+var fire_pressed := false
+var fire_held := false
+var fire_released := false
+var dash_pressed := false
+var fire_flash := 0.0
+var jump_flash := 0.0
+var dash_flash := 0.0
+var dash_ready := 1.0
 
-var touches = {}
+var touches := {}
 var knob = Vector2.ZERO
 
 
 func _ready() -> void:
-	font = ThemeDB.fallback_font
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	font = preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
 func _geom() -> Dictionary:
 	var s = size
+	var k = float(Profile.setting("control_scale"))
 	return {
-		"stick": Vector2(150, s.y - 200), "stick_r": 105.0,
-		"jump": Vector2(s.x - 120, s.y - 160), "jump_r": 78.0,
-		"fire": Vector2(s.x - 262, s.y - 245), "fire_r": 56.0,
+		"k": k,
+		"stick": Vector2(150 * k, s.y - 200 * k), "stick_r": 105.0 * k,
+		"left": Vector2(95 * k, s.y - 180 * k), "right": Vector2(245 * k, s.y - 180 * k), "pad": 64.0 * k,
+		"jump": Vector2(s.x - 120 * k, s.y - 160 * k), "jump_r": 78.0 * k,
+		"fire": Vector2(s.x - 262 * k, s.y - 235 * k), "fire_r": 56.0 * k,
+		"dash": Vector2(s.x - 108 * k, s.y - 330 * k), "dash_r": 46.0 * k,
 		"pause": Vector2(s.x - 60, 62), "pause_r": 34.0,
 	}
 
@@ -55,9 +72,24 @@ func show_title(t1: String, t2: String) -> void:
 	title_t = 2.8
 
 
+func toast(text: String, col: Color = Color(1, 0.9, 0.6)) -> void:
+	toasts.append({"text": text, "t": 0.0, "col": col})
+
+
 func consume() -> void:
 	jump_pressed = false
 	fire_pressed = false
+	fire_released = false
+	dash_pressed = false
+
+
+func reset_input() -> void:
+	touches.clear()
+	move = 0.0
+	knob = Vector2.ZERO
+	jump_held = false
+	fire_held = false
+	consume()
 
 
 func _process(dt: float) -> void:
@@ -67,10 +99,17 @@ func _process(dt: float) -> void:
 	title_t = maxf(title_t - dt, 0.0)
 	fire_flash = maxf(fire_flash - dt * 4.0, 0.0)
 	jump_flash = maxf(jump_flash - dt * 4.0, 0.0)
+	dash_flash = maxf(dash_flash - dt * 4.0, 0.0)
+	combo_pop = maxf(combo_pop - dt * 3.0, 0.0)
+	for tt in toasts:
+		tt.t += dt
+	toasts = toasts.filter(func(x): return x.t < 2.6)
 	queue_redraw()
 
 
 func _input(ev: InputEvent) -> void:
+	if not visible_controls or get_tree().paused:
+		return
 	if ev is InputEventScreenTouch:
 		var g = _geom()
 		if ev.pressed:
@@ -85,33 +124,46 @@ func _input(ev: InputEvent) -> void:
 					jump_flash = 1.0
 				"fire":
 					fire_pressed = true
+					fire_held = true
 					fire_flash = 1.0
+				"dash":
+					dash_pressed = true
+					dash_flash = 1.0
 				"stick":
 					_stick(ev.position, g)
+				"dpad":
+					_dpad(ev.position, g)
 		else:
 			var role2: String = touches.get(ev.index, "")
 			touches.erase(ev.index)
-			if role2 == "jump":
-				jump_held = false
-			elif role2 == "stick":
-				move = 0.0
-				knob = Vector2.ZERO
+			match role2:
+				"jump":
+					jump_held = false
+				"fire":
+					fire_held = false
+					fire_released = true
+				"stick", "dpad":
+					move = 0.0
+					knob = Vector2.ZERO
 	elif ev is InputEventScreenDrag:
-		if touches.get(ev.index, "") == "stick":
+		var r = touches.get(ev.index, "")
+		if r == "stick":
 			_stick(ev.position, _geom())
+		elif r == "dpad":
+			_dpad(ev.position, _geom())
 
 
 func _role_at(p: Vector2, g: Dictionary) -> String:
-	if p.distance_to(g.pause) < g.pause_r * 1.4:
+	if p.distance_to(g.pause) < g.pause_r * 1.5:
 		return "pause"
-	if paused:
-		return "pause"
-	if p.distance_to(g.jump) < g.jump_r * 1.3:
+	if p.distance_to(g.jump) < g.jump_r * 1.25:
 		return "jump"
-	if p.distance_to(g.fire) < g.fire_r * 1.35:
+	if p.distance_to(g.fire) < g.fire_r * 1.3:
 		return "fire"
+	if p.distance_to(g.dash) < g.dash_r * 1.35:
+		return "dash"
 	if p.x < size.x * 0.55 and p.y > size.y * 0.5:
-		return "stick"
+		return "dpad" if Profile.setting("control") == "dpad" else "stick"
 	return ""
 
 
@@ -121,6 +173,11 @@ func _stick(p: Vector2, g: Dictionary) -> void:
 	move = clampf(d.x / (g.stick_r * 0.5), -1.0, 1.0)
 	if absf(move) < 0.15:
 		move = 0.0
+
+
+func _dpad(p: Vector2, g: Dictionary) -> void:
+	var mid = (g.left.x + g.right.x) * 0.5
+	move = -1.0 if p.x < mid else 1.0
 
 
 # ---------------- drawing ----------------
@@ -139,9 +196,7 @@ func _heart(c: Vector2, s: float, filled: bool) -> void:
 	var pts = PackedVector2Array()
 	for i in 32:
 		var a = TAU * i / 32.0
-		var x = 16.0 * pow(sin(a), 3.0)
-		var y = -(13.0 * cos(a) - 5.0 * cos(2.0 * a) - 2.0 * cos(3.0 * a) - cos(4.0 * a))
-		pts.append(c + Vector2(x, y) * s / 16.0)
+		pts.append(c + Vector2(16.0 * pow(sin(a), 3.0), -(13.0 * cos(a) - 5.0 * cos(2.0 * a) - 2.0 * cos(3.0 * a) - cos(4.0 * a))) * s / 16.0)
 	if filled:
 		var cols = PackedColorArray()
 		for p in pts:
@@ -155,11 +210,18 @@ func _heart(c: Vector2, s: float, filled: bool) -> void:
 		draw_polyline(pts, Color(pal.moon, 0.35), 2.0, true)
 
 
+func _button(c: Vector2, r: float, base: Color, flash: float, label: String, k: float) -> void:
+	draw_circle(c, r + flash * 8.0, Color(base.lightened(0.3), 0.15 + flash * 0.4))
+	draw_circle(c, r * (1.0 - flash * 0.06), base.darkened(0.55).lerp(base, 0.25))
+	draw_circle(c + Vector2(-r * 0.18, -r * 0.24), r * 0.55, Color(1, 1, 1, 0.12))
+	draw_arc(c, r, 0, TAU, 48, Color(pal.moon, 0.35), 3.0, true)
+	draw_string(font, Vector2(c.x - 70, c.y + r + 28 * k), label, HORIZONTAL_ALIGNMENT_CENTER, 140, int(17 * k), Color(pal.moon, 0.45))
+
+
 func _draw() -> void:
 	if pal.is_empty():
 		return
 	var s = size
-	var g = _geom()
 	var moon: Color = pal.moon
 	var ember: Color = pal.ember
 	# hearts
@@ -168,17 +230,17 @@ func _draw() -> void:
 		_heart(Vector2(62 + i * 44, 62), 17.0, i < hearts)
 	# coins
 	var cw = 170.0
-	var cr = Rect2(s.x * 0.5 - cw * 0.5, 30, cw, 64)
+	var cr = Rect2(s.x * 0.5 - cw * 0.5 + 30, 30, cw, 64)
 	_pill(cr)
 	draw_texture_rect(coin_tex, Rect2(cr.position.x + 18, 44, 36, 36), false)
-	var b = sin(minf(bump, 1.0) * PI) * 1.0
-	var fs = int(34 + b * 10)
-	draw_string(font, Vector2(cr.position.x + 64, 76 - b * 8), str(coins), HORIZONTAL_ALIGNMENT_LEFT, -1, fs, moon.lerp(Color(1, 0.95, 0.8), b))
-	# pause
-	draw_circle(g.pause, g.pause_r, Color(pal.ink, 0.55))
-	draw_arc(g.pause, g.pause_r, 0, TAU, 32, Color(moon, 0.25), 2.0, true)
-	draw_rect(Rect2(g.pause.x - 10, g.pause.y - 12, 7, 24), moon)
-	draw_rect(Rect2(g.pause.x + 3, g.pause.y - 12, 7, 24), moon)
+	var b = sin(minf(bump, 1.0) * PI)
+	draw_string(font, Vector2(cr.position.x + 64, 76 - b * 8), str(coins), HORIZONTAL_ALIGNMENT_LEFT, -1, int(34 + b * 10), moon.lerp(Color(1, 0.95, 0.8), b))
+	if visible_controls:
+		var g0 = _geom()
+		draw_circle(g0.pause, g0.pause_r, Color(pal.ink, 0.55))
+		draw_arc(g0.pause, g0.pause_r, 0, TAU, 32, Color(moon, 0.25), 2.0, true)
+		draw_rect(Rect2(g0.pause.x - 10, g0.pause.y - 12, 7, 24), moon)
+		draw_rect(Rect2(g0.pause.x + 3, g0.pause.y - 12, 7, 24), moon)
 	# stage + progress
 	draw_string(font, Vector2(0, 150), stage_label, HORIZONTAL_ALIGNMENT_CENTER, s.x, 30, Color(moon, 0.92))
 	var bw = 300.0
@@ -189,48 +251,89 @@ func _draw() -> void:
 	draw_arc(Vector2(br.end.x + 6, br.position.y + 4.5), 9.0, PI, TAU, 10, ember, 3.0, true)
 	if autoplay:
 		draw_string(font, Vector2(0, 208), "AUTO-PLAY DEMO", HORIZONTAL_ALIGNMENT_CENTER, s.x, 18, Color(moon, 0.5))
-	# stick
-	draw_circle(g.stick, g.stick_r, Color(pal.ink, 0.38))
-	draw_arc(g.stick, g.stick_r, 0, TAU, 48, Color(moon, 0.22), 3.0, true)
-	for side in [-1.0, 1.0]:
-		var on: bool = signf(move) == side
-		var cx: float = g.stick.x + side * (g.stick_r - 26.0)
-		var col = pal.moss.lightened(0.5) if on else Color(moon, 0.35)
-		draw_polyline(PackedVector2Array([Vector2(cx - side * 7, g.stick.y - 12), Vector2(cx + side * 5, g.stick.y), Vector2(cx - side * 7, g.stick.y + 12)]), col, 4.0, true)
-	var kp: Vector2 = g.stick + (knob if touches.values().has("stick") else Vector2(move * g.stick_r * 0.4, 0))
-	draw_circle(kp, 46, Color(moon, 0.22))
-	draw_circle(kp + Vector2(-8, -10), 24, Color(1, 1, 1, 0.18))
-	draw_arc(kp, 46, 0, TAU, 40, Color(moon, 0.5), 2.0, true)
-	draw_string(font, Vector2(g.stick.x - 60, g.stick.y + g.stick_r + 34), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 120, 18, Color(moon, 0.45))
-	# jump
-	var jf = maxf(jump_flash, 1.0 if jump_held else 0.0)
-	draw_circle(g.jump, g.jump_r + jf * 8.0, Color(ember, 0.18 + jf * 0.35))
-	draw_circle(g.jump, g.jump_r * (1.0 - jf * 0.06), ember.darkened(0.55).lerp(ember, 0.25))
-	draw_circle(g.jump + Vector2(-14, -18), g.jump_r * 0.55, Color(1, 0.85, 0.65, 0.18))
-	draw_arc(g.jump, g.jump_r, 0, TAU, 48, Color(moon, 0.35), 3.0, true)
-	draw_polyline(PackedVector2Array([g.jump + Vector2(-22, 10), g.jump + Vector2(0, -12), g.jump + Vector2(22, 10)]), Color(1, 0.96, 0.9), 7.0, true)
-	draw_string(font, Vector2(g.jump.x - 60, g.jump.y + g.jump_r + 32), "JUMP", HORIZONTAL_ALIGNMENT_CENTER, 120, 18, Color(moon, 0.45))
-	# spark
-	var mo: Color = pal.moss
-	draw_circle(g.fire, g.fire_r + fire_flash * 8.0, Color(mo.lightened(0.4), 0.15 + fire_flash * 0.4))
-	draw_circle(g.fire, g.fire_r, mo.darkened(0.6).lerp(mo, 0.3))
-	draw_arc(g.fire, g.fire_r, 0, TAU, 40, Color(moon, 0.35), 3.0, true)
-	var star = PackedVector2Array()
-	for i in 8:
-		var a = TAU * i / 8.0 - PI / 2.0
-		var rr = 22.0 if i % 2 == 0 else 6.0
-		star.append(g.fire + Vector2(cos(a), sin(a)) * rr)
-	draw_colored_polygon(star, Color(0.88, 1.0, 0.97))
-	draw_string(font, Vector2(g.fire.x - 60, g.fire.y + g.fire_r + 30), "SPARK", HORIZONTAL_ALIGNMENT_CENTER, 120, 18, Color(moon, 0.45))
+	# boss bar
+	if boss_k >= 0.0:
+		var bb = Rect2(60, 246, s.x - 120, 22)
+		draw_string(font, Vector2(0, 236), boss_name, HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(1, 0.85, 0.7))
+		draw_rect(bb.grow(3), Color(pal.ink, 0.8))
+		draw_rect(Rect2(bb.position, Vector2(bb.size.x * boss_k, bb.size.y)), Color(1.0, 0.3, 0.3).lerp(ember, 0.3))
+		draw_rect(Rect2(bb.position, Vector2(bb.size.x * boss_k, 6)), Color(1, 1, 1, 0.3))
+		for m in [0.6, 0.3]:
+			draw_line(Vector2(bb.position.x + bb.size.x * m, bb.position.y - 3), Vector2(bb.position.x + bb.size.x * m, bb.end.y + 3), Color(moon, 0.7), 2.0)
+	# combo
+	if combo >= 2:
+		var p = combo_pop
+		var cx = s.x - 90.0
+		var cy = 300.0 if boss_k < 0.0 else 330.0
+		draw_string(font, Vector2(cx - 120, cy), str(combo), HORIZONTAL_ALIGNMENT_RIGHT, 160, int(64 + p * 26), Color(1, 0.95, 0.75).lerp(ember, 0.3))
+		draw_string(font, Vector2(cx - 120, cy + 30), "COMBO", HORIZONTAL_ALIGNMENT_RIGHT, 160, 22, Color(moon, 0.8))
+		if combo_mult > 1.0:
+			draw_string(font, Vector2(cx - 120, cy + 58), "coins x%.1f" % combo_mult, HORIZONTAL_ALIGNMENT_RIGHT, 160, 22, ember)
+		draw_rect(Rect2(cx - 80, cy + 68, 120, 6), Color(moon, 0.15))
+		draw_rect(Rect2(cx - 80, cy + 68, 120 * combo_k, 6), ember)
+	# controls
+	if visible_controls:
+		var g = _geom()
+		var k = g.k
+		if Profile.setting("control") == "dpad":
+			for side in [-1.0, 1.0]:
+				var c: Vector2 = g.left if side < 0.0 else g.right
+				var on = signf(move) == side
+				var rr = Rect2(c - Vector2.ONE * g.pad, Vector2.ONE * g.pad * 2.0)
+				var sb = StyleBoxFlat.new()
+				sb.bg_color = Color(pal.moss.darkened(0.4), 0.6) if on else Color(pal.ink, 0.45)
+				sb.border_color = Color(pal.moss.lightened(0.5), 0.8) if on else Color(moon, 0.25)
+				sb.set_border_width_all(3)
+				sb.set_corner_radius_all(int(26 * k))
+				draw_style_box(sb, rr)
+				var a = 26.0 * k
+				var col = pal.moss.lightened(0.6) if on else Color(moon, 0.6)
+				draw_colored_polygon(PackedVector2Array([c + Vector2(side * a, 0), c + Vector2(-side * a * 0.6, -a), c + Vector2(-side * a * 0.6, a)]), col)
+			draw_string(font, Vector2((g.left.x + g.right.x) * 0.5 - 60, g.left.y + g.pad + 30 * k), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 120, int(17 * k), Color(moon, 0.45))
+		else:
+			draw_circle(g.stick, g.stick_r, Color(pal.ink, 0.38))
+			draw_arc(g.stick, g.stick_r, 0, TAU, 48, Color(moon, 0.22), 3.0, true)
+			var kp: Vector2 = g.stick + (knob if touches.values().has("stick") else Vector2(move * g.stick_r * 0.4, 0))
+			draw_circle(kp, 46 * k, Color(moon, 0.22))
+			draw_circle(kp + Vector2(-8, -10) * k, 24 * k, Color(1, 1, 1, 0.18))
+			draw_arc(kp, 46 * k, 0, TAU, 40, Color(moon, 0.5), 2.0, true)
+			draw_string(font, Vector2(g.stick.x - 60, g.stick.y + g.stick_r + 34 * k), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 120, int(17 * k), Color(moon, 0.45))
+		var jf = maxf(jump_flash, 1.0 if jump_held else 0.0)
+		_button(g.jump, g.jump_r, ember, jf, "JUMP", k)
+		draw_polyline(PackedVector2Array([g.jump + Vector2(-22, 10) * k, g.jump + Vector2(0, -12) * k, g.jump + Vector2(22, 10) * k]), Color(1, 0.96, 0.9), 7.0 * k, true)
+		_button(g.fire, g.fire_r, pal.moss, maxf(fire_flash, charge), "SPARK", k)
+		if charge > 0.05:
+			draw_arc(g.fire, g.fire_r + 6, -PI / 2, -PI / 2 + TAU * minf(charge, 1.0), 40, pal.moss.lightened(0.6) if charge < 1.0 else Color(1, 1, 0.8), 5.0, true)
+		var star = PackedVector2Array()
+		for i in 8:
+			var a2 = TAU * i / 8.0 - PI / 2.0
+			star.append(g.fire + Vector2(cos(a2), sin(a2)) * (22.0 if i % 2 == 0 else 6.0) * k)
+		draw_colored_polygon(star, Color(0.88, 1.0, 0.97))
+		_button(g.dash, g.dash_r, pal.dusk.lightened(0.3), dash_flash, "DASH", k)
+		if dash_ready < 1.0:
+			draw_arc(g.dash, g.dash_r - 4, -PI / 2, -PI / 2 + TAU * dash_ready, 32, Color(moon, 0.6), 4.0, true)
+		for i in 3:
+			var x0 = g.dash.x - 16 * k + i * 9 * k
+			draw_colored_polygon(PackedVector2Array([Vector2(x0, g.dash.y - 12 * k), Vector2(x0 + 12 * k, g.dash.y), Vector2(x0, g.dash.y + 12 * k)]), Color(moon, 0.5 + i * 0.25 if dash_ready >= 1.0 else 0.3))
+	# toasts
+	var ty = 270.0
+	for tt in toasts:
+		var a3 = clampf(minf(tt.t * 5.0, (2.6 - tt.t) * 3.0), 0.0, 1.0)
+		var w = 520.0
+		var r3 = Rect2(s.x * 0.5 - w * 0.5, ty - 40 + (1.0 - a3) * -20.0, w, 56)
+		var sb2 = StyleBoxFlat.new()
+		sb2.bg_color = Color(pal.ink, 0.8 * a3)
+		sb2.border_color = Color(tt.col, 0.7 * a3)
+		sb2.set_border_width_all(2)
+		sb2.set_corner_radius_all(18)
+		draw_style_box(sb2, r3)
+		draw_string(font, Vector2(r3.position.x, r3.position.y + 38), tt.text, HORIZONTAL_ALIGNMENT_CENTER, w, 26, Color(tt.col, a3))
+		ty += 66.0
 	# title card
 	if title_t > 0.0:
-		var a2 = clampf(minf(title_t, 2.8 - title_t) * 2.5, 0.0, 1.0)
-		draw_rect(Rect2(0, s.y * 0.36, s.x, 150), Color(pal.ink, 0.45 * a2))
-		draw_string(font, Vector2(0, s.y * 0.36 + 70), title, HORIZONTAL_ALIGNMENT_CENTER, s.x, 54, Color(moon, a2))
-		draw_string(font, Vector2(0, s.y * 0.36 + 118), subtitle, HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(ember, a2))
-	if paused:
-		draw_rect(Rect2(Vector2.ZERO, s), Color(pal.ink, 0.6))
-		draw_string(font, Vector2(0, s.y * 0.45), "Paused", HORIZONTAL_ALIGNMENT_CENTER, s.x, 60, moon)
-		draw_string(font, Vector2(0, s.y * 0.45 + 60), "Tap anywhere to resume", HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(moon, 0.7))
+		var a4 = clampf(minf(title_t, 2.8 - title_t) * 2.5, 0.0, 1.0)
+		draw_rect(Rect2(0, s.y * 0.36, s.x, 150), Color(pal.ink, 0.45 * a4))
+		draw_string(font, Vector2(0, s.y * 0.36 + 70), title, HORIZONTAL_ALIGNMENT_CENTER, s.x, 54, Color(moon, a4))
+		draw_string(font, Vector2(0, s.y * 0.36 + 118), subtitle, HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(ember, a4))
 	if fade > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, s), Color(pal.ink.darkened(0.5), fade))
