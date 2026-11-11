@@ -13,7 +13,8 @@ const SOIL := 1400.0
 
 const BIOMES := ["gloamwood", "crystal", "emberfen"]
 const BIOME_NAMES := {"gloamwood": "Gloamwood", "crystal": "Crystal Caverns", "emberfen": "Emberfen"}
-const BUDGET_MULT := [0.7, 1.0, 1.35]
+const BUDGET_MULT := [0.6, 1.0, 1.3]
+const POWERUPS := {"heal": 3.0, "shield": 1.6, "triple": 1.4, "homing": 1.4, "rapid": 1.2, "magnet": 0.8, "star": 0.5}
 
 var rng := RandomNumberGenerator.new()
 var solids: Array = []
@@ -24,6 +25,7 @@ var checkpoints: Array = []
 var hazards: Array = []
 var bouncers: Array = []
 var chests: Array = []
+var powerups: Array = []
 var helpers_added := 0
 var stage := 1
 var diff := 0.0
@@ -78,10 +80,11 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 	hazards = []
 	bouncers = []
 	chests = []
+	powerups = []
 	helpers_added = 0
 	var base_diff = 1.0 - exp(-(s - 1) / 7.0)
 	diff = clampf(base_diff * [0.6, 1.0, 1.25][difficulty] + (0.12 if difficulty == 2 else 0.0), 0.0, 1.0)
-	var budget = (2.0 + s * 1.1) * BUDGET_MULT[difficulty]
+	var budget = (1.0 + s * 0.9 + maxf(s - 3, 0) * 0.3) * BUDGET_MULT[difficulty]
 	var boss_stage = is_boss_stage(s)
 	var x = -240.0
 	var h = 0.0
@@ -104,6 +107,7 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 					_enemy(_ground_kind(), Vector2(x + w * 0.65, h), x + 24.0, x + w - 24.0)
 					budget -= 1.0
 				_maybe_chest(Vector2(x + w * 0.35, h))
+				_maybe_power(Vector2(x + w * 0.5, h - 40.0), 0.18)
 				if x - last_cp > 1100.0:
 					checkpoints.append(Vector2(x + w * 0.3, h))
 					last_cp = x
@@ -145,6 +149,7 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 						budget -= 1.0
 					px += pw
 					ph = py
+				_maybe_power(Vector2(px - 40.0, ph - 40.0), 0.35)
 				px += rng.randf_range(55.0, 80.0)
 				x = px
 				h = clampf(ph + rng.randf_range(20.0, 80.0), -900.0, 0.0)
@@ -167,7 +172,7 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 					if rng.randf() < 0.5:
 						coins.append(Vector2(lx + 48.0, y - 30.0))
 				if budget >= 1.0 and s >= 2:
-					_enemy(_air_kind(), Vector2(col_x + 120.0, h - 160.0), col_x - 40.0, col_x + 260.0)
+					_enemy(_air_kind(), Vector2(col_x + 120.0, h - 120.0), col_x - 40.0, col_x + 260.0)
 					budget -= 1.0
 				x = col_x + 250.0
 				h = clampf(y - rng.randf_range(0.0, 30.0), -900.0, 0.0)
@@ -193,13 +198,14 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 					_enemy(_ground_kind(), Vector2(x + w7 * 0.7, h), x + 30.0, x + w7 - 30.0)
 					budget -= 1.0
 				if budget >= 1.0 and s >= 2:
-					_enemy(_air_kind(), Vector2(x + w7 * 0.5, h - 170.0), x, x + w7)
+					_enemy(_air_kind(), Vector2(x + w7 * 0.5, h - 115.0), x, x + w7)
 					budget -= 1.0
 				if budget >= 1.0 and s >= 4:
 					_enemy(_ground_kind(), Vector2(x + w7 * 0.35, h), x + 30.0, x + w7 - 30.0)
 					budget -= 1.0
 				_coin_line(x + 60.0, h - 26.0, 6)
 				_maybe_chest(Vector2(x + w7 - 40.0, h), 0.3)
+				_maybe_power(Vector2(x + 50.0, h - 40.0), 0.6)
 				x += w7
 			"mover":
 				var gap_w = rng.randf_range(190.0, 250.0)
@@ -243,6 +249,8 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 					coins.append(Vector2(bx, h - 80.0 - i * 34.0))
 				if rng.randf() < 0.55 + luck * 0.1:
 					chests.append(Vector2(bx + 120.0, top))
+				else:
+					_maybe_power(Vector2(bx + 110.0, top - 40.0), 1.0)
 				x += bw
 	if boss_stage:
 		var aw = 640.0
@@ -251,6 +259,8 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 		var boss_hp = int((36 + s * 4) * [0.7, 1.0, 1.3][difficulty])
 		var boss = {"pos": Vector2(x + 430.0, h), "min": x + 120.0, "max": x + aw - 60.0, "hp": boss_hp}
 		var portal = Vector2(x + aw - 70.0, h)
+		powerups.append({"pos": Vector2(x + 90.0, h - 40.0), "kind": "heal"})
+		powerups.append({"pos": Vector2(x + 160.0, h - 40.0), "kind": ["shield", "triple", "homing", "rapid"][rng.randi() % 4]})
 		x += aw
 		_ground(x, 500.0, h)
 		_validate()
@@ -274,7 +284,7 @@ func _pack(portal: Vector2, boss: Dictionary) -> Dictionary:
 		"stage": stage, "biome": biome_for(stage),
 		"solids": all_solids, "coins": coins, "enemies": enemies,
 		"checkpoints": checkpoints, "portal": portal, "boss": boss,
-		"hazards": hazards, "bouncers": bouncers, "chests": chests,
+		"hazards": hazards, "bouncers": bouncers, "chests": chests, "powerups": powerups,
 		"start_x": -240.0, "end_x": portal.x, "min_y": min_y,
 		"helpers": helpers_added, "path_count": solids.size(),
 	}
@@ -348,6 +358,19 @@ func _coin_arc(x: float, h: float, span: float, nh: float) -> void:
 func _maybe_chest(p: Vector2, extra: float = 0.0) -> void:
 	if rng.randf() < 0.1 + extra + luck * 0.04:
 		chests.append(p)
+
+
+func _maybe_power(p: Vector2, chance: float) -> void:
+	if rng.randf() < chance:
+		var total = 0.0
+		for k in POWERUPS:
+			total += POWERUPS[k]
+		var r = rng.randf() * total
+		for k in POWERUPS:
+			r -= POWERUPS[k]
+			if r <= 0.0:
+				powerups.append({"pos": p, "kind": k})
+				return
 
 
 func _enemy(kind: String, pos: Vector2, lo: float, hi: float) -> void:

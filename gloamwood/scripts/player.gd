@@ -43,6 +43,11 @@ var wall_lock := 0.0
 var charge := 0.0
 var riding = null
 var ghosts: Array = []
+var hat := "none"
+var trail := "none"
+var scarf_col = Color(1.0, 0.69, 0.35)
+var shield := 0
+var star_t := 0.0
 
 var scarf_pts: Array[Vector2] = []
 var scarf_prev: Array[Vector2] = []
@@ -101,7 +106,13 @@ func setup(m: Node, glow: Texture2D, pal: Dictionary) -> void:
 
 func apply_hero(h: Dictionary) -> void:
 	hero = h
-	tint = Color(h.tint[0], h.tint[1], h.tint[2])
+	var look: Dictionary = Profile.data.look
+	var cl = Profile.cos_def("cloak", look.cloak).col
+	var sc = Profile.cos_def("scarf", look.scarf).col
+	tint = Color(h.tint[0], h.tint[1], h.tint[2]) * Color(cl[0], cl[1], cl[2])
+	scarf_col = Color(sc[0], sc[1], sc[2])
+	hat = look.hat
+	trail = look.trail
 	run_speed = 150.0 * float(h.speed)
 	max_air_jumps = int(h.air_jumps)
 	dash_cd_max = 0.8 - 0.18 * Profile.upgrade_level("dash")
@@ -113,7 +124,7 @@ func recolor(pal: Dictionary) -> void:
 	palette = pal
 	var em: Color = pal.ember
 	if not hero.is_empty():
-		em = Color(hero.scarf[0], hero.scarf[1], hero.scarf[2])
+		em = scarf_col
 	var g = Gradient.new()
 	g.set_color(0, em.lightened(0.15))
 	g.set_color(1, em.lerp(Color(0.86, 0.3, 0.27), 0.45))
@@ -372,7 +383,7 @@ func _draw() -> void:
 	var moon: Color = palette.moon * tint
 	var dusk: Color = palette.dusk
 	var ink: Color = palette.ink
-	var ember: Color = palette.ember if hero.is_empty() else Color(hero.scarf[0], hero.scarf[1], hero.scarf[2])
+	var ember: Color = palette.ember if hero.is_empty() else scarf_col
 	var run = clampf(absf(vel.x) / 150.0, 0.0, 1.0)
 	var air = not on_ground
 	# dash afterimages
@@ -451,7 +462,20 @@ func _draw() -> void:
 	_quad(Vector2(-6, -43), Vector2(-14, -46), Vector2(-17, -41 + fl * 0.4), tip)
 	_quad(Vector2(-17, -41 + fl * 0.4), Vector2(-12, -41), Vector2(-8, -38), tip)
 	draw_colored_polygon(tip, moon)
+	_draw_hat(moon, ember, ink)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	# power-up auras
+	if shield > 0:
+		var a5 = 0.35 + 0.1 * sin(t * 6.0)
+		draw_circle(Vector2(0, -30), 34.0, Color(palette.moss.lightened(0.5), 0.12))
+		draw_arc(Vector2(0, -30), 34.0, 0, TAU, 40, Color(palette.moss.lightened(0.6), a5 + 0.3), 2.5, true)
+		for i in shield:
+			var ang = t * 2.0 + TAU * i / maxf(shield, 1)
+			draw_circle(Vector2(0, -30) + Vector2(cos(ang), sin(ang)) * 34.0, 3.0, Color(0.9, 1, 1))
+	if star_t > 0.0:
+		var hue = fmod(t * 1.5, 1.0)
+		draw_arc(Vector2(0, -30), 30.0 + sin(t * 20.0) * 2.0, 0, TAU, 40, Color.from_hsv(hue, 0.6, 1.0, 0.9), 3.0, true)
+		draw_arc(Vector2(0, -30), 36.0, 0, TAU, 40, Color.from_hsv(fmod(hue + 0.5, 1.0), 0.6, 1.0, 0.5), 2.0, true)
 
 
 func _draw_ellipse(c: Vector2, r: Vector2, col: Color) -> void:
@@ -460,3 +484,25 @@ func _draw_ellipse(c: Vector2, r: Vector2, col: Color) -> void:
 		var a = TAU * i / 16.0
 		p.append(c + Vector2(cos(a) * r.x, sin(a) * r.y))
 	draw_colored_polygon(p, col)
+
+
+func _draw_hat(moon: Color, ember: Color, ink: Color) -> void:
+	match hat:
+		"leaf":
+			draw_line(Vector2(1, -46), Vector2(2, -52), Color(0.35, 0.6, 0.35), 1.6, true)
+			draw_colored_polygon(PackedVector2Array([Vector2(2, -52), Vector2(10, -57), Vector2(13, -53), Vector2(6, -50)]), Color(0.45, 0.85, 0.5))
+			draw_colored_polygon(PackedVector2Array([Vector2(2, -52), Vector2(-5, -56), Vector2(-7, -52), Vector2(-1, -50)]), Color(0.38, 0.75, 0.45))
+		"horns":
+			for k in [-1.0, 1.0]:
+				draw_colored_polygon(PackedVector2Array([Vector2(k * 5 + 2, -44), Vector2(k * 9 + 2, -45), Vector2(k * 12 + 2, -55)]), Color(1.0, 0.88, 0.7))
+		"antenna":
+			draw_line(Vector2(2, -46), Vector2(5, -58), moon.darkened(0.3), 1.4, true)
+			var star = PackedVector2Array()
+			for i in 10:
+				var a = TAU * i / 10.0 - PI / 2.0
+				star.append(Vector2(5, -60) + Vector2(cos(a), sin(a)) * (4.0 if i % 2 == 0 else 1.8))
+			draw_colored_polygon(star, Color(1, 0.92, 0.5))
+		"crown":
+			var base = Color(1.0, 0.8, 0.35)
+			draw_colored_polygon(PackedVector2Array([Vector2(-7, -44), Vector2(-8, -52), Vector2(-4, -48), Vector2(0, -54), Vector2(4, -48), Vector2(8, -52), Vector2(7, -44)]), base)
+			draw_circle(Vector2(0, -50), 1.6, ember.lightened(0.4))

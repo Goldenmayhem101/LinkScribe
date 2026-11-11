@@ -13,7 +13,36 @@
 - **Budget:** $0. Free tools only (Godot, free Android tooling, GitHub). Google Play costs $25 one time, so sideload the APK instead (or itch.io).
 - **Model:** use Opus 5.5 for most work. It's cheaper on plan usage, and Fable costs about 2× per token. Switch to Fable only for a very hard problem.
 
-## 2. Current state (v0.3.0)
+## 2. Current state (v0.4.0)
+**What changed in v0.4.0, from owner feedback on v0.3.0** ("monsters too strong, no health bar, no power-ups, menu looks bad, want auto-run, can't fight flyers, want more weapons and customization, an annoying background sound, can't hear the music"):
+- **Health:** a real **health bar** (100 HP, varying by hero; *Vitality* upgrade adds +20) replaces hearts.
+  - Every attack has its own damage: contact 8–20, quills/bolts 8, clods 10, beams 12–16, shockwaves 12–20, thorns 10, falls 15.
+  - Damage is scaled by difficulty and the *Moss Armor* upgrade (−12% per level). Checkpoints heal fully.
+- **Easier early game:**
+  - Monster attack wind-ups are slower and rests between attacks longer in early stages (`main.tele_k` / `main.calm`, scaled by stage and difficulty).
+  - Fewer monsters in the first stages.
+  - Flyers now hover within jump reach.
+- **Power-ups**, placed in stages, in chests and dropped by monsters:
+  - Heal (+35), small health orbs (+12)
+  - Shield (blocks 3 hits)
+  - Triple Shot, Homing, Rapid Fire, Coin Magnet
+  - **Star** (invincible, defeats monsters on touch)
+  - Timers show under the health bar.
+- **Weapons (Armory):** Spark (default), Seeker Wisps (homing), Moon Lance (instant piercing beam), Ember Scatter (5-shot burst).
+  - **Aim assist** makes every weapon aim at the nearest monster in front, flyers overhead included (can be turned off in Settings).
+  - Holding the button charges a big shot with any weapon.
+- **Wardrobe:** scarf colors (8), cloak tints (6), hats (leaf, horns, star antenna, lantern crown), trails (sparkles, embers, petals), with a live preview.
+- **Auto-run** (Settings: Off / Hold / Always): hold an arrow for 0.35 s to lock running that way, tap the same arrow to stop, tap the other to turn around.
+- **Menus redesigned:**
+  - Glass cards, raised press-down buttons, drawn icons, a consistent header (back · title · coins).
+  - An icon-tile home screen with level and coin chips, and big star icons on stage clear.
+- **Audio:**
+  - Music is much louder and existing saves get raised once.
+  - The music's noise hi-hat was removed and its arpeggio softened. The repeated warning buzz, combo ticks, hits and lasers were made gentler.
+  - New power-up, heal, shield and lance sounds.
+- **APK** is 64-bit only now (33 MB instead of 56 MB) because the bigger file was hard to download on the phone. Re-enable `architectures/armeabi-v7a` in `export_presets.cfg` to support very old 32-bit phones.
+
+### Carried over from v0.3.0
 Verified in a cloud session with a software renderer, recorded frames, and bot-played runs.
 
 **Gameplay**
@@ -59,7 +88,7 @@ Verified in a cloud session with a software renderer, recorded frames, and bot-p
 - All synthesized in code (`audio.gd`), so there are no files and no licenses: 30 SFX plus music loops for each biome, the menu and the boss, generated on a worker thread.
 - `tools/export_sounds.gd` writes them to WAV for checking.
 
-**Android:** `releases/gloamwood-v0.3.0-debug.apk`. The owner reported that v0.2 gameplay was smooth on their phone.
+**Android:** `releases/gloamwood-v0.4.0.apk`. The owner reported that v0.2 gameplay was smooth on their phone.
 
 **Not verified yet:**
 - touch feel of the new buttons, the D-pad/analog switch and the dash button on a real phone
@@ -106,7 +135,7 @@ xvfb-run -a -s "-screen 0 800x1400x24" $G --path . --rendering-driver opengl3 --
 $G --headless --path . --export-debug "Android" build/gloamwood-debug.apk
 cp build/gloamwood-debug.apk releases/gloamwood-vX.Y.Z-debug.apk   # bump version/code + version/name in export_presets.cfg
 ```
-Testing flags (after `--`): `--autoplay` (bot demo, nothing saved), `--botplay` / `--botplay=continue` (bot plays a real saved run, so it exercises the stage clear screen and resume), `--stage=N`, `--menu=title|heroes|upgrades|quests|settings|daily`, `--hero=<id>`. Use `--audio-driver Dummy` in the container (it has no sound card; the ALSA `ERR_CANT_OPEN` message is harmless).
+Testing flags (after `--`): `--showcase` (spawns every power-up plus a cyclops and a drone at the start), `--weapon=spark|seeker|lance|scatter`, `--autoplay` (bot demo, nothing saved), `--botplay` / `--botplay=continue` (bot plays a real saved run, so it exercises the stage clear screen and resume), `--stage=N`, `--menu=title|heroes|upgrades|quests|settings|daily`, `--hero=<id>`. Use `--audio-driver Dummy` in the container (it has no sound card; the ALSA `ERR_CANT_OPEN` message is harmless).
 
 Gotchas learned:
 - GDScript `var x := dict.value` fails to parse (Variant inference). Use `var x = ...` or an explicit type.
@@ -127,7 +156,8 @@ Gotchas learned:
 
 ## 6. Roadmap (next ideas)
 1. Owner playtest of v0.3.0: control sizes, D-pad vs analog, difficulty curve, boss fairness, music taste.
-2. More bosses: one per biome (Crystal Wyrm, Ember Hag) with their own arenas and attacks.
+2. Tune the v0.4 balance from the owner's playtest: damage numbers, power-up frequency, weapon prices.
+3. More bosses: one per biome (Crystal Wyrm, Ember Hag) with their own arenas and attacks.
 3. The sci-fi biome "Derelict Starship" (drones, laser gates, steam vents) and "Sky Ruins" (wind gusts).
 4. Weather per stage (rain and puddle reflections, aurora, lightning), normal-mapped lighting.
 5. Cosmetics bought with coins: scarf colors, trails. A weekly challenge seed with a local best score.
@@ -142,3 +172,4 @@ Gotchas learned:
   - Resume, D-pad or analog, dash, wall jump, charged spark, combo counter, monster health bars.
   - 4 new monster types, golden and elite variants, the Gloam Titan boss every 5 stages.
   - New level pieces (moving and crumbling ledges, thorns, bounce pads, chests, hidden ledges) and difficulty settings.
+- v0.4 (this): health bar and damage values, gentler early game, power-ups, 4 weapons with aim assist, wardrobe, auto-run, menu redesign, audio rebalance, 64-bit-only APK.

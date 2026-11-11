@@ -13,23 +13,67 @@ const PATH := "user://profile.json"
 
 const CHARACTERS := [
 	{"id": "lumen", "name": "Lumen", "desc": "Balanced lantern spirit.", "cost": 0, "level": 1,
-		"hearts": 3, "speed": 1.0, "air_jumps": 1, "spark": "single", "tint": [1.0, 1.0, 1.0], "scarf": [1.0, 0.69, 0.35]},
-	{"id": "vesper", "name": "Vesper", "desc": "Fires a 3-way spark. One heart less.", "cost": 350, "level": 3,
-		"hearts": 2, "speed": 1.05, "air_jumps": 1, "spark": "spread", "tint": [0.84, 0.76, 1.0], "scarf": [0.66, 0.45, 1.0]},
+		"hp": 100, "hearts": 3, "speed": 1.0, "air_jumps": 1, "spark": "single", "tint": [1.0, 1.0, 1.0], "scarf": [1.0, 0.69, 0.35]},
+	{"id": "vesper", "name": "Vesper", "desc": "Every shot splits into 3. Less health.", "cost": 350, "level": 3,
+		"hp": 80, "hearts": 2, "speed": 1.05, "air_jumps": 1, "spark": "spread", "tint": [0.84, 0.76, 1.0], "scarf": [0.66, 0.45, 1.0]},
 	{"id": "cinder", "name": "Cinder", "desc": "Heavy sparks pierce enemies. Sturdy but slower.", "cost": 800, "level": 5,
-		"hearts": 4, "speed": 0.92, "air_jumps": 1, "spark": "pierce", "tint": [1.0, 0.86, 0.76], "scarf": [1.0, 0.42, 0.25]},
+		"hp": 135, "hearts": 4, "speed": 0.92, "air_jumps": 1, "spark": "pierce", "tint": [1.0, 0.86, 0.76], "scarf": [1.0, 0.42, 0.25]},
 	{"id": "nyx", "name": "Nyx", "desc": "Triple jump and swift feet. Fragile.", "cost": 1500, "level": 8,
-		"hearts": 2, "speed": 1.15, "air_jumps": 2, "spark": "single", "tint": [0.75, 0.95, 0.92], "scarf": [0.3, 0.9, 0.8]},
+		"hp": 85, "hearts": 2, "speed": 1.15, "air_jumps": 2, "spark": "single", "tint": [0.75, 0.95, 0.92], "scarf": [0.3, 0.9, 0.8]},
 ]
 
 const UPGRADES := [
-	{"id": "hearts", "name": "Heart Vessel", "desc": "+1 max heart", "costs": [150, 600]},
+	{"id": "hearts", "name": "Vitality", "desc": "+20 max health", "costs": [120, 350, 800]},
+	{"id": "armor", "name": "Moss Armor", "desc": "Take 12% less damage", "costs": [150, 450, 900]},
 	{"id": "spark", "name": "Spark Core", "desc": "Bigger, stronger sparks", "costs": [100, 300, 700]},
 	{"id": "rapid", "name": "Quick Hands", "desc": "Faster spark rate", "costs": [80, 250, 600]},
 	{"id": "magnet", "name": "Coin Magnet", "desc": "Pull coins from farther", "costs": [60, 200, 500]},
 	{"id": "dash", "name": "Wind Step", "desc": "Shorter dash cooldown", "costs": [120, 450]},
 	{"id": "luck", "name": "Lucky Charm", "desc": "More chests and golden monsters", "costs": [100, 350, 800]},
 ]
+
+## Weapons: permanent, equip one. Every weapon auto-aims at the nearest monster in front (including flyers above).
+const WEAPONS := [
+	{"id": "spark", "name": "Spark", "desc": "Quick bolts that seek the nearest monster.", "cost": 0, "level": 1, "rate": 0.28, "dmg": 1},
+	{"id": "seeker", "name": "Seeker Wisps", "desc": "Homing wisps that curve into flying monsters.", "cost": 300, "level": 2, "rate": 0.36, "dmg": 1},
+	{"id": "lance", "name": "Moon Lance", "desc": "Instant piercing beam. Hits everything in a line.", "cost": 650, "level": 4, "rate": 0.5, "dmg": 2},
+	{"id": "scatter", "name": "Ember Scatter", "desc": "Five-shot burst. Huge damage up close.", "cost": 1000, "level": 6, "rate": 0.55, "dmg": 1},
+]
+
+## Wardrobe: cosmetic only.
+const COSMETICS := {
+	"scarf": [
+		{"id": "amber", "name": "Amber", "cost": 0, "col": [1.0, 0.69, 0.35]},
+		{"id": "rose", "name": "Rose", "cost": 0, "col": [1.0, 0.45, 0.55]},
+		{"id": "sky", "name": "Sky", "cost": 60, "col": [0.45, 0.75, 1.0]},
+		{"id": "mint", "name": "Mint", "cost": 60, "col": [0.4, 0.95, 0.75]},
+		{"id": "violet", "name": "Violet", "cost": 90, "col": [0.68, 0.48, 1.0]},
+		{"id": "crimson", "name": "Crimson", "cost": 120, "col": [0.9, 0.2, 0.25]},
+		{"id": "gold", "name": "Gold", "cost": 250, "col": [1.0, 0.85, 0.3]},
+		{"id": "snow", "name": "Snow", "cost": 150, "col": [0.95, 0.97, 1.0]},
+	],
+	"cloak": [
+		{"id": "moon", "name": "Moonlight", "cost": 0, "col": [1.0, 1.0, 1.0]},
+		{"id": "dawn", "name": "Dawn", "cost": 80, "col": [1.0, 0.86, 0.78]},
+		{"id": "frost", "name": "Frost", "cost": 80, "col": [0.8, 0.92, 1.0]},
+		{"id": "fern", "name": "Fern", "cost": 120, "col": [0.8, 1.0, 0.85]},
+		{"id": "dusk", "name": "Dusk", "cost": 160, "col": [0.82, 0.74, 1.0]},
+		{"id": "ash", "name": "Ash", "cost": 200, "col": [0.66, 0.66, 0.74]},
+	],
+	"hat": [
+		{"id": "none", "name": "None", "cost": 0},
+		{"id": "leaf", "name": "Leaf Sprout", "cost": 100},
+		{"id": "horns", "name": "Little Horns", "cost": 180},
+		{"id": "antenna", "name": "Star Antenna", "cost": 220},
+		{"id": "crown", "name": "Lantern Crown", "cost": 400},
+	],
+	"trail": [
+		{"id": "none", "name": "None", "cost": 0},
+		{"id": "sparkle", "name": "Sparkles", "cost": 150},
+		{"id": "ember", "name": "Embers", "cost": 200},
+		{"id": "petal", "name": "Petals", "cost": 250},
+	],
+}
 
 const DAILY_REWARDS := [50, 75, 100, 150, 200, 250, 500]
 
@@ -76,12 +120,15 @@ func _process(dt: float) -> void:
 
 func defaults() -> Dictionary:
 	return {
-		"version": 1, "coins": 0, "xp": 0, "level": 1,
+		"version": 2, "coins": 0, "xp": 0, "level": 1,
 		"upgrades": {}, "heroes": ["lumen"], "hero": "lumen",
+		"weapons": ["spark"], "weapon": "spark",
+		"owned_cos": ["scarf:amber", "scarf:rose", "cloak:moon", "hat:none", "trail:none"],
+		"look": {"scarf": "amber", "cloak": "moon", "hat": "none", "trail": "none"},
 		"stats": {"kills": 0, "stomps": 0, "coins_collected": 0, "best_stage": 0, "bosses": 0, "max_combo": 0,
 			"chests": 0, "days_played": 0, "heroes": 1, "runs": 0, "deaths": 0, "stages_cleared": 0, "dashes": 0},
 		"ach": {},
-		"settings": {"music": 0.6, "sfx": 0.85, "control": "dpad", "control_scale": 1.0, "vibration": true, "difficulty": 1, "quality": 1},
+		"settings": {"music": 0.85, "sfx": 0.7, "control": "dpad", "autorun": "hold", "control_scale": 1.0, "vibration": true, "difficulty": 1, "quality": 1, "aim_assist": true},
 		"daily": {"last_claim": "", "streak": 0, "quest_date": "", "quests": []},
 		"last_day": "",
 		"run": {"active": false},
@@ -96,6 +143,11 @@ func load_profile() -> void:
 		var parsed = JSON.parse_string(f.get_as_text())
 		if parsed is Dictionary:
 			_merge(data, parsed)
+	# v2: music was too quiet and some effects too loud in v0.3.0
+	if int(data.get("version", 1)) < 2:
+		data.settings.music = maxf(float(data.settings.music), 0.85)
+		data.settings.sfx = minf(float(data.settings.sfx), 0.7)
+		data.version = 2
 
 
 func _merge(into: Dictionary, src: Dictionary) -> void:
@@ -319,6 +371,8 @@ func buy_upgrade(u: Dictionary) -> bool:
 
 func hero_def(id: String = "") -> Dictionary:
 	var want: String = data.hero if id == "" else id
+	if id == "" and not has_hero(want):
+		want = "lumen"
 	for c in CHARACTERS:
 		if c.id == want:
 			return c
@@ -365,3 +419,61 @@ func set_stars(stage: int, stars: int) -> void:
 	var k = str(stage)
 	data.stage_stars[k] = maxi(int(data.stage_stars.get(k, 0)), stars)
 	mark()
+
+
+# ---------------- weapons & wardrobe ----------------
+func weapon_def(id: String = "") -> Dictionary:
+	var want: String = data.weapon if id == "" else id
+	if not has_weapon(want):
+		want = "spark"
+	for w in WEAPONS:
+		if w.id == want:
+			return w
+	return WEAPONS[0]
+
+
+func has_weapon(id: String) -> bool:
+	return data.weapons.has(id)
+
+
+func buy_weapon(w: Dictionary) -> bool:
+	if has_weapon(w.id) or int(data.level) < int(w.level) or not spend(int(w.cost)):
+		return false
+	data.weapons.append(w.id)
+	data.weapon = w.id
+	mark()
+	return true
+
+
+func equip_weapon(id: String) -> void:
+	if has_weapon(id):
+		data.weapon = id
+		mark()
+
+
+func cos_def(slot: String, id: String) -> Dictionary:
+	for c in COSMETICS[slot]:
+		if c.id == id:
+			return c
+	return COSMETICS[slot][0]
+
+
+func owns_cos(slot: String, id: String) -> bool:
+	return data.owned_cos.has(slot + ":" + id)
+
+
+func buy_cos(slot: String, c: Dictionary) -> bool:
+	if owns_cos(slot, c.id):
+		data.look[slot] = c.id
+		mark()
+		return true
+	if not spend(int(c.cost)):
+		return false
+	data.owned_cos.append(slot + ":" + c.id)
+	data.look[slot] = c.id
+	mark()
+	return true
+
+
+func max_hp() -> int:
+	return int(hero_def().get("hp", 100)) + upgrade_level("hearts") * 20

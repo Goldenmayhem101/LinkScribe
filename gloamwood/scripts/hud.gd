@@ -8,8 +8,14 @@ var pal: Dictionary = {}
 var coin_tex: Texture2D
 var font: Font
 
-var hearts := 3
-var max_hearts := 3
+var hp := 100.0
+var max_hp := 100.0
+var hp_lag := 100.0
+var hurt_flash := 0.0
+var powers: Dictionary = {}
+var shield := 0
+var auto_dir := 0.0
+var hold_t := {}
 var coins := 0
 var bump := 0.0
 var stage_label := ""
@@ -74,6 +80,8 @@ func show_title(t1: String, t2: String) -> void:
 
 func toast(text: String, col: Color = Color(1, 0.9, 0.6)) -> void:
 	toasts.append({"text": text, "t": 0.0, "col": col})
+	while toasts.size() > 2:
+		toasts.pop_front()
 
 
 func consume() -> void:
@@ -101,9 +109,22 @@ func _process(dt: float) -> void:
 	jump_flash = maxf(jump_flash - dt * 4.0, 0.0)
 	dash_flash = maxf(dash_flash - dt * 4.0, 0.0)
 	combo_pop = maxf(combo_pop - dt * 3.0, 0.0)
+	hurt_flash = maxf(hurt_flash - dt * 2.5, 0.0)
+	hp_lag = move_toward(hp_lag, hp, dt * maxf(40.0, absf(hp_lag - hp) * 2.0)) if hp_lag > hp else hp
+	# auto-run: holding a D-pad arrow (or the stick fully to one side) for 0.35 s locks running that way
+	if Profile.setting("autorun") != "off":
+		for idx in hold_t.keys():
+			if not touches.has(idx):
+				hold_t.erase(idx)
+				continue
+			hold_t[idx] += dt
+			if hold_t[idx] > 0.35 and absf(move) > 0.9 and auto_dir != signf(move):
+				auto_dir = signf(move)
+				Sfx.play("ui", 1.4)
+				toast("Auto-run " + ("right" if auto_dir > 0.0 else "left") + "  (tap to stop)", pal.moss.lightened(0.5))
 	for tt in toasts:
 		tt.t += dt
-	toasts = toasts.filter(func(x): return x.t < 2.6)
+	toasts = toasts.filter(func(x): return x.t < 2.2)
 	queue_redraw()
 
 
@@ -129,10 +150,19 @@ func _input(ev: InputEvent) -> void:
 				"dash":
 					dash_pressed = true
 					dash_flash = 1.0
-				"stick":
-					_stick(ev.position, g)
-				"dpad":
-					_dpad(ev.position, g)
+				"stick", "dpad":
+					if role == "stick":
+						_stick(ev.position, g)
+					else:
+						_dpad(ev.position, g)
+					hold_t[ev.index] = 0.0
+					# while auto-running: tapping the same way stops, the other way turns around
+					if auto_dir != 0.0 and absf(move) > 0.5:
+						if signf(move) == auto_dir:
+							auto_dir = 0.0
+							toast("Auto-run off", Color(pal.moon, 0.8))
+						else:
+							auto_dir = signf(move)
 		else:
 			var role2: String = touches.get(ev.index, "")
 			touches.erase(ev.index)
@@ -145,6 +175,7 @@ func _input(ev: InputEvent) -> void:
 				"stick", "dpad":
 					move = 0.0
 					knob = Vector2.ZERO
+					hold_t.erase(ev.index)
 	elif ev is InputEventScreenDrag:
 		var r = touches.get(ev.index, "")
 		if r == "stick":
@@ -224,10 +255,47 @@ func _draw() -> void:
 	var s = size
 	var moon: Color = pal.moon
 	var ember: Color = pal.ember
-	# hearts
-	_pill(Rect2(26, 30, 34 + max_hearts * 44, 64))
-	for i in max_hearts:
-		_heart(Vector2(62 + i * 44, 62), 17.0, i < hearts)
+	# health bar
+	var hr = Rect2(26, 30, 250, 64)
+	_pill(hr)
+	_heart(Vector2(58, 62), 15.0, true)
+	var bar = Rect2(84, 50, 172, 24)
+	var hk = clampf(hp / maxf(max_hp, 1.0), 0.0, 1.0)
+	var kl = clampf(hp_lag / maxf(max_hp, 1.0), 0.0, 1.0)
+	var sbb = StyleBoxFlat.new()
+	sbb.bg_color = Color(pal.ink.darkened(0.4), 0.9)
+	sbb.set_corner_radius_all(12)
+	draw_style_box(sbb, bar)
+	if kl > hk:
+		var sbl = StyleBoxFlat.new()
+		sbl.bg_color = Color(1, 0.9, 0.8, 0.85)
+		sbl.set_corner_radius_all(12)
+		draw_style_box(sbl, Rect2(bar.position, Vector2(bar.size.x * kl, bar.size.y)))
+	if hk > 0.0:
+		var sbf = StyleBoxFlat.new()
+		sbf.bg_color = Color(1.0, 0.32, 0.38).lerp(Color(0.45, 0.95, 0.6), clampf((hk - 0.25) / 0.5, 0.0, 1.0))
+		sbf.set_corner_radius_all(12)
+		draw_style_box(sbf, Rect2(bar.position, Vector2(maxf(bar.size.x * hk, 24.0), bar.size.y)))
+		draw_rect(Rect2(bar.position + Vector2(10, 3), Vector2(maxf(bar.size.x * hk - 20.0, 0.0), 5)), Color(1, 1, 1, 0.3))
+	draw_string(font, Vector2(bar.position.x, bar.position.y + 19), "%d / %d" % [int(ceil(hp)), int(max_hp)], HORIZONTAL_ALIGNMENT_CENTER, bar.size.x, 17, Color(1, 1, 1, 0.95))
+	if hurt_flash > 0.0:
+		draw_rect(hr.grow(4), Color(1, 0.3, 0.3, hurt_flash * 0.35))
+	# shield pips + active power-ups
+	var px = 34.0
+	for i in shield:
+		draw_circle(Vector2(px + 10, 112), 10, Color(0.5, 1.0, 0.9, 0.9))
+		draw_arc(Vector2(px + 10, 112), 13, 0, TAU, 20, Color(0.8, 1, 1, 0.6), 2.0, true)
+		px += 30.0
+	for key in powers:
+		var info: Dictionary = main.POWER_INFO.get(key, {})
+		if info.is_empty() or float(info.time) <= 0.0:
+			continue
+		var frac = clampf(float(powers[key]) / float(info.time), 0.0, 1.0)
+		var cc = Vector2(px + 18, 116)
+		draw_circle(cc, 17, Color(pal.ink, 0.8))
+		draw_arc(cc, 17, -PI / 2, -PI / 2 + TAU * frac, 28, info.col, 4.0, true)
+		draw_string(font, Vector2(cc.x - 20, cc.y + 7), {"triple": "x3", "homing": "@", "rapid": ">>", "magnet": "$", "star": "*"}.get(key, "?"), HORIZONTAL_ALIGNMENT_CENTER, 40, 18, info.col)
+		px += 44.0
 	# coins
 	var cw = 170.0
 	var cr = Rect2(s.x * 0.5 - cw * 0.5 + 30, 30, cw, 64)
@@ -242,19 +310,19 @@ func _draw() -> void:
 		draw_rect(Rect2(g0.pause.x - 10, g0.pause.y - 12, 7, 24), moon)
 		draw_rect(Rect2(g0.pause.x + 3, g0.pause.y - 12, 7, 24), moon)
 	# stage + progress
-	draw_string(font, Vector2(0, 150), stage_label, HORIZONTAL_ALIGNMENT_CENTER, s.x, 30, Color(moon, 0.92))
+	draw_string(font, Vector2(0, 178), stage_label, HORIZONTAL_ALIGNMENT_CENTER, s.x, 30, Color(moon, 0.92))
 	var bw = 300.0
-	var br = Rect2(s.x * 0.5 - bw * 0.5, 168, bw, 9)
+	var br = Rect2(s.x * 0.5 - bw * 0.5, 194, bw, 9)
 	draw_rect(br, Color(moon, 0.12))
 	draw_rect(Rect2(br.position, Vector2(bw * progress, 9)), pal.moss.lightened(0.35))
 	draw_circle(Vector2(br.position.x + bw * progress, br.position.y + 4.5), 8.0, Color(0.9, 1.0, 0.98))
 	draw_arc(Vector2(br.end.x + 6, br.position.y + 4.5), 9.0, PI, TAU, 10, ember, 3.0, true)
 	if autoplay:
-		draw_string(font, Vector2(0, 208), "AUTO-PLAY DEMO", HORIZONTAL_ALIGNMENT_CENTER, s.x, 18, Color(moon, 0.5))
+		draw_string(font, Vector2(0, 232), "AUTO-PLAY DEMO", HORIZONTAL_ALIGNMENT_CENTER, s.x, 18, Color(moon, 0.5))
 	# boss bar
 	if boss_k >= 0.0:
-		var bb = Rect2(60, 246, s.x - 120, 22)
-		draw_string(font, Vector2(0, 236), boss_name, HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(1, 0.85, 0.7))
+		var bb = Rect2(60, 262, s.x - 120, 22)
+		draw_string(font, Vector2(0, 252), boss_name, HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(1, 0.85, 0.7))
 		draw_rect(bb.grow(3), Color(pal.ink, 0.8))
 		draw_rect(Rect2(bb.position, Vector2(bb.size.x * boss_k, bb.size.y)), Color(1.0, 0.3, 0.3).lerp(ember, 0.3))
 		draw_rect(Rect2(bb.position, Vector2(bb.size.x * boss_k, 6)), Color(1, 1, 1, 0.3))
@@ -264,7 +332,7 @@ func _draw() -> void:
 	if combo >= 2:
 		var p = combo_pop
 		var cx = s.x - 90.0
-		var cy = 300.0 if boss_k < 0.0 else 330.0
+		var cy = 330.0 if boss_k < 0.0 else 360.0
 		draw_string(font, Vector2(cx - 120, cy), str(combo), HORIZONTAL_ALIGNMENT_RIGHT, 160, int(64 + p * 26), Color(1, 0.95, 0.75).lerp(ember, 0.3))
 		draw_string(font, Vector2(cx - 120, cy + 30), "COMBO", HORIZONTAL_ALIGNMENT_RIGHT, 160, 22, Color(moon, 0.8))
 		if combo_mult > 1.0:
@@ -278,7 +346,7 @@ func _draw() -> void:
 		if Profile.setting("control") == "dpad":
 			for side in [-1.0, 1.0]:
 				var c: Vector2 = g.left if side < 0.0 else g.right
-				var on = signf(move) == side
+				var on = signf(move) == side or auto_dir == side
 				var rr = Rect2(c - Vector2.ONE * g.pad, Vector2.ONE * g.pad * 2.0)
 				var sb = StyleBoxFlat.new()
 				sb.bg_color = Color(pal.moss.darkened(0.4), 0.6) if on else Color(pal.ink, 0.45)
@@ -289,7 +357,8 @@ func _draw() -> void:
 				var a = 26.0 * k
 				var col = pal.moss.lightened(0.6) if on else Color(moon, 0.6)
 				draw_colored_polygon(PackedVector2Array([c + Vector2(side * a, 0), c + Vector2(-side * a * 0.6, -a), c + Vector2(-side * a * 0.6, a)]), col)
-			draw_string(font, Vector2((g.left.x + g.right.x) * 0.5 - 60, g.left.y + g.pad + 30 * k), "MOVE", HORIZONTAL_ALIGNMENT_CENTER, 120, int(17 * k), Color(moon, 0.45))
+			var lbl = "MOVE" if auto_dir == 0.0 else ("AUTO  >>" if auto_dir > 0.0 else "<<  AUTO")
+			draw_string(font, Vector2((g.left.x + g.right.x) * 0.5 - 80, g.left.y + g.pad + 30 * k), lbl, HORIZONTAL_ALIGNMENT_CENTER, 160, int(17 * k), Color(moon, 0.45) if auto_dir == 0.0 else pal.moss.lightened(0.5))
 		else:
 			draw_circle(g.stick, g.stick_r, Color(pal.ink, 0.38))
 			draw_arc(g.stick, g.stick_r, 0, TAU, 48, Color(moon, 0.22), 3.0, true)
@@ -316,19 +385,19 @@ func _draw() -> void:
 			var x0 = g.dash.x - 16 * k + i * 9 * k
 			draw_colored_polygon(PackedVector2Array([Vector2(x0, g.dash.y - 12 * k), Vector2(x0 + 12 * k, g.dash.y), Vector2(x0, g.dash.y + 12 * k)]), Color(moon, 0.5 + i * 0.25 if dash_ready >= 1.0 else 0.3))
 	# toasts
-	var ty = 270.0
+	var ty = 300.0 if boss_k < 0.0 else 330.0
 	for tt in toasts:
-		var a3 = clampf(minf(tt.t * 5.0, (2.6 - tt.t) * 3.0), 0.0, 1.0)
-		var w = 520.0
-		var r3 = Rect2(s.x * 0.5 - w * 0.5, ty - 40 + (1.0 - a3) * -20.0, w, 56)
+		var a3 = clampf(minf(tt.t * 5.0, (2.2 - tt.t) * 3.0), 0.0, 1.0)
+		var w = 420.0
+		var r3 = Rect2(s.x * 0.5 - w * 0.5, ty - 40 + (1.0 - a3) * -20.0, w, 52)
 		var sb2 = StyleBoxFlat.new()
 		sb2.bg_color = Color(pal.ink, 0.8 * a3)
 		sb2.border_color = Color(tt.col, 0.7 * a3)
 		sb2.set_border_width_all(2)
 		sb2.set_corner_radius_all(18)
 		draw_style_box(sb2, r3)
-		draw_string(font, Vector2(r3.position.x, r3.position.y + 38), tt.text, HORIZONTAL_ALIGNMENT_CENTER, w, 26, Color(tt.col, a3))
-		ty += 66.0
+		draw_string(font, Vector2(r3.position.x, r3.position.y + 35), tt.text, HORIZONTAL_ALIGNMENT_CENTER, w, 23, Color(tt.col, a3))
+		ty += 60.0
 	# title card
 	if title_t > 0.0:
 		var a4 = clampf(minf(title_t, 2.8 - title_t) * 2.5, 0.0, 1.0)

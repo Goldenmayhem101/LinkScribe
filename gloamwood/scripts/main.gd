@@ -21,8 +21,15 @@ var pal: Dictionary = {}
 var biome := ""
 var stage := 1
 var run_seed := 1
-var hearts := 3
-var max_hearts := 3
+var hp := 100.0
+var max_hp := 100.0
+var calm := 1.0
+var tele_k := 1.0
+var powers := {}
+var power_nodes: Array = []
+var got_powers: Array = []
+var trail_fx: CPUParticles2D
+var star_tick := 0.0
 var respawn = Vector2.ZERO
 var autoplay := false
 var playing := false
@@ -113,8 +120,19 @@ func _ready() -> void:
 	if autoplay:
 		playing = true
 		run_seed = 4242
+		if args.has("weapon"):
+			if not Profile.has_weapon(args.weapon):
+				Profile.data.weapons.append(args.weapon)
+			Profile.data.weapon = args.weapon
 		start_stage(int(args.get("stage", "1")))
 		menu.show_screen("")
+		hud.visible = true
+		if args.has("showcase"):
+			var kinds = ["heal", "shield", "triple", "homing", "rapid", "magnet", "star"]
+			for i in kinds.size():
+				_spawn_power(player.position + Vector2(60 + i * 34, -40), kinds[i])
+			spawn_monster({"kind": "cyclops", "pos": player.position + Vector2(240, -120), "min": player.position.x + 100, "max": player.position.x + 400})
+			spawn_monster({"kind": "drone", "pos": player.position + Vector2(330, -110), "min": player.position.x + 150, "max": player.position.x + 450})
 	else:
 		if args.has("menu"):
 			menu.daily_shown = args.menu != "daily"
@@ -353,10 +371,11 @@ func apply_settings() -> void:
 func apply_upgrades() -> void:
 	var h = Profile.hero_def()
 	player.apply_hero(h)
-	max_hearts = int(h.hearts) + Profile.upgrade_level("hearts")
-	hearts = mini(hearts, max_hearts)
-	hud.max_hearts = max_hearts
-	hud.hearts = hearts
+	max_hp = float(Profile.max_hp())
+	hp = minf(hp, max_hp)
+	hud.max_hp = max_hp
+	hud.hp = hp
+	_setup_trail()
 
 
 func _apply_biome(b: String) -> void:
@@ -476,8 +495,8 @@ func menu_retry() -> void:
 	get_tree().paused = false
 	menu.show_screen("")
 	hud.reset_input()
-	hearts = max_hearts
-	hud.hearts = hearts
+	hp = max_hp
+	hud.hp = hp
 	player.position = respawn
 	player.vel = Vector2.ZERO
 	player.invuln = 1.5
@@ -515,7 +534,7 @@ func save_snapshot() -> void:
 	Profile.save_run({
 		"stage": stage, "run_seed": run_seed, "hero": Profile.data.hero,
 		"pos": [player.last_safe.x, player.last_safe.y], "cp": [respawn.x, respawn.y],
-		"hearts": hearts, "got": got_coins, "killed": killed, "opened": opened,
+		"hp": hp, "powers_got": got_powers, "got": got_coins, "killed": killed, "opened": opened,
 		"time": st_time, "kills": st_kills, "coins": st_coins, "damage": st_damage, "combo": st_combo,
 		"boss_dead": boss_node == null and LevelGen.is_boss_stage(stage) and boss_awake,
 	})
@@ -530,6 +549,7 @@ func start_stage(n: int, resume: Dictionary = {}) -> void:
 	monsters.clear()
 	checkpoint_nodes.clear()
 	chest_nodes.clear()
+	power_nodes.clear()
 	bouncer_nodes.clear()
 	projectiles.clear()
 	fx_items.clear()
@@ -545,6 +565,11 @@ func start_stage(n: int, resume: Dictionary = {}) -> void:
 	level = gen.generate(n, LevelGen.seed_for(n, run_seed), {"difficulty": int(Profile.setting("difficulty")), "luck": luck})
 	solids = level.solids
 	got_coins = resume.get("got", []).duplicate()
+	got_powers = resume.get("powers_got", []).duplicate()
+	var d = clampf((n - 1) / 8.0, 0.0, 1.0)
+	var dif = int(Profile.setting("difficulty"))
+	calm = lerpf(1.7, 1.0, d) * [1.35, 1.0, 0.85][dif]
+	tele_k = lerpf(1.35, 1.0, d) * [1.2, 1.0, 0.9][dif]
 	killed = resume.get("killed", []).duplicate()
 	opened = resume.get("opened", []).duplicate()
 	st_time = float(resume.get("time", 0.0))
@@ -561,8 +586,11 @@ func start_stage(n: int, resume: Dictionary = {}) -> void:
 	player.vel = Vector2.ZERO
 	player.last_safe = player.position
 	player.reset_scarf()
-	hearts = int(resume.get("hearts", max_hearts)) if not resume.is_empty() else max_hearts
-	hud.hearts = hearts
+	hp = float(resume.get("hp", max_hp)) if not resume.is_empty() else max_hp
+	hp = clampf(hp, 1.0, max_hp)
+	hud.hp = hp
+	powers.clear()
+	hud.auto_dir = 1.0 if Profile.setting("autorun") == "always" else 0.0
 	hud.coins = int(Profile.data.coins)
 	cam.position = player.position + Vector2(0, -110)
 	var world_no = int((n - 1) / 2) + 1
@@ -711,6 +739,9 @@ func _build_level(resume: Dictionary) -> void:
 		cn.add_child(cg)
 		level_root.add_child(cn)
 		chest_nodes.append(cn)
+	for i in level.powerups.size():
+		if not got_powers.has(i):
+			_spawn_power(level.powerups[i].pos, level.powerups[i].kind, false, i)
 	_build_portal(level.portal)
 	portal_locked = not level.boss.is_empty()
 	if portal_locked:
@@ -849,6 +880,8 @@ func _physics_process(dt: float) -> void:
 		fh = false
 		fr = false
 		dp = bot.dash
+	elif move == 0.0 and hud.auto_dir != 0.0:
+		move = hud.auto_dir
 	hud.consume()
 	# sparks: tap fires, holding charges a big shot released on let-go
 	if fp and player.fire_cd <= 0.0:
@@ -879,6 +912,7 @@ func _physics_process(dt: float) -> void:
 	_update_checkpoints()
 	_update_props(dt)
 	_update_boss()
+	_update_powers(dt)
 	combo_t -= dt
 	if combo > 0 and combo_t <= 0.0:
 		combo = 0
@@ -886,34 +920,93 @@ func _physics_process(dt: float) -> void:
 	hud.combo_k = clampf(combo_t / COMBO_WINDOW, 0.0, 1.0)
 	hud.combo_mult = combo_mult()
 	if player.position.y > 650.0:
-		_hurt(player.position.x, true)
+		_hurt(player.position.x, 15.0, true)
 	if portal and not portal_locked and player.position.distance_to(portal.position + Vector2(0, -20)) < 34.0:
 		_stage_clear()
 	hud.progress = clampf((player.position.x - level.start_x) / (level.end_x - level.start_x), 0.0, 1.0)
 
 
+func _aim_dir(max_range: float = 340.0) -> Vector2:
+	var fwd = Vector2(player.facing, 0)
+	if not Profile.setting("aim_assist"):
+		return fwd
+	var src = player.body_center()
+	var best = null
+	var best_d = max_range
+	for mo in monsters:
+		if not is_instance_valid(mo) or not mo.vulnerable():
+			continue
+		var to = mo.world_center() - src
+		var dl = to.length()
+		if dl < best_d and to.normalized().dot(fwd) > 0.3:
+			best = to.normalized()
+			best_d = dl
+	return best if best != null else fwd
+
+
 func _fire(big: bool) -> void:
 	var sp_lv = Profile.upgrade_level("spark")
-	player.fire_cd = 0.3 - Profile.upgrade_level("rapid") * 0.05
-	var o = player.body_center() + Vector2(player.facing * 16.0, -4.0)
-	var dir = Vector2(player.facing, 0)
-	var kind: String = player.hero.get("spark", "single") if not player.hero.is_empty() else "single"
+	var w = Profile.weapon_def()
+	var rate: float = float(w.rate) - Profile.upgrade_level("rapid") * 0.03
+	if powers.has("rapid"):
+		rate *= 0.5
+	player.fire_cd = maxf(rate, 0.08)
+	var dir = _aim_dir()
+	var o = player.body_center() + dir * 16.0 + Vector2(0, -4.0)
+	var hero_mod: String = player.hero.get("spark", "single") if not player.hero.is_empty() else "single"
+	var pierce = hero_mod == "pierce"
+	var homing = powers.has("homing") or w.id == "seeker"
 	if big:
-		projectiles.append({"kind": "big", "pos": o, "vel": dir * 360.0, "life": 0.0, "trail": [], "dmg": 4 + sp_lv, "r": 14.0, "pierce": true, "hit": []})
+		projectiles.append({"kind": "big", "pos": o, "vel": dir * 360.0, "life": 0.0, "trail": [], "dmg": 4 + sp_lv, "r": 14.0, "pierce": true, "hit": [], "home": homing})
 		Sfx.play("bigshot")
 		shake(4.0)
 		fx_burst(o, pal.moss.lightened(0.5), 16, 160.0, 0.4, 0.0, 0.08)
 		return
-	var dmg = 1 + (1 if sp_lv >= 2 else 0) + (1 if kind == "pierce" else 0)
-	var rad = 4.0 + sp_lv * 1.5
-	var dirs = [dir]
-	if kind == "spread":
-		dirs = [dir, dir.rotated(-0.22), dir.rotated(0.22)]
-	for d in dirs:
-		projectiles.append({"kind": "spark", "pos": o, "vel": d * 440.0, "life": 0.0, "trail": [], "dmg": dmg, "r": rad, "pierce": kind == "pierce", "hit": []})
+	var dmg = int(w.dmg) + (1 if sp_lv >= 2 else 0) + (1 if pierce else 0)
+	var spread: Array = [0.0]
+	if hero_mod == "spread":
+		spread = [0.0, -0.2, 0.2]
+	if powers.has("triple"):
+		spread = spread + [-0.32, 0.32]
+	if w.id == "lance":
+		for a in spread:
+			_lance(o, dir.rotated(a), dmg)
+		Sfx.play("lance")
+	elif w.id == "scatter":
+		for a in spread:
+			for k in 5:
+				var dd = dir.rotated(a + (k - 2) * 0.16 + randf_range(-0.04, 0.04))
+				projectiles.append({"kind": "spark", "pos": o, "vel": dd * randf_range(380.0, 440.0), "life": 0.55, "trail": [], "dmg": dmg, "r": 3.5 + sp_lv, "pierce": pierce, "hit": [], "home": false})
+		Sfx.play("spark", 0.8)
+		shake(2.0)
+	else:
+		var spd = 300.0 if w.id == "seeker" else 460.0
+		for a in spread:
+			projectiles.append({"kind": "spark", "pos": o, "vel": dir.rotated(a) * spd, "life": 0.0, "trail": [], "dmg": dmg, "r": 4.0 + sp_lv * 1.5, "pierce": pierce, "hit": [], "home": homing})
+		Sfx.play("spark")
 	fx_burst(o, pal.moss.lightened(0.5), 6, 80.0, 0.25, 0.0, 0.05)
 	hud.fire_flash = 1.0
-	Sfx.play("spark")
+
+
+func _lance(o: Vector2, dir: Vector2, dmg: int) -> void:
+	var length = 290.0
+	var end = o + dir * length
+	for i in 29:
+		var q = o + dir * (i * 10.0)
+		if _solid_at(q):
+			end = q
+			break
+	var seg_len = (end - o).length()
+	for mo in monsters:
+		if not is_instance_valid(mo) or not mo.vulnerable():
+			continue
+		var rel = mo.world_center() - o
+		var along = rel.dot(dir)
+		if along > 0.0 and along < seg_len and absf(rel.cross(dir)) < mo.radius + 8.0:
+			mo.hit(dmg, o.x)
+			register_hit()
+	fx_items.append({"type": "lance", "pos": o, "end": end, "life": 0.0, "max": 0.22})
+	shake(2.5)
 
 
 func combo_mult() -> float:
@@ -1043,6 +1136,18 @@ func _update_projectiles(dt: float) -> void:
 	var keep: Array = []
 	for p in projectiles:
 		p.life += dt
+		if p.get("home", false):
+			var tgt = null
+			var bd = 360.0
+			for mo in monsters:
+				if is_instance_valid(mo) and mo.vulnerable():
+					var dd = p.pos.distance_to(mo.world_center())
+					if dd < bd:
+						bd = dd
+						tgt = mo
+			if tgt != null:
+				var want = (tgt.world_center() - p.pos).normalized() * p.vel.length()
+				p.vel = p.vel.lerp(want, minf(1.0, dt * 7.0))
 		p.pos += p.vel * dt
 		if p.kind == "quill":
 			p.vel.y += 160.0 * dt
@@ -1052,7 +1157,7 @@ func _update_projectiles(dt: float) -> void:
 		if p.trail.size() > 8:
 			p.trail.pop_back()
 		var friendly = p.kind == "spark" or p.kind == "big"
-		var alive = p.life < (1.0 if friendly else 2.5)
+		var alive = p.life < ((1.6 if p.get("home", false) else 1.0) if friendly else 2.5)
 		if alive and _solid_at(p.pos):
 			alive = false
 			fx_burst(p.pos, pal.moss.lightened(0.4) if friendly else pal.dusk, 6, 70.0, 0.3, 100.0, 0.05)
@@ -1075,7 +1180,7 @@ func _update_projectiles(dt: float) -> void:
 						break
 		elif alive:
 			if p.pos.distance_to(player.body_center()) < 14.0:
-				_hurt(p.pos.x)
+				_hurt(p.pos.x, {"quill": 8.0, "bolt": 8.0, "clod": 10.0}.get(p.kind, 8.0))
 				alive = false
 		if alive:
 			keep.append(p)
@@ -1084,7 +1189,7 @@ func _update_projectiles(dt: float) -> void:
 
 func _update_coins(dt: float) -> void:
 	var c = player.body_center()
-	var magnet = 40.0 + Profile.upgrade_level("magnet") * 35.0
+	var magnet = 40.0 + Profile.upgrade_level("magnet") * 35.0 + (220.0 if powers.has("magnet") else 0.0)
 	for cd in coin_list:
 		if cd.got:
 			continue
@@ -1098,7 +1203,7 @@ func _update_coins(dt: float) -> void:
 				n.position.y = gy - 12.0
 				cd.vel = Vector2(cd.vel.x * 0.5, -absf(cd.vel.y) * 0.35)
 		var d = n.position.distance_to(c)
-		if (cd.age > 0.5 or not cd.dropped) and d < (magnet if cd.dropped else magnet * 0.6):
+		if (cd.age > 0.5 or not cd.dropped) and d < (magnet if (cd.dropped or powers.has("magnet")) else magnet * 0.6):
 			n.position = n.position.move_toward(c, 460.0 * dt)
 		n.get_node("Face").scale.x = maxf(0.12, absf(cos(t * 4.0 + cd.phase))) / tscale("coin")
 		if d < 20.0 and (not cd.dropped or cd.age > 0.35):
@@ -1151,8 +1256,13 @@ func _update_monsters_contact() -> void:
 			fx_ring(player.position, pal.moon, 30.0)
 			Sfx.play("stomp")
 			rec("stomp")
+		elif powers.has("star"):
+			if star_tick <= 0.0 and mo.vulnerable():
+				star_tick = 0.25
+				mo.hit(3 if mo.boss else 99, player.position.x)
+				register_hit()
 		elif mo.touch_damage():
-			_hurt(mc.x)
+			_hurt(mc.x, float(mo.contact_dmg()))
 
 
 func _update_checkpoints() -> void:
@@ -1160,8 +1270,8 @@ func _update_checkpoints() -> void:
 		if not cp.get_meta("active") and absf(player.position.x - cp.position.x) < 20.0 and absf(player.position.y - cp.position.y) < 60.0:
 			cp.set_meta("active", true)
 			respawn = cp.position
-			hearts = max_hearts
-			hud.hearts = hearts
+			hp = max_hp
+			hud.hp = hp
 			var gl: Sprite2D = cp.get_node("Glow")
 			gl.modulate = Color(pal.moss.lightened(0.5), 0.8)
 			gl.scale = Vector2.ONE * 0.9
@@ -1182,7 +1292,7 @@ func _update_props(dt: float) -> void:
 	var fr = player.feet_rect()
 	for h in level.hazards:
 		if fr.intersects(Rect2(h.position + Vector2(3, 2), h.size - Vector2(6, 2))) and player.invuln <= 0.0 and not player.dashing():
-			_hurt(player.position.x - player.facing * 10.0)
+			_hurt(player.position.x - player.facing * 10.0, 10.0)
 			player.vel.y = -520.0
 	for bn in bouncer_nodes:
 		var sq = float(bn.get_meta("squish"))
@@ -1219,11 +1329,8 @@ func _open_chest(cn: Node2D) -> void:
 		hud.toast("Jackpot chest!", pal.ember.lightened(0.3))
 		fx_burst(p, pal.ember.lightened(0.4), 40, 260.0, 0.9, 150.0, 0.08)
 		shake(6.0)
-	elif roll < 0.4 and hearts < max_hearts:
-		hearts += 1
-		hud.hearts = hearts
-		float_text(p + Vector2(0, -20), "+1 heart", Color(1, 0.6, 0.6))
-		fx_burst(p, Color(1, 0.5, 0.5), 20, 160.0, 0.7, 0.0, 0.07)
+	elif roll < 0.45:
+		_spawn_power(p + Vector2(0, -20), ["heal", "shield", "triple", "homing", "rapid", "star"][randi() % 6], true)
 	else:
 		for i in 5 + randi() % 5 + luck * 2:
 			_add_coin(p, true)
@@ -1252,6 +1359,7 @@ func _update_boss() -> void:
 
 
 func boss_phase(_m: Monster, n: int) -> void:
+	_spawn_power(_m.world_center() + Vector2(-60, -40), "heal", true)
 	hud.toast("The Titan grows furious!" if n == 2 else "FINAL PHASE!", Color(1, 0.6, 0.5))
 	shake(10.0)
 	buzz(100)
@@ -1278,6 +1386,11 @@ func on_monster_killed(mo: Monster) -> void:
 		_boss_defeated(mo)
 	for i in drops:
 		_add_coin(c, true)
+	var luck = Profile.upgrade_level("luck")
+	if randf() < (0.45 if mo.elite else 0.16) + luck * 0.04:
+		_spawn_power(c, "orb", true)
+	if mo.golden or randf() < (0.25 if mo.elite else 0.05) + luck * 0.02:
+		_spawn_power(c, ["shield", "triple", "homing", "rapid", "magnet"][randi() % 5], true)
 	if mo.golden:
 		hud.toast("Golden monster!", Color(1, 0.85, 0.3))
 	if playing and not autoplay:
@@ -1314,29 +1427,40 @@ func _level_up(lv: int) -> void:
 	Sfx.play("levelup")
 
 
-func _hurt(from_x: float, fell: bool = false) -> void:
-	if (player.invuln > 0.0 or player.dashing()) and not fell:
+func _hurt(from_x: float, dmg: float = 10.0, fell: bool = false) -> void:
+	if (player.invuln > 0.0 or player.dashing() or powers.has("star")) and not fell:
 		return
-	hearts -= 1
+	if player.shield > 0 and not fell:
+		player.shield -= 1
+		player.invuln = 0.6
+		Sfx.play("shield", 0.8)
+		fx_ring(player.body_center(), pal.moss.lightened(0.6), 40.0)
+		float_text(player.body_center() + Vector2(0, -30), "Blocked!", pal.moss.lightened(0.6))
+		return
+	var dif = int(Profile.setting("difficulty"))
+	dmg *= [0.6, 1.0, 1.3][dif] * (1.0 - 0.12 * Profile.upgrade_level("armor"))
+	hp -= dmg
 	st_damage += 1
 	combo = 0
-	hud.hearts = maxi(hearts, 0)
-	hurt_pulse = 1.0
-	shake(9.0)
-	hitstop(0.09)
-	buzz(80)
+	hud.hp = maxf(hp, 0.0)
+	hud.hurt_flash = 1.0
+	hurt_pulse = clampf(dmg / 20.0, 0.4, 1.0)
+	shake(6.0 + dmg * 0.2)
+	hitstop(0.07)
+	buzz(60)
 	Sfx.play("hurt")
+	float_text(player.body_center() + Vector2(0, -34), "-%d" % int(round(dmg)), Color(1, 0.55, 0.55))
 	fx_burst(player.body_center(), pal.moon, 14, 140.0, 0.5, 120.0, 0.06)
-	if hearts <= 0:
+	if hp <= 0.0:
 		if playing and not autoplay:
 			Profile.data.stats.deaths = int(Profile.data.stats.deaths) + 1
-			hearts = max_hearts
+			hp = max_hp
 			save_snapshot()
 			get_tree().paused = true
 			menu.show_screen("over", {"stage": stage, "kills": st_kills, "coins": st_coins})
 			return
-		hearts = max_hearts
-		hud.hearts = hearts
+		hp = max_hp
+		hud.hp = hp
 		hud.show_title("Try again", "Back to the last checkpoint")
 		player.position = respawn
 		player.vel = Vector2.ZERO
@@ -1350,7 +1474,7 @@ func _hurt(from_x: float, fell: bool = false) -> void:
 	else:
 		player.vel = Vector2(signf(player.position.x - from_x) * 230.0, -330.0)
 		player.on_ground = false
-	player.invuln = 1.2
+	player.invuln = 1.0
 
 
 func _stage_clear() -> void:
@@ -1394,6 +1518,161 @@ func _stage_clear() -> void:
 		hud.fade = 0.0
 		get_tree().paused = true
 		menu.show_screen("clear", result))
+
+
+# ---------------- power-ups ----------------
+const POWER_INFO := {
+	"heal": {"name": "+35 health", "col": Color(1.0, 0.45, 0.5), "time": 0.0},
+	"orb": {"name": "+12", "col": Color(1.0, 0.55, 0.6), "time": 0.0},
+	"shield": {"name": "Shield", "col": Color(0.5, 1.0, 0.9), "time": 0.0},
+	"triple": {"name": "Triple Shot", "col": Color(1.0, 0.75, 0.3), "time": 15.0},
+	"homing": {"name": "Homing Sparks", "col": Color(0.7, 0.6, 1.0), "time": 15.0},
+	"rapid": {"name": "Rapid Fire", "col": Color(1.0, 0.95, 0.5), "time": 12.0},
+	"magnet": {"name": "Coin Magnet", "col": Color(1.0, 0.85, 0.35), "time": 20.0},
+	"star": {"name": "STAR POWER!", "col": Color(1.0, 1.0, 1.0), "time": 8.0},
+}
+
+
+func _spawn_power(pos: Vector2, kind: String, dropped: bool = false, idx: int = -1) -> void:
+	var n = Node2D.new()
+	n.position = pos
+	n.z_index = 4
+	n.set_meta("kind", kind)
+	n.set_meta("idx", idx)
+	n.set_meta("vel", Vector2(randf_range(-60, 60), -260.0) if dropped else Vector2.ZERO)
+	n.set_meta("dropped", dropped)
+	n.set_meta("age", 0.0)
+	var gl = Sprite2D.new()
+	gl.texture = glow
+	gl.material = add_mat
+	gl.scale = Vector2.ONE * (0.35 if kind == "orb" else 0.6)
+	gl.modulate = Color(POWER_INFO[kind].col, 0.8)
+	n.add_child(gl)
+	n.draw.connect(_draw_power.bind(n))
+	level_root.add_child(n)
+	power_nodes.append(n)
+
+
+func _update_powers(dt: float) -> void:
+	star_tick = maxf(star_tick - dt, 0.0)
+	var c = player.body_center()
+	for n in power_nodes:
+		if not is_instance_valid(n):
+			continue
+		var age = float(n.get_meta("age")) + dt
+		n.set_meta("age", age)
+		if n.get_meta("dropped"):
+			var v: Vector2 = n.get_meta("vel")
+			v.y += 700.0 * dt
+			n.position += v * dt
+			var gy = ground_below(n.position + Vector2(0, -14))
+			if n.position.y > gy - 16.0:
+				n.position.y = gy - 16.0
+				v = Vector2(v.x * 0.4, 0.0)
+			n.set_meta("vel", v)
+		n.queue_redraw()
+		if age > 0.3 and n.position.distance_to(c) < 26.0:
+			_collect_power(n)
+	power_nodes = power_nodes.filter(func(x): return is_instance_valid(x) and not x.is_queued_for_deletion())
+	var keys = powers.keys()
+	for k in keys:
+		powers[k] -= dt
+		if powers[k] <= 0.0:
+			powers.erase(k)
+	player.star_t = powers.get("star", 0.0)
+	hud.powers = powers
+	hud.shield = player.shield
+	if trail_fx:
+		trail_fx.position = player.position + Vector2(-player.facing * 8.0, -16.0)
+		trail_fx.emitting = (absf(player.vel.x) > 40.0 or not player.on_ground) and (player.trail != "none" or powers.has("star"))
+		if powers.has("star"):
+			trail_fx.color = Color.from_hsv(fmod(t * 1.5, 1.0), 0.6, 1.0)
+
+
+func _collect_power(n: Node2D) -> void:
+	var kind: String = n.get_meta("kind")
+	var info: Dictionary = POWER_INFO[kind]
+	var idx = int(n.get_meta("idx"))
+	if idx >= 0:
+		got_powers.append(idx)
+	match kind:
+		"heal", "orb":
+			var amt = 35.0 if kind == "heal" else 12.0
+			hp = minf(hp + amt, max_hp)
+			hud.hp = hp
+			Sfx.play("heal", 1.0 if kind == "heal" else 1.3)
+		"shield":
+			player.shield = 3
+			Sfx.play("shield")
+		_:
+			powers[kind] = float(info.time)
+			Sfx.play("power")
+			if kind == "star":
+				Sfx.play("levelup", 1.3)
+	float_text(n.position + Vector2(0, -18), info.name if kind != "orb" else "+12 health", info.col)
+	if kind != "orb":
+		hud.toast(info.name, info.col)
+	fx_burst(n.position, info.col, 20, 170.0, 0.5, 0.0, 0.07)
+	fx_ring(n.position, info.col, 34.0)
+	n.queue_free()
+
+
+func _draw_power(n: Node2D) -> void:
+	var kind: String = n.get_meta("kind")
+	var col: Color = POWER_INFO[kind].col
+	var bob = sin(t * 3.0 + n.position.x) * 3.0 if not n.get_meta("dropped") else 0.0
+	var c = Vector2(0, bob)
+	if kind == "orb":
+		n.draw_circle(c, 6.0, col)
+		n.draw_circle(c + Vector2(-1.5, -1.5), 2.2, Color(1, 1, 1, 0.8))
+		return
+	n.draw_circle(c, 13.0, Color(pal.ink, 0.75))
+	n.draw_arc(c, 13.0, 0, TAU, 32, col, 2.0, true)
+	n.draw_arc(c, 16.0 + sin(t * 4.0) * 1.5, t * 2.0, t * 2.0 + PI * 0.6, 12, Color(col, 0.7), 1.5, true)
+	match kind:
+		"heal":
+			n.draw_rect(Rect2(c + Vector2(-2.5, -7), Vector2(5, 14)), col)
+			n.draw_rect(Rect2(c + Vector2(-7, -2.5), Vector2(14, 5)), col)
+		"shield":
+			n.draw_colored_polygon(PackedVector2Array([c + Vector2(-7, -7), c + Vector2(7, -7), c + Vector2(6, 2), c + Vector2(0, 8), c + Vector2(-6, 2)]), col)
+		"triple":
+			for a in [-0.4, 0.0, 0.4]:
+				n.draw_line(c + Vector2(-6, 0).rotated(a), c + Vector2(7, 0).rotated(a), col, 2.0, true)
+		"homing":
+			n.draw_arc(c, 6.0, -PI * 0.2, PI * 1.3, 12, col, 2.0, true)
+			n.draw_circle(c + Vector2(6, -2), 2.2, col)
+		"rapid":
+			n.draw_colored_polygon(PackedVector2Array([c + Vector2(-2, -8), c + Vector2(5, -1), c + Vector2(0, -1), c + Vector2(2, 8), c + Vector2(-5, 1), c + Vector2(0, 1)]), col)
+		"magnet":
+			n.draw_arc(c + Vector2(0, -1), 6.0, PI, TAU, 10, col, 3.0, true)
+			n.draw_line(c + Vector2(-6, -1), c + Vector2(-6, 6), col, 3.0)
+			n.draw_line(c + Vector2(6, -1), c + Vector2(6, 6), col, 3.0)
+		"star":
+			var st = PackedVector2Array()
+			for i in 10:
+				var a2 = TAU * i / 10.0 - PI / 2.0
+				st.append(c + Vector2(cos(a2), sin(a2)) * (9.0 if i % 2 == 0 else 4.0))
+			n.draw_colored_polygon(st, Color.from_hsv(fmod(t, 1.0), 0.5, 1.0))
+
+
+func _setup_trail() -> void:
+	if trail_fx == null:
+		trail_fx = CPUParticles2D.new()
+		trail_fx.texture = glow
+		trail_fx.material = add_mat
+		trail_fx.local_coords = false
+		trail_fx.amount = 24
+		trail_fx.lifetime = 0.7
+		trail_fx.z_index = 3
+		trail_fx.emitting = false
+		world.add_child(trail_fx)
+	var kind = player.trail
+	trail_fx.gravity = Vector2(0, -30.0) if kind == "ember" else (Vector2(0, 60.0) if kind == "petal" else Vector2.ZERO)
+	trail_fx.color = {"sparkle": Color(0.9, 1.0, 1.0), "ember": Color(1.0, 0.6, 0.3), "petal": Color(1.0, 0.6, 0.75)}.get(kind, Color(1, 1, 1))
+	trail_fx.scale_amount_min = 0.03
+	trail_fx.scale_amount_max = 0.07
+	trail_fx.spread = 180.0
+	trail_fx.initial_velocity_max = 20.0
 
 
 # ---------------- helpers ----------------
@@ -1490,8 +1769,8 @@ func float_text(pos: Vector2, s: String, col: Color) -> void:
 	fx_items.append({"type": "text", "pos": pos, "text": s, "col": col, "life": 0.0, "max": 0.8})
 
 
-func shockwave(pos: Vector2, col: Color, power: int) -> void:
-	fx_items.append({"type": "shock", "pos": pos, "life": 0.0, "max": 0.75 + power * 0.15, "col": col, "hit": false, "power": power})
+func shockwave(pos: Vector2, col: Color, power: int, dmg: int = 12) -> void:
+	fx_items.append({"type": "shock", "pos": pos, "life": 0.0, "max": 0.75 + power * 0.15, "col": col, "hit": false, "power": power, "dmg": dmg})
 	fx_dust(pos, 14, 120.0)
 	shake(7.0 + power * 2.0)
 	Sfx.play("shock")
@@ -1501,8 +1780,8 @@ func spawn_shot(kind: String, pos: Vector2, vel: Vector2) -> void:
 	projectiles.append({"kind": kind, "pos": pos, "vel": vel, "life": 0.0, "trail": [], "dmg": 1, "r": 4.0, "pierce": false, "hit": []})
 
 
-func fire_beam(from: Vector2, dir: Vector2) -> void:
-	fx_items.append({"type": "beam", "pos": from, "dir": dir, "life": 0.0, "max": 0.5, "hit": false})
+func fire_beam(from: Vector2, dir: Vector2, dmg: int = 12) -> void:
+	fx_items.append({"type": "beam", "pos": from, "dir": dir, "life": 0.0, "max": 0.5, "hit": false, "dmg": dmg})
 	shake(4.0)
 	Sfx.play("beam")
 
@@ -1515,13 +1794,13 @@ func _update_fx(dt: float) -> void:
 			var r = 30.0 + f.life * (300.0 + f.power * 60.0)
 			if player.on_ground and absf(player.position.y - f.pos.y) < 6.0 and absf(absf(player.position.x - f.pos.x) - r) < 16.0:
 				f.hit = true
-				_hurt(f.pos.x)
+				_hurt(f.pos.x, float(f.get("dmg", 12)))
 		elif f.type == "beam" and not f.hit and f.life < 0.35:
 			var rel = player.body_center() - f.pos
 			var along = rel.dot(f.dir)
 			if along > 0.0 and along < 520.0 and absf(rel.cross(f.dir)) < 11.0:
 				f.hit = true
-				_hurt(f.pos.x)
+				_hurt(f.pos.x, float(f.get("dmg", 12)))
 		if f.life < f.max:
 			keep.append(f)
 	fx_items = keep
@@ -1554,6 +1833,13 @@ func _draw_fx(additive: bool) -> void:
 						node.draw_line(Vector2(x, f.pos.y), Vector2(x - side * 30.0, f.pos.y), Color(f.col.lightened(0.4), a), 3.0, true)
 				else:
 					node.draw_arc(f.pos + Vector2(0, 6), r, PI * 1.05, PI * 1.95, 24, Color(pal.ink, 0.35 * a), 4.0, true)
+			"lance":
+				if additive:
+					var lc = Color(0.85, 0.95, 1.0)
+					var ww = (1.0 - k) * 10.0
+					node.draw_line(f.pos, f.end, Color(pal.moss.lightened(0.5), 0.4 * (1.0 - k)), ww * 2.2, true)
+					node.draw_line(f.pos, f.end, Color(lc, 1.0 - k), ww * 0.6, true)
+					node.draw_texture_rect(glow, Rect2(f.end - Vector2(16, 16), Vector2(32, 32)), false, Color(lc, 1.0 - k))
 			"beam":
 				var end: Vector2 = f.pos + f.dir * 520.0
 				var w = (1.0 - k) * (12.0 if f.life < 0.35 else 4.0)

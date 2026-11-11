@@ -31,7 +31,7 @@ func _setting(k: String, fallback: float) -> float:
 
 
 func apply_volumes() -> void:
-	music_player.volume_db = linear_to_db(maxf(_setting("music", 0.6), 0.0005)) - 8.0
+	music_player.volume_db = linear_to_db(maxf(_setting("music", 0.85), 0.0005)) + 1.0
 
 
 func play(name: String, pitch: float = 1.0, jitter: float = 0.05, vol_db: float = 0.0) -> void:
@@ -146,20 +146,20 @@ func _seq(notes: Array, step: float, kind: int, vol: float, decay: float = 2.5) 
 
 
 func _build_sfx() -> void:
-	sfx.jump = _wav(_tone(0.14, 280, 620, 1, 0.18, 2.0))
+	sfx.jump = _wav(_tone(0.14, 300, 600, 3, 0.22, 2.0))
 	sfx.djump = _wav(_mix(_tone(0.16, 520, 1040, 0, 0.35, 2.0), _tone(0.12, 1040, 1560, 0, 0.12, 2.0), 0.03))
 	sfx.spark = _wav(_tone(0.12, 1400, 480, 0, 0.32, 2.5, 0.25))
 	sfx.charge = _wav(_tone(0.5, 200, 760, 0, 0.22, 0.3, 0.0, 0.05, 0.08))
 	sfx.bigshot = _wav(_mix(_tone(0.32, 220, 70, 0, 0.5, 2.0), _tone(0.3, 300, 100, 2, 0.15, 2.5, 0.6)))
-	sfx.hit = _wav(_tone(0.09, 200, 140, 1, 0.3, 3.0, 0.6))
+	sfx.hit = _wav(_tone(0.09, 220, 150, 3, 0.26, 3.0, 0.4))
 	sfx.kill = _wav(_mix(_tone(0.1, 660, 660, 1, 0.16, 2.0), _tone(0.2, 990, 1320, 1, 0.14, 2.5), 0.07))
 	sfx.stomp = _wav(_mix(_tone(0.18, 170, 50, 0, 0.6, 2.0), _tone(0.1, 120, 60, 2, 0.2, 3.0, 0.7)))
 	sfx.coin = _wav(_mix(_tone(0.06, 1318, 1318, 3, 0.28, 1.5), _tone(0.14, 1760, 1760, 3, 0.28, 2.0), 0.05))
 	sfx.hurt = _wav(_tone(0.3, 320, 110, 2, 0.32, 1.6))
 	sfx.dash = _wav(_tone(0.2, 600, 200, 0, 0.45, 1.5, 0.92, 0.02))
 	sfx.shock = _wav(_mix(_tone(0.5, 70, 38, 0, 0.7, 1.5), _tone(0.45, 90, 50, 2, 0.3, 2.0, 0.85)))
-	sfx.warn = _wav(_tone(0.25, 440, 520, 1, 0.12, 0.6, 0.0, 0.01, 0.4))
-	sfx.beam = _wav(_mix(_tone(0.45, 110, 100, 2, 0.25, 1.0, 0.3), _tone(0.45, 220, 210, 1, 0.1, 1.0)))
+	sfx.warn = _wav(_tone(0.22, 330, 440, 0, 0.12, 1.4, 0.0, 0.02))
+	sfx.beam = _wav(_mix(_tone(0.45, 160, 120, 3, 0.2, 1.4, 0.15), _tone(0.45, 320, 240, 0, 0.08, 1.4)))
 	sfx.quill = _wav(_tone(0.07, 900, 600, 0, 0.22, 2.0, 0.5))
 	sfx.chest = _wav(_seq([523.0, 659.0, 784.0, 1046.0], 0.1, 0, 0.3, 3.0))
 	sfx.checkpoint = _wav(_mix(_tone(0.8, 784, 784, 0, 0.25, 2.5), _tone(0.8, 1175, 1175, 0, 0.18, 3.0), 0.06))
@@ -168,13 +168,17 @@ func _build_sfx() -> void:
 	sfx.ui = _wav(_tone(0.05, 900, 700, 0, 0.25, 2.0))
 	sfx.buy = _wav(_seq([784.0, 1175.0], 0.08, 3, 0.3, 2.5))
 	sfx.levelup = _wav(_seq([523.0, 659.0, 784.0, 1046.0, 1318.0], 0.09, 3, 0.28, 2.0))
-	sfx.combo = _wav(_tone(0.08, 880, 880, 3, 0.2, 2.0))
-	sfx.land = _wav(_tone(0.08, 120, 60, 0, 0.25, 3.0, 0.7))
+	sfx.combo = _wav(_tone(0.07, 880, 880, 0, 0.1, 2.5))
+	sfx.land = _wav(_tone(0.07, 110, 60, 0, 0.14, 3.0, 0.3))
 	sfx.splat = _wav(_tone(0.2, 300, 110, 0, 0.4, 1.5, 0.0, 0.004, 0.25))
 	sfx.burrow = _wav(_tone(0.35, 90, 60, 2, 0.3, 1.0, 0.9))
-	sfx.laser = _wav(_tone(0.12, 1300, 700, 1, 0.14, 2.0))
+	sfx.laser = _wav(_tone(0.12, 1100, 600, 3, 0.14, 2.0))
 	sfx.bounce = _wav(_tone(0.22, 200, 700, 3, 0.35, 1.5))
-	sfx.crumble = _wav(_tone(0.3, 160, 80, 2, 0.25, 1.2, 0.85))
+	sfx.crumble = _wav(_tone(0.3, 160, 80, 3, 0.2, 1.4, 0.5))
+	sfx.power = _wav(_seq([659.0, 880.0, 1175.0, 1568.0], 0.06, 0, 0.3, 2.0))
+	sfx.heal = _wav(_seq([523.0, 784.0, 1046.0], 0.08, 0, 0.28, 2.0))
+	sfx.shield = _wav(_mix(_tone(0.25, 400, 900, 0, 0.25, 1.2), _tone(0.3, 800, 1600, 0, 0.1, 1.5), 0.05))
+	sfx.lance = _wav(_mix(_tone(0.18, 900, 300, 0, 0.3, 2.0), _tone(0.18, 1800, 600, 3, 0.1, 2.5)))
 
 
 # ---------------- music ----------------
@@ -216,8 +220,8 @@ func _gen_music(key: String) -> AudioStreamWAV:
 		var step = int(t / st)
 		var tt = t - step * st
 		var note: float = tones[arp_pat[step % 8]] * (2.0 if (bar >= 4 or bright > 0.5) else 1.0) * (2.0 if boss else 1.0)
-		var tri = 4.0 * absf(fmod(note * tt, 1.0) - 0.5) - 1.0
-		var arp = tri * exp(-tt * (7.0 if not boss else 12.0)) * (0.075 + bright * 0.03)
+		var tri = sin(TAU * note * tt) * 0.8 + sin(TAU * note * 2.0 * tt) * 0.15
+		var arp = tri * exp(-tt * (6.0 if not boss else 10.0)) * (0.07 + bright * 0.025)
 		# bass
 		var bt = fmod(t, beat * 2.0)
 		var bass = sin(TAU * root * 0.5 * t) * exp(-bt * 2.0) * 0.12
@@ -226,12 +230,12 @@ func _gen_music(key: String) -> AudioStreamWAV:
 			bass = saw * exp(-fmod(t, beat * 0.5) * 6.0) * 0.08
 		# percussion
 		var hb = fmod(t + beat * 0.5, beat)
-		var hat = (rng.randf() * 2.0 - 1.0) * exp(-hb * 45.0) * 0.025
+		var hat = sin(TAU * 4200.0 * hb) * exp(-hb * 70.0) * (0.012 if boss else 0.0)
 		var kick = 0.0
 		if boss:
 			var kb = fmod(t, beat)
 			kick = sin(TAU * (60.0 - kb * 40.0) * kb) * exp(-kb * 9.0) * 0.32
-		buf[i] = pad + arp + bass + hat + kick
+		buf[i] = (pad * 1.3 + arp + bass + hat + kick) * 1.25
 	# soft fade at loop seam
 	for i in 400:
 		var k = float(i) / 400.0

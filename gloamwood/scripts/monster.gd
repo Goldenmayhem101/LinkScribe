@@ -171,6 +171,17 @@ func vulnerable() -> bool:
 	return true
 
 
+func contact_dmg() -> int:
+	match kind:
+		"brute": return 14
+		"charger": return 20 if state == "charge" else 12
+		"burrower": return 12
+		"titan": return 20
+		"slime": return 5 if mini else 8
+		"drone": return 8
+	return 10
+
+
 func touch_damage() -> bool:
 	if kind == "burrower":
 		return state == "up" or state == "emerge"
@@ -183,8 +194,9 @@ func _process(dt: float) -> void:
 	if dead:
 		return
 	t += dt
-	st += dt
-	cd -= dt
+	# early stages: slower wind-ups and longer rests between attacks
+	st += dt / (main.tele_k if state == "warn" else 1.0)
+	cd -= dt / main.calm
 	bar_t = maxf(bar_t - dt, 0.0)
 	flash = maxf(flash - dt * 6.0, 0.0)
 	if mat:
@@ -286,7 +298,7 @@ func _brute(dt: float, to_p: Vector2) -> void:
 			_fade_tele(dt)
 			if hop_y >= 0.0 and st > 0.1:
 				hop_y = 0.0
-				main.shockwave(position, main.pal.ember, 1 if elite else 0)
+				main.shockwave(position, main.pal.ember, 1 if elite else 0, 16 if elite else 12)
 				_set_state("rest")
 		"rest":
 			if st > 0.8:
@@ -332,7 +344,7 @@ func _cyclops(dt: float, to_p: Vector2) -> void:
 			dir = signf(to_p.x) if absf(to_p.x) > 2.0 else dir
 			_warn_glow(main.pal.moss.lightened(0.4), 0.8)
 			if st > 0.8:
-				main.fire_beam(world_center() + Vector2(0, -6), (main.player.body_center() - world_center()).normalized())
+				main.fire_beam(world_center() + Vector2(0, -6), (main.player.body_center() - world_center()).normalized(), 12)
 				_set_state("rest")
 		"rest":
 			_fade_tele(dt, 2.0)
@@ -495,7 +507,7 @@ func _titan(dt: float, to_p: Vector2) -> void:
 						_set_state("rest")
 					"beam":
 						for k in [-0.18, 0.0, 0.18]:
-							main.fire_beam(world_center() + Vector2(0, -30), (main.player.body_center() - world_center()).normalized().rotated(k))
+							main.fire_beam(world_center() + Vector2(0, -30), (main.player.body_center() - world_center()).normalized().rotated(k), 16)
 						_set_state("rest")
 		"leap":
 			hop_v += 1700.0 * dt
@@ -504,7 +516,7 @@ func _titan(dt: float, to_p: Vector2) -> void:
 			_fade_tele(dt)
 			if hop_y >= 0.0 and st > 0.15:
 				hop_y = 0.0
-				main.shockwave(position, main.pal.ember, 2)
+				main.shockwave(position, main.pal.ember, 2, 20)
 				main.shake(12.0)
 				for i in 3 + phase_n:
 					main.spawn_shot("clod", world_center() + Vector2(randf_range(-40, 40), -60), Vector2(randf_range(-200, 200), randf_range(-420, -300)))
