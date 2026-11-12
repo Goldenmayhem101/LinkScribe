@@ -69,7 +69,7 @@ drawBoard=function(){
 
 
 /* ---------- painted boards: each board is a picture of its own world ---------- */
-var ART={"neon":{"a":"stars","f":"#37b9ff"},"garden":{"a":"","f":""},"ocean":{"a":"bubbles","f":""},"sunset":{"a":"","f":""},"aurora":{"a":"aurora","f":""},"island":{"a":"","f":""},"candy":{"a":"sprinkles","f":""},"desert":{"a":"","f":""},"canopy":{"a":"leaves","f":""},"frost":{"a":"snow","f":""},"arcade":{"a":"stars","f":"#ff52c5"},"bloom":{"a":"petals","f":""},"orbit":{"a":"stars","f":"#c552ff"},"ember":{"a":"embers","f":"#ffa852"},"pier":{"a":"fireflies","f":"#52c5ff"},"carnival":{"a":"lights","f":"#ffd752"},"candycarn":{"a":"sprinkles","f":""},"lava":{"a":"embers","f":"#ff8a2a"},"meadow":{"a":"","f":""},"treasure":{"a":"","f":""},"pharaoh":{"a":"dust","f":""},"wizard":{"a":"sparkle","f":"#b48cff"},"techno":{"a":"","f":"#19f0c8"},"safari":{"a":"","f":""},"arctic":{"a":"snow","f":""},"reef":{"a":"bubbles","f":""},"forest":{"a":"fireflies","f":""},"sakura":{"a":"petals","f":""},"steampunk":{"a":"gears","f":"#d9a35a"},"cyber":{"a":"neon","f":"#ff2bd6"},"halloween":{"a":"bats","f":"#ff9a2a"},"alien":{"a":"stars","f":"#26e0ff"},"palace":{"a":"sparkle","f":""},"olympus":{"a":"clouds","f":""},"dragon":{"a":"embers","f":"#d9a21e"}};
+var ART={"neon":{"a":"stars","f":"#37b9ff"},"garden":{"a":"","f":""},"ocean":{"a":"bubbles","f":""},"sunset":{"a":"","f":""},"aurora":{"a":"aurora","f":""},"island":{"a":"","f":""},"candy":{"a":"sprinkles","f":""},"desert":{"a":"","f":""},"canopy":{"a":"leaves","f":""},"frost":{"a":"snow","f":""},"arcade":{"a":"stars","f":"#ff52c5"},"bloom":{"a":"petals","f":""},"orbit":{"a":"stars","f":"#c552ff"},"ember":{"a":"embers","f":"#ffa852"},"pier":{"a":"fireflies","f":"#52c5ff"},"carnival":{"a":"lights","f":"#ffd752"},"candycarn":{"a":"sprinkles","f":""},"lava":{"a":"embers","f":"#ff8a2a"},"meadow":{"a":"","f":""},"treasure":{"a":"","f":""},"pharaoh":{"a":"dust","f":""},"wizard":{"a":"sparkle","f":"#b48cff"},"techno":{"a":"","f":"#19f0c8"},"safari":{"a":"","f":""},"arctic":{"a":"snow","f":""},"reef":{"a":"bubbles","f":""},"forest":{"a":"fireflies","f":""},"sakura":{"a":"petals","f":""},"steampunk":{"a":"gears","f":"#d9a35a"},"cyber":{"a":"neon","f":"#ff2bd6"},"halloween":{"a":"bats","f":"#ff9a2a"},"alien":{"a":"stars","f":"#26e0ff"},"palace":{"a":"sparkle","f":""},"olympus":{"a":"clouds","f":""},"dragon":{"a":"embers","f":"#d9a21e"}};window.__ludoraArtMeta=ART;
 function artKey(it){if(it.fx==='carnival')return 'candycarn';if(ART[it.id]&&!it.fx)return it.id;if(it.fx&&ART[it.fx])return it.fx;return ART[it.id]?it.id:null;}
 V3.artKey=artKey;
 var AFX={snow:['❄️',1,10],bubbles:['🫧',-1,9],petals:['🌸',1,9],leaves:['🍃',1,8],embers:['🔸',-1,12],stars:['✨',0,10],fireflies:['✨',0,12],
@@ -263,14 +263,11 @@ previewInto=function(pv,cat,it,big){
 /* Trail: a sparkle trail behind your moving pawns (Settings) */
 var ml=moveLocal;
 moveLocal=async function(seat,i,roll,gid){
-  var pl=S.players.filter(function(p){return p.seat===seat;})[0],on=set.trail&&pl&&mine(pl)&&!pl.bot;
+  var pl=S.players.filter(function(p){return p.seat===seat;})[0],on=window.FEATURE_TRAIL===true&&set.trail&&pl&&mine(pl)&&!pl.bot;
   var iv=null;if(on){var pw=PW[seat][i];iv=setInterval(function(){var r=pw.el.getBoundingClientRect();if(!r.width)return;var t=document.createElement('i');t.className='trailp';t.textContent=['✨','⭐','💫'][Math.floor(Math.random()*3)];t.style.left=(r.left+r.width/2)+'px';t.style.top=(r.top+r.height*.8)+'px';document.body.appendChild(t);setTimeout(function(){t.remove();},700);},70);}
   try{return await ml(seat,i,roll,gid);}finally{if(iv)clearInterval(iv);}
 };
-(function(){var s=$('#ov-settings .sb');if(!s)return;var row=document.createElement('label');row.className='row';row.setAttribute('for','s-trail');
-  row.innerHTML='<span>Pawn trail<small>Sparkles behind your pawns when they move</small></span><input class="sw" type="checkbox" id="s-trail" role="switch">';
-  var a=$('#s-auto');var ref=a?a.closest('.row'):null;if(ref&&ref.parentNode)ref.parentNode.insertBefore(row,ref.nextSibling);else s.appendChild(row);
-  var cb=row.querySelector('input');cb.checked=!!set.trail;cb.addEventListener('change',function(){set.trail=cb.checked;save();});})();
+/* Pawn trail switch: hidden until the owner turns the feature on (set FEATURE_TRAIL=true) */
 /* store: collection counter, rarity filter, owned filter, search */
 var Q={q:'',r:'all',own:'all'};
 var rc=renderColl;

@@ -191,3 +191,55 @@ body{background-attachment:fixed!important}
 .sfil{display:flex;gap:5px;flex-wrap:wrap}
 .sfil button{border:2px solid var(--tan-line);background:var(--tan);border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px;color:var(--cream-ink);cursor:pointer}
 .sfil button[aria-pressed="true"]{background:#27ad3b;border-color:#1c8a2c;color:#fff}
+/* round 3: character pawns */
+.pawn.g3c .bob{background-size:auto 66%!important;background-position:center 92%!important}
+.pvset{display:grid;grid-template-columns:repeat(4,1fr);align-items:end;gap:2px;width:92%;height:78%;margin:auto}
+.pvset img{width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.pv:has(.pvset){display:grid;place-items:center}
+/* kill show */
+.kshow{position:absolute;left:0;top:0;width:0;height:0;z-index:99998;pointer-events:none}
+.kshow b,.kshow i{position:absolute;left:0;top:0;translate:-50% -50%;font-style:normal;line-height:1}
+.kring{width:calc(var(--u)*1.2);height:calc(var(--u)*1.2);border-radius:50%;background:radial-gradient(circle,var(--kc) 0,transparent 70%);animation:kring 1s ease-out forwards}
+.khero{font-size:calc(var(--u)*2.2);filter:drop-shadow(0 6px 8px rgba(0,0,0,.5));animation:khero 1.4s cubic-bezier(.3,1.5,.5,1) forwards}
+.kp{font-size:calc(var(--u)*.7);opacity:0;animation:kp 1s ease-out forwards}
+.kskull{font-size:calc(var(--u)*1.2);opacity:0;animation:kskull 1.3s ease-out .55s forwards}
+.kbone{font-size:calc(var(--u)*.6);opacity:0;animation:kbone 1s ease-in .85s forwards}
+@keyframes kring{0%{transform:scale(.2);opacity:1}100%{transform:scale(4.5);opacity:0}}
+@keyframes khero{0%{transform:translateY(calc(var(--u)*-3)) scale(.3) rotate(-30deg);opacity:0}25%{transform:translateY(calc(var(--u)*-1.2)) scale(1.15) rotate(8deg);opacity:1}45%{transform:translateY(calc(var(--u)*-1.3)) scale(1) rotate(-4deg)}75%{opacity:1}100%{transform:translateY(calc(var(--u)*-2.4)) scale(.7);opacity:0}}
+@keyframes kp{0%{transform:scale(.3);opacity:0}20%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(220deg);opacity:0}}
+@keyframes kskull{0%{transform:scale(0);opacity:0}25%{transform:scale(1.35) rotate(-10deg);opacity:1}40%{transform:scale(1) rotate(8deg)}55%{transform:rotate(-6deg)}75%{opacity:1}100%{transform:translateY(calc(var(--u)*-.8)) scale(.8);opacity:0}}
+@keyframes kbone{0%{transform:translate(0,0) rotate(0);opacity:1}100%{transform:translate(var(--dx),calc(var(--u)*1.8)) rotate(var(--r));opacity:0}}
+/* board motion on the board itself */
+.bfx{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:12px;z-index:1}
+.bfx .bsweep{position:absolute;top:-20%;bottom:-20%;width:30%;left:-40%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.18),transparent);animation:bsweep 6s ease-in-out infinite}
+.bfx i{position:absolute;font-style:normal;opacity:.8;animation-iteration-count:infinite;animation-timing-function:linear}
+@keyframes bsweep{0%,55%{left:-40%}100%{left:120%}}
+@keyframes bfall{from{transform:translateY(-40px) rotate(0)}to{transform:translateY(60px) rotate(200deg);opacity:0}}
+@keyframes brise{from{transform:translateY(30px);opacity:0}30%{opacity:.85}to{transform:translateY(-60px);opacity:0}}
+@keyframes btwinkle{0%,100%{transform:scale(.4);opacity:0}50%{transform:scale(1.2);opacity:.95}}
+@keyframes bspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes bdrift{0%,100%{transform:translateX(-14px);opacity:.5}50%{transform:translateX(14px);opacity:.9}}
+.pawns{z-index:2}
+/* clean home: small icons on top, smaller card */
+.home2 .logo{font-size:34px!important;margin:4px 0 0}
+.home2 .tag{margin:0 0 4px;font-size:13px}
+.home2 .hud{margin-top:2px}
+.home2 .hud .bal{font-size:15px;padding:4px 12px}
+.ticons{display:flex;justify-content:space-between;gap:4px;margin:10px 0 6px}
+.ticw{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0}
+.ticw span{font-size:11px;font-weight:800;color:#dfe3ff}
+.sbtn.tic{width:44px!important;height:44px!important;border-radius:14px!important;border-width:2px!important;font-size:0!important;padding:0;gap:0}
+.sbtn.tic svg{width:22px!important;height:22px!important}
+.sbtn.tic span{font-size:20px!important;line-height:1}
+.sbtn.tic em{top:-7px!important;right:-7px!important;min-width:18px!important;height:18px!important;font-size:10px!important}
+.sbtn.tic.dot::after,.sbtn.tic.dot2::after{top:-4px;right:-4px;width:11px;height:11px}
+.home2 .stagehome{display:block!important;margin:6px auto 0;max-width:250px}
+.home2 .mid{position:relative}
+.home2 .mid .tile{min-height:190px!important}
+.home2 .mid .tile svg{width:64px!important;height:64px!important}
+.home2 .mid .tile b{font-size:20px!important}
+.harr{position:absolute;top:calc(50% - 30px);width:34px;height:34px;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:rgba(20,26,90,.85);color:#fff;font-size:24px;line-height:1;display:grid;place-items:center;cursor:pointer;z-index:2;padding:0 0 3px}
+.harr.prev{left:-42px}.harr.next{right:-42px}
+.sbtn.tic{color:transparent!important;text-shadow:none!important;overflow:visible}
+.sbtn.tic em{color:#fff!important}
+.sbtn.tic>span:not(:first-child){display:none}

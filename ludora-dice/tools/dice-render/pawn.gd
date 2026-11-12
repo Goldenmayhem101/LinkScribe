@@ -62,6 +62,8 @@ func _ready() -> void:
 	var head := MeshInstance3D.new(); var sm := SphereMesh.new()
 	sm.radius = HEAD_R; sm.height = HEAD_R * 2; sm.radial_segments = 48; sm.rings = 24
 	head.mesh = sm; head.position = Vector3(0, HEAD_Y, 0); add_child(head)
+	var body_only := "--body" in OS.get_cmdline_user_args()
+	head.visible = not body_only
 	var cols := {"red": "#d81a22", "green": "#13952f", "yellow": "#f0b400", "blue": "#155fd6"}
 	for k in cols:
 		var m := StandardMaterial3D.new()
@@ -71,6 +73,6 @@ func _ready() -> void:
 		m.metallic_specular = 0.9
 		m.rim_enabled = true; m.rim = 0.12; m.rim_tint = 0.8
 		body.material_override = m; head.material_override = m
-		await shot("res://out/pawn_%s.png" % k)
+		await shot(("res://out/body_%s.png" if body_only else "res://out/pawn_%s.png") % k)
 		print("pawn ", k)
 	get_tree().quit()

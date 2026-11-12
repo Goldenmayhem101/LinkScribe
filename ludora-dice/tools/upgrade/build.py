@@ -40,6 +40,8 @@ rep("function sideMine(seat){return S.mode!=='pass'&&S.players.some(function(p){
 
 rep("if(pl.bot){say(nameOf(pl)+' is getting ready…');", "if(pl.bot){say(pl.you?'Auto play is rolling for you…':nameOf(pl)+' is getting ready…');")
 
+rep("if(SPECIALFX[lookOf(pl).p]){await wait(Math.max(350,800*SPEED));", "if(SPECIALFX[lookOf(pl).p]){await wait(Math.max(700,1500*SPEED));")
+
 # inject CSS + JS
 css = open(os.path.join(D, 'v2.css'), encoding='utf-8').read()
 i = s.index('</style>')
@@ -47,6 +49,8 @@ s = s[:i] + css + s[i:]
 js = open(os.path.join(D, 'v2.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v3.js')):
     js += '\n' + open(os.path.join(D, 'v3.js'), encoding='utf-8').read()
+if os.path.exists(os.path.join(D, 'v4.js')):
+    js += '\n' + open(os.path.join(D, 'v4.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):
     js += '\n' + open(os.path.join(D, 'i18n.js'), encoding='utf-8').read()
 tail = '})();\n</script>'
