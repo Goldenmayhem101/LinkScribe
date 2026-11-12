@@ -12,7 +12,7 @@ save();
 
 /* ---------- board worlds: the scene behind each board ---------- */
 var WORLD={
-  classic:'radial-gradient(rgba(10,25,80,.22) 34%,transparent 36%) 0 0/46px 46px,linear-gradient(#2d55ad,#22448f)'
+  classic:'radial-gradient(ellipse at 50% 38%,#3a68c8 0,#2a52aa 45%,#1d3c86 100%)'
 };
 V3.WORLD=WORLD;
 function worldOf(it){return WORLD[it.fx]||WORLD[it.id]||null;}
