@@ -51,6 +51,8 @@ if os.path.exists(os.path.join(D, 'v3.js')):
     js += '\n' + open(os.path.join(D, 'v3.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v4.js')):
     js += '\n' + open(os.path.join(D, 'v4.js'), encoding='utf-8').read()
+if os.path.exists(os.path.join(D, 'v5.js')):
+    js += '\n' + open(os.path.join(D, 'v5.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):
     js += '\n' + open(os.path.join(D, 'i18n.js'), encoding='utf-8').read()
 tail = '})();\n</script>'
