@@ -117,3 +117,77 @@
 .langlist button[aria-pressed="true"]{background:#27ad3b;border-color:#1c8a2c;color:#fff}
 @media (prefers-reduced-motion:reduce){.die.has3d.ready .d3,.die.has3d.ready::after,.die.has3d.tumble .d3,.hchests button.ready{animation:none}}
 html,body{overflow-x:hidden;max-width:100%}
+/* v1.3 glossy pawns + classic world + tall board card */
+.pawn.g3 .foot,.pawn.g3 .body,.pawn.g3 .head,.pawn.g3 .face{display:none!important}
+.pawn.g3 .bob{background:var(--g3) center 88%/auto 62% no-repeat}
+.pawn.g3 .pin{filter:drop-shadow(0 3px 2px rgba(0,0,30,.35))}
+body.w-light .msg{color:#fff;text-shadow:0 1px 2px rgba(0,0,40,.5)}
+body.w-light .seat .who span{color:#fff;text-shadow:0 2px 0 rgba(0,0,40,.4)}
+.pv.bcard{height:auto!important;padding:28px 14px;display:grid;place-items:center;border-radius:18px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.75)}
+.pv.bcard svg{width:min(250px,100%)!important;height:auto!important;border-radius:10px}
+/* painted board worlds + animated premium boards */
+body{background-attachment:fixed!important}
+.wfx{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.wfx i{position:absolute;top:-8%;font-style:normal;opacity:.85;animation-iteration-count:infinite;animation-timing-function:linear;will-change:transform}
+@keyframes wfall{from{transform:translateY(0) rotate(0)}to{transform:translateY(115vh) rotate(260deg)}}
+@keyframes wrise{from{transform:translateY(112vh)}to{transform:translateY(-10vh)}}
+@keyframes wdrift{0%,100%{transform:translate(0,0);opacity:.15}50%{transform:translate(18px,-22px);opacity:.95}}
+.app{position:relative;z-index:1}
+/* themed dice preview + six show */
+.pv.dcard{position:relative;display:grid;place-items:center;overflow:hidden}
+.pv.dcard .dspin{width:72%;aspect-ratio:1;background-size:1800% 100%;background-repeat:no-repeat;filter:drop-shadow(0 6px 6px rgba(0,0,0,.45))}
+.pv.dcard .dspin.big{width:170px}
+.pv.dcard{min-height:0}
+.pv.big.dcard{height:250px!important;border-radius:18px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.6)}
+.dplay{position:absolute;right:12px;bottom:12px;width:44px;height:44px;border-radius:50%;border:3px solid #fff;background:#2f86ff;color:#fff;font-size:18px;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.sixshow{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:5}
+.sixshow .ssring{position:absolute;width:40%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,var(--sc) 0,transparent 70%);animation:ssring 1.6s ease-out forwards}
+.sixshow .ssch{font-size:120px;line-height:1;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5));animation:ssch 2.1s cubic-bezier(.3,1.6,.5,1) forwards}
+.sixshow.big .ssch{font-size:110px}
+.sixshow .sssix{position:absolute;bottom:18%;font:900 54px/1 'Baloo 2',sans-serif;color:#fff;-webkit-text-stroke:3px var(--sb);text-shadow:0 4px 0 rgba(0,0,0,.35);animation:sssix 2.1s ease-out forwards}
+.sixshow i{position:absolute;font-style:normal;font-size:30px;opacity:0;animation:ssp 1.5s ease-out forwards}
+@keyframes ssring{0%{transform:scale(.2);opacity:1}100%{transform:scale(3.2);opacity:0}}
+@keyframes ssch{0%{transform:scale(0) rotate(-25deg)}25%{transform:scale(1.15) rotate(6deg)}40%{transform:scale(1) rotate(-4deg)}55%{transform:translateY(-8px) rotate(4deg)}70%{transform:translateY(0) rotate(0)}88%{transform:scale(1);opacity:1}100%{transform:scale(.6);opacity:0}}
+@keyframes sssix{0%,20%{transform:scale(0)}35%{transform:scale(1.3)}50%{transform:scale(1)}88%{opacity:1}100%{opacity:0}}
+@keyframes ssp{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(200deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sixshow *{animation-duration:.01s!important}}
+/* frames: moving props for Epic and Legendary frames */
+.fdc{z-index:4}
+.fm-b{animation:fmb 1.8s ease-in-out infinite}
+.fm-t{animation:fmt 1.4s ease-in-out infinite}
+.fm-s{animation:fms 5s linear infinite}
+.fm-f{animation:fmf .7s ease-in-out infinite alternate}
+.fm-w{animation:fmw 2.4s ease-in-out infinite}
+@keyframes fmb{50%{translate:0 -4px}}
+@keyframes fmt{50%{opacity:.35;scale:.75}}
+@keyframes fms{to{rotate:360deg}}
+@keyframes fmf{to{scale:1.18;filter:brightness(1.3)}}
+@keyframes fmw{0%,100%{rotate:-8deg}50%{rotate:8deg}}
+.fglow{position:absolute;inset:-3px;border-radius:inherit;pointer-events:none;z-index:3;box-shadow:0 0 10px 2px rgba(255,230,140,.55);animation:fglow 1.8s ease-in-out infinite}
+@keyframes fglow{50%{box-shadow:0 0 18px 5px rgba(255,230,140,.85)}}
+@media (prefers-reduced-motion:reduce){.fm-b,.fm-t,.fm-s,.fm-f,.fm-w,.fglow{animation:none}}
+/* pawn preview card */
+.pv.pcard{position:relative;height:250px!important;border-radius:18px;overflow:hidden;box-shadow:inset 0 0 0 3px rgba(255,255,255,.6)}
+.pstrip{position:absolute;left:50%;top:14px;bottom:14px;width:58px;translate:-50% 0;display:flex;flex-direction:column-reverse;gap:4px}
+.pstrip i{flex:1;border-radius:8px;background:linear-gradient(#ffffff,#dfe4f0);box-shadow:0 3px 0 rgba(0,0,0,.25)}
+.pmini{position:absolute;left:50%;width:46px;height:70px;translate:-50% 0;transition:bottom .3s cubic-bezier(.3,1.4,.5,1);--u:44px}
+.pmini .pawn{position:absolute;inset:0;width:100%!important;height:100%!important;translate:none!important;scale:1!important}
+.pmini.me{bottom:calc(18px + var(--y,0) * 44px);z-index:3}
+.pmini.rival{bottom:calc(18px + 3 * 44px);z-index:2;transition:transform .9s ease-in,opacity .9s}
+.pmini.rival.gone{transform:translate(160px,-120px) rotate(540deg);opacity:0}
+.pmini.hopa .pawn{animation:phop .3s ease-out}
+@keyframes phop{50%{transform:translateY(-14px)}}
+.pword{position:absolute;left:50%;top:22%;translate:-50% 0;font:900 30px/1 'Baloo 2',sans-serif;color:#fff;-webkit-text-stroke:2px #c4151c;animation:pword 1.3s ease-out forwards;z-index:6}
+@keyframes pword{0%{transform:scale(0) rotate(-12deg)}25%{transform:scale(1.25) rotate(4deg)}45%{transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+.pspark{position:absolute;left:50%;top:40%;font-style:normal;font-size:26px;z-index:5;animation:ssp 1.1s ease-out forwards}
+.trailp{position:fixed;z-index:30;pointer-events:none;font-style:normal;font-size:14px;translate:-50% -50%;animation:trailp .7s ease-out forwards}
+@keyframes trailp{to{opacity:0;transform:translateY(10px) scale(.4)}}
+/* store toolbar */
+.sbar{grid-column:1/-1;display:grid;gap:6px;margin-bottom:4px}
+.scount{position:relative;display:flex;justify-content:space-between;align-items:center;background:#fff6e0;border:2px solid #e7d3a5;border-radius:14px;padding:7px 12px;overflow:hidden;font-size:14px;color:var(--cream-ink)}
+.scount span{font-weight:800;color:#c0561a;position:relative}.scount b{position:relative}
+.scount i{position:absolute;left:0;bottom:0;height:4px;background:linear-gradient(90deg,#5be86a,#1e9e34)}
+.ssearch{width:100%;box-sizing:border-box}
+.sfil{display:flex;gap:5px;flex-wrap:wrap}
+.sfil button{border:2px solid var(--tan-line);background:var(--tan);border-radius:999px;padding:4px 10px;font-weight:800;font-size:12px;color:var(--cream-ink);cursor:pointer}
+.sfil button[aria-pressed="true"]{background:#27ad3b;border-color:#1c8a2c;color:#fff}

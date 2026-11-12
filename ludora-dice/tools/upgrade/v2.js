@@ -149,7 +149,7 @@ setPill=function(text,seat){
 
 /* ---------- yard pawns bigger ---------- */
 V2.targets=targets;
-targets=function(){var t=V2.targets();Object.keys(t).forEach(function(k){var it=t[k];if(it&&it.s!=null&&S.pawns[it.s][it.i]===-1)it.sc=1.28;});return t;};
+targets=function(){var t=V2.targets();Object.keys(t).forEach(function(k){var it=t[k];if(it&&it.s!=null&&S.pawns[it.s][it.i]===-1)it.sc=1.08;});return t;};
 
 /* ---------- bottom bar ---------- */
 var gbar=el('div','gbar',$('#app'));gbar.id='gbar';

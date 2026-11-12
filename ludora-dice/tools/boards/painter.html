@@ -1,0 +1,149 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#222}canvas{display:block}</style></head><body>
+<canvas id="c"></canvas>
+<script>
+/* Ludora board painter: paints each board (1200x1200) and its world (720x1280) from a spec.
+   Same 15x15 layout as the game: red yard top-left, green top-right, yellow bottom-right, blue bottom-left. */
+const SEAT=['#e8262f','#1fa83f','#f4b80f','#1f6fe0'];
+const BASEO=[[0,0],[9,0],[9,9],[0,9]];
+const SLOTS=[[1.9,1.9],[4.1,1.9],[1.9,4.1],[4.1,4.1]];
+const TRACK=[];function seg(c,r,dc,dr,n){for(let k=0;k<n;k++)TRACK.push([c+dc*k,r+dr*k]);}
+seg(1,6,1,0,5);seg(6,5,0,-1,6);seg(7,0,1,0,2);seg(8,1,0,1,5);seg(9,6,1,0,6);seg(14,7,0,1,2);
+seg(13,8,-1,0,5);seg(8,9,0,1,6);seg(7,14,-1,0,2);seg(6,13,0,-1,5);seg(5,8,-1,0,6);seg(0,7,0,-1,2);
+const HOMECOL=[[[1,7],[2,7],[3,7],[4,7],[5,7]],[[7,1],[7,2],[7,3],[7,4],[7,5]],[[13,7],[12,7],[11,7],[10,7],[9,7]],[[7,13],[7,12],[7,11],[7,10],[7,9]]];
+const START=[0,13,26,39],SAFE=[0,13,26,39,8,21,34,47];
+let seed=1;function rnd(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+function rr(a,b){return a+rnd()*(b-a);}
+/* value noise */
+const P=new Uint8Array(512);(function(){const p=[...Array(256).keys()];for(let i=255;i>0;i--){const j=Math.floor(Math.random()*i);[p[i],p[j]]=[p[j],p[i]];}for(let i=0;i<512;i++)P[i]=p[i&255];})();
+function hsh(x,y){return P[(P[x&255]+y)&511]/255;}
+function vn(x,y){const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,u=xf*xf*(3-2*xf),v=yf*yf*(3-2*yf);
+ const a=hsh(xi,yi),b=hsh(xi+1,yi),c=hsh(xi,yi+1),d=hsh(xi+1,yi+1);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;}
+function fbm(x,y,o=4){let s=0,a=.5,f=1;for(let i=0;i<o;i++){s+=a*vn(x*f,y*f);a*=.5;f*=2;}return s;}
+function hex(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function mix(a,b,t){return a.map((v,i)=>v+(b[i]-v)*t);}
+/* texture fill: paints a noise texture between two colors into a rect (or the whole canvas) */
+function tex(ctx,x,y,w,h,c1,c2,scale,kind){
+  const img=ctx.getImageData(x,y,w,h),d=img.data,A=hex(c1),B=hex(c2);
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++){
+    const X=(x+i)/scale,Y=(y+j)/scale;let t;
+    if(kind==='grass'){t=fbm(X*1.6,Y*1.6)*.75+vn(X*9,Y*9)*.25;}
+    else if(kind==='sand'){t=fbm(X,Y)*.6+(hsh(x+i,y+j)*.4);}
+    else if(kind==='water'){t=(Math.sin((Y+fbm(X,Y)*2.2)*3.2)*.5+.5)*.6+fbm(X*2,Y*2)*.4;}
+    else if(kind==='wood'){t=Math.sin((X*.6+fbm(X*.5,Y*3)*3)*6)*.5+.5;t=t*.7+hsh(x+i,y+j)*.08+.1;}
+    else if(kind==='marble'){t=Math.abs(Math.sin((X+Y)*1.2+fbm(X,Y,5)*5));t=Math.pow(t,.35);}
+    else if(kind==='lava'){const n=fbm(X*1.3,Y*1.3,5);t=1-Math.min(1,Math.abs(n-.5)*7);}
+    else if(kind==='stars'){t=fbm(X*.6,Y*.6)*.6;if(hsh(x+i,y+j)>.996)t=1.6;}
+    else if(kind==='snow'){t=fbm(X*1.2,Y*1.2)*.7+hsh(x+i,y+j)*.06;}
+    else if(kind==='metal'){t=fbm(X*.3,Y*4)*.6+.2;}
+    else t=fbm(X,Y);
+    const c=t>1?[255,255,240]:mix(A,B,Math.max(0,Math.min(1,t)));const k=(j*w+i)*4;d[k]=c[0];d[k+1]=c[1];d[k+2]=c[2];d[k+3]=255;
+  }
+  ctx.putImageData(img,x,y);
+}
+function texC(ctx,x,y,w,h,c1,c2,scale,kind){const o=document.createElement('canvas');o.width=w;o.height=h;const oc=o.getContext('2d');
+  const tmp=oc.getImageData(0,0,w,h);oc.putImageData(tmp,0,0);
+  // render with world coordinates so patterns line up, then draw (drawImage respects clipping)
+  const big=document.createElement('canvas');big.width=x+w;big.height=y+h;tex(big.getContext('2d'),x,y,w,h,c1,c2,scale,kind);ctx.drawImage(big,x,y,w,h,x,y,w,h);}
+function rrect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function star(ctx,cx,cy,R,r){ctx.beginPath();for(let k=0;k<10;k++){const a=-Math.PI/2+k*Math.PI/5,q=k%2?r:R;ctx.lineTo(cx+Math.cos(a)*q,cy+Math.sin(a)*q);}ctx.closePath();}
+function emoji(ctx,ch,x,y,size,rot=0,alpha=1){ctx.save();ctx.globalAlpha=alpha;ctx.fillStyle='#000';ctx.translate(x,y);ctx.rotate(rot);ctx.font=size+'px "Noto Color Emoji"';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=size*.12;ctx.shadowOffsetY=size*.06;ctx.fillText(ch,0,0);ctx.restore();}
+function shade(c,f){const a=hex(c);return 'rgb('+a.map(v=>Math.round(f<0?v*(1+f):v+(255-v)*f)).join(',')+')';}
+
+/* ---------- board ---------- */
+function paintBoard(spec,N){
+  const cv=document.getElementById('c');cv.width=cv.height=N;const ctx=cv.getContext('2d'),C=N/15;
+  seed=spec.seed||7;
+  // base
+  tex(ctx,0,0,N,N,spec.base[0],spec.base[1],spec.bs||C*1.4,spec.bk);
+  // soft vignette
+  const vg=ctx.createRadialGradient(N/2,N/2,N*.3,N/2,N/2,N*.75);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,'+(spec.vig??.25)+')');ctx.fillStyle=vg;ctx.fillRect(0,0,N,N);
+  // path area plate (under tiles) for contrast
+  ctx.fillStyle=spec.plate||'rgba(0,0,0,.18)';
+  ctx.fillRect(6*C-C*.12,0,3*C+C*.24,N);ctx.fillRect(0,6*C-C*.12,N,3*C+C*.24);
+  // yards
+  for(let s=0;s<4;s++){
+    const [ox,oy]=BASEO[s],X=ox*C,Y=oy*C,col=SEAT[s];
+    const pad=.42*C,px=X+pad,py=Y+pad,pw=6*C-2*pad;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=C*.4;ctx.shadowOffsetY=C*.14;
+    rrect(ctx,px,py,pw,pw,C*.55);ctx.fillStyle=col;ctx.fill();ctx.restore();
+    // yard ground: the world's material
+    ctx.save();rrect(ctx,px+C*.3,py+C*.3,pw-C*.6,pw-C*.6,C*.38);ctx.clip();
+    texC(ctx,Math.round(px),Math.round(py),Math.round(pw),Math.round(pw),spec.yard[0],spec.yard[1],spec.ys||C*1.1,spec.yk||spec.bk);
+    ctx.fillStyle=col;ctx.globalAlpha=spec.ytint??.42;ctx.fillRect(px,py,pw,pw);ctx.globalAlpha=1;
+    const ig=ctx.createRadialGradient(px+pw/2,py+pw/2,pw*.2,px+pw/2,py+pw/2,pw*.75);ig.addColorStop(0,'rgba(255,255,255,0)');ig.addColorStop(1,'rgba(0,0,0,.28)');ctx.fillStyle=ig;ctx.fillRect(px,py,pw,pw);
+    // pawn area: a softer plate so the material still shows through
+    const qx=X+1.05*C,qy=Y+1.05*C,qw=3.9*C;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=C*.25;ctx.shadowOffsetY=C*.06;
+    rrect(ctx,qx,qy,qw,qw,C*.5);ctx.fillStyle=spec.pad||'rgba(255,255,255,.42)';ctx.fill();ctx.restore();rrect(ctx,qx,qy,qw,qw,C*.5);ctx.fillStyle=col;ctx.globalAlpha=.3;ctx.fill();ctx.globalAlpha=1;
+    rrect(ctx,qx,qy,qw,qw,C*.5);ctx.lineWidth=C*.09;ctx.strokeStyle=shade(col,.25);ctx.stroke();
+    SLOTS.forEach(([sx,sy])=>{const cx=X+sx*C,cy=Y+sy*C;
+      const g=ctx.createRadialGradient(cx,cy,C*.1,cx,cy,C*.6);g.addColorStop(0,'rgba(0,0,0,.28)');g.addColorStop(1,'rgba(0,0,0,.08)');
+      ctx.beginPath();ctx.arc(cx,cy,C*.58,0,7);ctx.fillStyle=g;ctx.fill();ctx.lineWidth=C*.07;ctx.strokeStyle=shade(col,.45);ctx.stroke();});
+    ctx.restore();
+    // rim shine
+    ctx.save();rrect(ctx,px,py,pw,pw,C*.55);ctx.lineWidth=C*.1;ctx.strokeStyle='rgba(255,255,255,.55)';ctx.stroke();ctx.restore();
+  }
+  // tiles
+  const tileFill=spec.tile||'#fdfbf4',edge=spec.tileEdge||'rgba(0,0,0,.18)';
+  function tile(cx,cy,fill,shine=.35){const x=cx*C+C*.05,y=cy*C+C*.05,w=C*.9;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=C*.12;ctx.shadowOffsetY=C*.07;rrect(ctx,x,y,w,w,C*.14);ctx.fillStyle=fill;ctx.fill();ctx.restore();
+    const g=ctx.createLinearGradient(0,y,0,y+w);g.addColorStop(0,'rgba(255,255,255,'+shine+')');g.addColorStop(.5,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(0,0,0,.12)');
+    rrect(ctx,x,y,w,w,C*.14);ctx.fillStyle=g;ctx.fill();ctx.lineWidth=C*.035;ctx.strokeStyle=edge;ctx.stroke();}
+  TRACK.forEach(([x,y])=>tile(x,y,tileFill));
+  if(spec.tt){const big=document.createElement('canvas');big.width=big.height=N;tex(big.getContext('2d'),0,0,N,N,spec.tt[0],spec.tt[1],spec.ts||C*.8,spec.tk||'sand');
+    ctx.save();ctx.beginPath();TRACK.forEach(([x,y])=>{const X=x*C+C*.05,Y=y*C+C*.05,w=C*.9,r=C*.14;ctx.moveTo(X+r,Y);ctx.arcTo(X+w,Y,X+w,Y+w,r);ctx.arcTo(X+w,Y+w,X,Y+w,r);ctx.arcTo(X,Y+w,X,Y,r);ctx.arcTo(X,Y,X+w,Y,r);ctx.closePath();});
+    ctx.clip();ctx.globalAlpha=.85;ctx.drawImage(big,0,0);ctx.globalAlpha=1;
+    TRACK.forEach(([x,y])=>{const Y=y*C+C*.05,w=C*.9,g=ctx.createLinearGradient(0,Y,0,Y+w);g.addColorStop(0,'rgba(255,255,255,.3)');g.addColorStop(.5,'rgba(255,255,255,0)');g.addColorStop(1,'rgba(0,0,0,.14)');ctx.fillStyle=g;ctx.fillRect(x*C+C*.05,Y,w,w);});
+    ctx.restore();}
+  HOMECOL.forEach((h,s)=>h.forEach(([x,y])=>tile(x,y,SEAT[s],.45)));
+  SAFE.forEach(idx=>{const [x,y]=TRACK[idx],st=START.indexOf(idx);
+    if(st>=0){tile(x,y,SEAT[st],.45);star(ctx,x*C+C/2,y*C+C/2,C*.34,C*.15);ctx.fillStyle='#fff';ctx.fill();}
+    else{tile(x,y,spec.safe||'#d9dde6');star(ctx,x*C+C/2,y*C+C/2,C*.34,C*.15);ctx.fillStyle=spec.safeStar||'#ffffff';ctx.fill();ctx.lineWidth=C*.03;ctx.strokeStyle='rgba(0,0,0,.2)';ctx.stroke();}});
+  // entry arrows
+  [[0,7,1,0],[7,0,0,1],[14,7,-1,0],[7,14,0,-1]].forEach(([ex,ey,dx,dy],s)=>{const cx=ex*C+C/2,cy=ey*C+C/2;
+    ctx.beginPath();[[-.14,-.24],[.12,0],[-.14,.24]].forEach(([a,b],k)=>{const X=cx+(dx*a-dy*b)*C,Y=cy+(dy*a+dx*b)*C;k?ctx.lineTo(X,Y):ctx.moveTo(X,Y);});
+    ctx.lineWidth=C*.14;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=SEAT[s];ctx.stroke();});
+  // center
+  const tri=[[[6,6],[6,9]],[[6,6],[9,6]],[[9,6],[9,9]],[[6,9],[9,9]]];
+  ctx.save();ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=C*.3;
+  tri.forEach((t,s)=>{ctx.beginPath();ctx.moveTo(t[0][0]*C,t[0][1]*C);ctx.lineTo(t[1][0]*C,t[1][1]*C);ctx.lineTo(7.5*C,7.5*C);ctx.closePath();
+    const g=ctx.createLinearGradient(t[0][0]*C,t[0][1]*C,7.5*C,7.5*C);g.addColorStop(0,shade(SEAT[s],.15));g.addColorStop(1,shade(SEAT[s],-.15));ctx.fillStyle=g;ctx.fill();});
+  ctx.restore();
+  if(spec.center){emoji(ctx,spec.center,7.5*C,7.5*C,C*1.25);}
+  else{ctx.beginPath();ctx.arc(7.5*C,7.5*C,C*.55,0,7);ctx.fillStyle='#fff';ctx.fill();star(ctx,7.5*C,7.5*C,C*.42,C*.18);ctx.fillStyle='#ffc93a';ctx.fill();}
+  // props: on yard corners and margins, never over path or pads
+  const spots=[];
+  for(let s=0;s<4;s++){const [ox,oy]=BASEO[s];
+    [[.62,.62],[5.38,.62],[.62,5.38],[5.38,5.38],[3,.55],[.55,3],[5.45,3],[3,5.45]].forEach(([a,b])=>spots.push([ox+a,oy+b]));}
+  (spec.props||[]).length&&spots.forEach(([x,y],k)=>{if(rnd()<(spec.pd??.55)){const ch=spec.props[Math.floor(rnd()*spec.props.length)];emoji(ctx,ch,x*C,y*C,C*rr(.7,1.0),rr(-.25,.25));}});
+  // frame
+  ctx.lineWidth=C*.22;ctx.strokeStyle=spec.frame||'rgba(255,255,255,.65)';rrect(ctx,C*.11,C*.11,N-C*.22,N-C*.22,C*.35);ctx.stroke();
+  return cv.toDataURL('image/webp',.86);
+}
+/* ---------- world (screen background) ---------- */
+function paintWorld(spec,W,H){
+  const cv=document.getElementById('c');cv.width=W;cv.height=H;const ctx=cv.getContext('2d');seed=(spec.seed||7)+99;
+  const w=spec.world;
+  // sky / ground gradient
+  const g=ctx.createLinearGradient(0,0,0,H);w.sky.forEach((c,i)=>g.addColorStop(i/(w.sky.length-1),c));ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // texture band under the board area
+  if(w.tex){const t=w.tex;ctx.save();ctx.globalAlpha=t.a??1;
+    const off=document.createElement('canvas');off.width=W;off.height=H;const o=off.getContext('2d');
+    tex(o,0,0,W,H,t.c[0],t.c[1],t.s||60,t.k);
+    const m=ctx.createLinearGradient(0,0,0,H);ctx.drawImage(off,0,0);ctx.restore();
+    if(t.fade){const f=ctx.createLinearGradient(0,0,0,H);t.fade.forEach(([p,c])=>f.addColorStop(p,c));ctx.fillStyle=f;ctx.fillRect(0,0,W,H);} }
+  // bands (shore, horizon)
+  (w.bands||[]).forEach(b=>{ctx.fillStyle=b.c;ctx.beginPath();ctx.moveTo(0,b.y*H);for(let x=0;x<=W;x+=8)ctx.lineTo(x,b.y*H+Math.sin(x/(b.wl||60)+b.ph||0)*(b.amp||10));ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.globalAlpha=b.a??1;ctx.fill();ctx.globalAlpha=1;});
+  // dots pattern
+  if(w.dots){ctx.fillStyle=w.dots;for(let y=20;y<H;y+=46)for(let x=(y/46%2)*23;x<W;x+=46){ctx.beginPath();ctx.arc(x,y,8,0,7);ctx.fill();}}
+  // stars
+  if(w.stars){for(let i=0;i<w.stars;i++){ctx.fillStyle='rgba(255,255,255,'+rr(.3,1)+')';ctx.beginPath();ctx.arc(rr(0,W),rr(0,H*.9),rr(.6,2.2),0,7);ctx.fill();}}
+  // big props at top and bottom (the board covers the middle)
+  (w.props||[]).forEach(p=>emoji(ctx,p[0],p[1]*W,p[2]*H,p[3]||70,p[4]||0,p[5]??1));
+  // scatter
+  if(w.scatter){for(let i=0;i<w.scatter.n;i++){const y=rnd()<.5?rr(0,.26):rr(.74,1);emoji(ctx,w.scatter.e[Math.floor(rnd()*w.scatter.e.length)],rr(0,W),y*H,rr(w.scatter.min||26,w.scatter.max||48),rr(-.4,.4),w.scatter.a??.95);}}
+  return cv.toDataURL('image/webp',.82);
+}
+window.paintBoard=paintBoard;window.paintWorld=paintWorld;
+</script></body></html>

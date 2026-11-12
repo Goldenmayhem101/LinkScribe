@@ -45,6 +45,8 @@ css = open(os.path.join(D, 'v2.css'), encoding='utf-8').read()
 i = s.index('</style>')
 s = s[:i] + css + s[i:]
 js = open(os.path.join(D, 'v2.js'), encoding='utf-8').read()
+if os.path.exists(os.path.join(D, 'v3.js')):
+    js += '\n' + open(os.path.join(D, 'v3.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):
     js += '\n' + open(os.path.join(D, 'i18n.js'), encoding='utf-8').read()
 tail = '})();\n</script>'

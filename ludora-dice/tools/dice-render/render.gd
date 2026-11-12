@@ -84,6 +84,16 @@ func skins() -> Array:
 		{id="plasma", tex="plasma", pip="#c8feff", rough=.25, em="#ff4fd8", emt=0.35, pipem=1.6},
 		{id="mirror", b=["#ffffff", "#f0f2f6", "#dde1e8"], pip="#2a2f38", rough=.14, metal=.75},
 		{id="prism", prism=true, pip="#ffffff", rough=.2, pipem=.3},
+		{id="t_pirate", b=["#f2c14e", "#f2c14e", "#f2c14e"], pip="#000000", rough=.3, faces=true},
+		{id="t_astro", b=["#9ad8ff", "#9ad8ff", "#9ad8ff"], pip="#000000", rough=.3, faces=true},
+		{id="t_bear", b=["#fff0f7", "#fff0f7", "#fff0f7"], pip="#000000", rough=.3, faces=true},
+		{id="t_dragon", b=["#ffd24a", "#ffd24a", "#ffd24a"], pip="#000000", rough=.3, faces=true},
+		{id="t_robot", b=["#e0fff9", "#e0fff9", "#e0fff9"], pip="#000000", rough=.3, faces=true},
+		{id="t_mermaid", b=["#ffe0f0", "#ffe0f0", "#ffe0f0"], pip="#000000", rough=.3, faces=true},
+		{id="t_tiger", b=["#2a1404", "#2a1404", "#2a1404"], pip="#000000", rough=.3, faces=true},
+		{id="t_owl", b=["#ffe08a", "#ffe08a", "#ffe08a"], pip="#000000", rough=.3, faces=true},
+		{id="t_unicorn", b=["#ff9bd9", "#ff9bd9", "#ff9bd9"], pip="#000000", rough=.3, faces=true},
+		{id="t_ghost", b=["#ff9a2a", "#ff9a2a", "#ff9a2a"], pip="#000000", rough=.3, faces=true},
 	]
 
 # ---------- mesh ----------
@@ -191,6 +201,22 @@ func build_die(sk: Dictionary) -> void:
 	body = MeshInstance3D.new(); body.mesh = build_body(sk)
 	body.material_override = mat_for(sk, false)
 	die.add_child(body)
+	if sk.has("faces"):
+		for fi in 6:
+			var f2 = FACES[fi]
+			var n2: Vector3 = f2[0]
+			var q := MeshInstance3D.new(); var qm := QuadMesh.new(); qm.size = Vector2(1.58, 1.58); q.mesh = qm
+			var fm := StandardMaterial3D.new()
+			var img := Image.load_from_file(ProjectSettings.globalize_path("res://faces/%s_%d.png" % [sk.id, FVAL[fi]]))
+			img.generate_mipmaps()
+			fm.albedo_texture = ImageTexture.create_from_image(img); fm.roughness = 0.35
+			q.material_override = fm
+			var xa: Vector3 = Vector3.RIGHT if absf(n2.y) > .9 else Vector3.UP.cross(n2).normalized()
+			var ya: Vector3 = n2.cross(xa).normalized()
+			q.basis = Basis(xa, ya, n2)
+			q.position = n2 * 1.002
+			die.add_child(q)
+		return
 	var pm := mat_for(sk, true)
 	var sph := SphereMesh.new(); sph.radius = 0.2; sph.height = 0.4
 	sph.radial_segments = 24; sph.rings = 12
@@ -211,7 +237,15 @@ func face_up(v: int) -> Basis:
 	if n == Vector3.DOWN: q = Quaternion(Vector3.RIGHT, PI)
 	elif n == Vector3.UP: q = Quaternion.IDENTITY
 	else: q = Quaternion(n, Vector3.UP)
-	return Basis(Quaternion(Vector3.UP, deg_to_rad(28.0)) * q)
+	var xa: Vector3 = Vector3.RIGHT if absf(n.y) > .9 else Vector3.UP.cross(n).normalized()
+	var ya: Vector3 = n.cross(xa).normalized()
+	var yw: Vector3 = Basis(q) * ya
+	var fix := 0.0; var best := 9.0
+	for k in 4:
+		var a := k * PI / 2.0
+		var z := (Basis(Vector3.UP, a) * yw).z
+		if z < best: best = z; fix = a
+	return Basis(Quaternion(Vector3.UP, deg_to_rad(28.0) + fix) * q)
 
 func shot(path: String) -> void:
 	await RenderingServer.frame_post_draw
