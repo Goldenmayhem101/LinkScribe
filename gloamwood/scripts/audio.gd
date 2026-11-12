@@ -226,7 +226,8 @@ func _build_sfx() -> void:
 	sfx.wisp = _wav(_tone(0.2, 700, 1200, 0, 0.18, 1.5, 0.0, 0.01, 0.15))
 	sfx.boom = _wav(_mix(_tone(0.6, 90, 35, 0, 0.7, 1.5), _tone(0.5, 120, 50, 2, 0.25, 2.0, 0.9)))
 	sfx.slash = _wav(_tone(0.16, 900, 250, 0, 0.32, 2.0, 0.8, 0.01))
-	sfx.thunder = _wav(_mix(_tone(1.4, 70, 30, 0, 0.5, 1.2, 0.9, 0.02), _tone(1.2, 50, 25, 2, 0.2, 1.5, 0.95, 0.08)))
+	sfx.thunder = _wav(_thunder())
+	sfx.death = _wav(_mix(_tone(0.7, 520, 90, 3, 0.4, 1.6, 0.0, 0.004, 0.02), _tone(0.9, 260, 60, 0, 0.35, 1.4), 0.12))
 	sfx.crumble = _wav(_tone(0.3, 160, 80, 3, 0.2, 1.4, 0.5))
 	sfx.power = _wav(_seq([659.0, 880.0, 1175.0, 1568.0], 0.06, 0, 0.3, 2.0))
 	sfx.heal = _wav(_seq([523.0, 784.0, 1046.0], 0.08, 0, 0.28, 2.0))
@@ -308,3 +309,23 @@ func _gen_music(key: String) -> AudioStreamWAV:
 		buf[i] *= k
 		buf[n - 1 - i] *= k
 	return _wav(buf, true)
+
+
+func _thunder() -> PackedFloat32Array:
+	# sharp crack, then a long low rumble that rolls in waves
+	var dur = 3.4
+	var n = int(dur * RATE)
+	var buf = PackedFloat32Array()
+	buf.resize(n)
+	var lp1 = 0.0
+	var lp2 = 0.0
+	for i in n:
+		var t = float(i) / RATE
+		var w = randf() * 2.0 - 1.0
+		lp1 = lerpf(lp1, w, 0.5)
+		lp2 = lerpf(lp2, w, 0.02)
+		var crack = lp1 * exp(-t * 9.0) * (1.0 if t > 0.004 else t / 0.004)
+		var roll = 0.6 + 0.4 * sin(t * 5.3) * sin(t * 2.1 + 1.0)
+		var rumble = lp2 * 9.0 * minf(1.0, t / 0.08) * exp(-t * 0.9) * roll
+		buf[i] = clampf(crack * 0.55 + rumble * 0.75, -1.0, 1.0)
+	return buf

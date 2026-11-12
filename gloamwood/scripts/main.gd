@@ -5,7 +5,7 @@ extends Node2D
 ## Command-line (after --): --autoplay (bot demo, nothing saved), --botplay[=continue] (bot plays a real, saved run),
 ##   --stage=N, --menu=<screen>, --hero=<id>
 
-const VW := 400.0
+const VW := 400.0  # world units across in portrait
 const ZOOM := 720.0 / 400.0
 const UI_FONT := preload("res://assets/fonts/DejaVuSans-Bold.ttf")
 const COMBO_WINDOW := 2.6
@@ -45,6 +45,8 @@ var t := 0.0
 var shake_amt := 0.0
 var hurt_pulse := 0.0
 var transitioning := false
+var zoom := ZOOM
+var canvas_roots: Array = []
 var args := {}
 
 # per-stage tracking (also saved for resume)
@@ -198,7 +200,35 @@ func _make_leaf() -> Texture2D:
 
 
 func view_h() -> float:
-	return get_viewport_rect().size.y / ZOOM
+	return get_viewport_rect().size.y / zoom
+
+
+func view_w() -> float:
+	return get_viewport_rect().size.x / zoom
+
+
+## portrait: 400 world units across (as before); landscape: about 450 units tall, wider view
+func _fit_zoom() -> void:
+	var vp = get_viewport_rect().size
+	zoom = minf(vp.x / VW, vp.y / 450.0)
+	for r in canvas_roots:
+		r.scale = Vector2(zoom, zoom)
+
+
+var _last_win := Vector2i.ZERO
+func _fit_orientation() -> void:
+	var w = get_window()
+	var ws = w.size
+	if ws == _last_win:
+		return
+	_last_win = ws
+	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
+	w.content_scale_size = Vector2i(1280, 720) if ws.x > ws.y else Vector2i(720, 1280)
+	await get_tree().process_frame
+	_fit_zoom()
+	for e in par:
+		if e.has("fill"):
+			e.fill.size = Vector2(view_w() + 8.0, 900.0)
 
 
 func tscale(name: String) -> float:
@@ -221,8 +251,9 @@ func _canvas(layer_no: int) -> Node2D:
 	cl.layer = layer_no
 	add_child(cl)
 	var root = Node2D.new()
-	root.scale = Vector2(ZOOM, ZOOM)
+	root.scale = Vector2(zoom, zoom)
 	cl.add_child(root)
+	canvas_roots.append(root)
 	return root
 
 
@@ -244,7 +275,7 @@ func _build_layers() -> void:
 		tw.texture = glow
 		tw.material = add_mat
 		tw.scale = Vector2.ONE * randf_range(0.06, 0.11)
-		tw.position = Vector2(randf() * VW, pow(randf(), 1.6) * 360.0)
+		tw.position = Vector2(randf() * 1200.0, pow(randf(), 1.6) * 360.0)
 		sky_root.add_child(tw)
 		twinkles.append(tw)
 	moon = Sprite2D.new(); sky_root.add_child(moon)
@@ -341,7 +372,7 @@ func _build_world() -> void:
 	fx_add.draw.connect(_draw_fx.bind(true))
 	world.add_child(fx_add)
 	cam = Camera2D.new()
-	cam.zoom = Vector2(ZOOM, ZOOM)
+	cam.zoom = Vector2(zoom, zoom)
 	world.add_child(cam)
 	cam.make_current()
 	fireflies = _ambient(34, 7.0, Vector2(230, 380), 14.0, Vector2.ZERO, 0.05, 0.11, true, glow)
@@ -689,7 +720,7 @@ func _build_level(resume: Dictionary) -> void:
 			grass.texture = tx["grass"]
 			grass.region_rect = Rect2(r.position.x * grs, 1.0, r.size.x * grs, 40.0 * grs - 2.0)
 			grass.scale = Vector2.ONE / grs
-			grass.position = Vector2(r.position.x, r.position.y - 38.0)
+			grass.position = Vector2(r.position.x, r.position.y - 30.0)
 			grass.material = grass_mat
 			grass.z_index = 2
 		else:
@@ -1000,6 +1031,7 @@ func _process(dt: float) -> void:
 
 
 func _update_camera(dt: float) -> void:
+	_fit_orientation()
 	var target = player.position + Vector2(player.facing * 55.0, -120.0)
 	if boss_node and boss_awake:
 		target.x = lerpf(target.x, (player.position.x + boss_node.position.x) * 0.5, 0.5)
@@ -1008,14 +1040,14 @@ func _update_camera(dt: float) -> void:
 	cam.position.y = lerpf(cam.position.y, target.y, 1.0 - exp(-3.2 * dt))
 	shake_amt = maxf(shake_amt - dt * 30.0, 0.0)
 	punch = maxf(punch - dt * 6.0, 0.0)
-	cam.zoom = Vector2.ONE * ZOOM * (1.0 + 0.035 * punch)
+	cam.zoom = Vector2.ONE * zoom * (1.0 + 0.035 * punch)
 	cam.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_amt
 	fireflies.position = cam.position
 	weather.position = cam.position + Vector2(40, -view_h() * 0.5 - 20.0)
 	if weather_kind == "storm" or weather_kind == "rain":
 		lightning_t -= dt
 		if lightning_t <= 0.0 and weather_kind == "storm":
-			lightning_t = randf_range(6.0, 12.0)
+			lightning_t = randf_range(28.0, 50.0)
 			var tw = create_tween()
 			flash_rect.color = Color(0.8, 0.85, 1.0, 0.0)
 			tw.tween_property(flash_rect, "color:a", 0.45, 0.05)
@@ -1032,9 +1064,10 @@ func _update_parallax() -> void:
 	var vh = view_h()
 	var cx = cam.position.x
 	var cy = cam.position.y
-	sky.scale = Vector2(VW / float(sky.texture.get_width()), vh / float(sky.texture.get_height()))
+	var vw = view_w()
+	sky.scale = Vector2(vw / float(sky.texture.get_width()), vh / float(sky.texture.get_height()))
 	stars.position.y = clampf(-cy * 0.02, -40.0, 60.0) - 20.0
-	moon.position = Vector2(290, 150 + clampf(-cy * 0.03, -20.0, 40.0))
+	moon.position = Vector2(vw * 0.72, 150 + clampf(-cy * 0.03, -20.0, 40.0))
 	var rs = tscale("ray")
 	for i in rays.size():
 		var r = rays[i]
@@ -1049,7 +1082,7 @@ func _update_parallax() -> void:
 		var s: Sprite2D = p.sprite
 		var ts = tscale(p.name)
 		var h: float = metas[biome].sizes[p.name][1]
-		s.region_rect = Rect2((cx * p.fx + t * p.auto) * ts, 1.0, (VW + 4.0) * ts, h * ts - 2.0)
+		s.region_rect = Rect2((cx * p.fx + t * p.auto) * ts, 1.0, (vw + 4.0) * ts, h * ts - 2.0)
 		s.position.x = -2.0
 		if p.has("fg") and p.fy == 0.0:
 			s.position.y = vh - h
@@ -1069,7 +1102,7 @@ func _update_parallax() -> void:
 			var ls = lantern_sprites[idx]
 			idx += 1
 			var x: float = l[0] - off + k * tile
-			ls.visible = x > -60.0 and x < VW + 60.0
+			ls.visible = x > -60.0 and x < view_w() + 60.0
 			ls.position = Vector2(x, near.sprite.position.y + l[1])
 			ls.scale = Vector2.ONE * 0.72
 			ls.modulate.a = 0.85 * (0.85 + 0.15 * sin(t * 13.0 + l[0]) * sin(t * 7.3 + l[1]))
@@ -1372,7 +1405,6 @@ func _hurt(from_x: float, dmg: float = 10.0, fell: bool = false) -> void:
 	hud.hurt_flash = 1.0
 	hurt_pulse = clampf(dmg / 20.0, 0.4, 1.0)
 	shake(6.0 + dmg * 0.2)
-	hitstop(0.07)
 	buzz(60)
 	Sfx.play("hurt")
 	float_text(player.body_center() + Vector2(0, -34), "-%d" % int(round(dmg)), Color(1, 0.55, 0.55))
@@ -1380,10 +1412,7 @@ func _hurt(from_x: float, dmg: float = 10.0, fell: bool = false) -> void:
 	if hp <= 0.0:
 		if playing and not autoplay:
 			Profile.data.stats.deaths = int(Profile.data.stats.deaths) + 1
-			hp = max_hp
-			save_snapshot()
-			get_tree().paused = true
-			menu.show_screen("over", {"stage": stage, "kills": st_kills, "coins": st_coins})
+			_death_scene(fell)
 			return
 		hp = max_hp
 		hud.hp = hp
@@ -1394,13 +1423,43 @@ func _hurt(from_x: float, dmg: float = 10.0, fell: bool = false) -> void:
 		player.reset_scarf()
 		return
 	if fell:
+		hud.show_title("You fell!", "-%d health" % int(round(dmg)))
+		hud.title_t = 1.4
+		var dip = create_tween()
+		dip.tween_property(hud, "fade", 0.55, 0.12)
+		dip.tween_property(hud, "fade", 0.0, 0.35)
 		player.position = player.last_safe
 		player.vel = Vector2.ZERO
 		player.reset_scarf()
+		fx_burst(player.body_center(), pal.moon, 18, 120.0, 0.6, -40.0, 0.07)
 	else:
 		player.vel = Vector2(signf(player.position.x - from_x) * 230.0, -330.0)
 		player.on_ground = false
 	player.invuln = 1.0
+
+
+func _death_scene(fell: bool) -> void:
+	transitioning = true
+	hud.reset_input()
+	var c = player.body_center()
+	player.visible = false
+	Sfx.play("death" if Sfx.sfx.has("death") else "hurt", 0.8)
+	buzz(250)
+	shake(14.0)
+	for i in 3:
+		fx_burst(c, [pal.moon, pal.ember, pal.moss][i].lightened(0.3), 26, 200.0 + i * 60.0, 1.1, -30.0, 0.08)
+	fx_ring(c, pal.moon, 60.0)
+	hud.show_title("You fell..." if fell else "Defeated!", "")
+	var tw = create_tween()
+	tw.tween_property(hud, "fade", 0.65, 1.1)
+	tw.tween_callback(func():
+		transitioning = false
+		player.visible = true
+		hp = max_hp
+		hud.fade = 0.0
+		save_snapshot()
+		get_tree().paused = true
+		menu.show_screen("over", {"stage": stage, "kills": st_kills, "coins": st_coins, "fell": fell}))
 
 
 func _stage_clear() -> void:
@@ -1627,7 +1686,7 @@ func _apply_variant(n: int) -> void:
 	sky.modulate = tod_tint
 	aurora.visible = weather_kind == "aurora" or (biome == "voidreach")
 	fireflies.emitting = weather_kind in ["fireflies", "pollen", "mist"] or biome == "gloamwood"
-	lightning_t = 3.0
+	lightning_t = randf_range(12.0, 22.0)
 	var w = weather
 	w.emitting = weather_kind not in ["none", "mist", "fireflies", "aurora"]
 	w.texture = glow
@@ -1709,12 +1768,12 @@ func _draw_aurora() -> void:
 		var base_y = 70.0 + band * 26.0
 		var steps = 24
 		for i in steps + 1:
-			var x = -20.0 + (VW + 40.0) * i / steps
+			var x = -20.0 + (view_w() + 40.0) * i / steps
 			var y = base_y + sin(x * 0.012 + t * 0.3 + band) * 22.0 + sin(x * 0.03 + t * 0.7) * 6.0
 			pts.append(Vector2(x, y))
 			cl.append(Color(cols[band], 0.0))
 		for i in range(steps, -1, -1):
-			var x2 = -20.0 + (VW + 40.0) * i / steps
+			var x2 = -20.0 + (view_w() + 40.0) * i / steps
 			var y2 = base_y + sin(x2 * 0.012 + t * 0.3 + band) * 22.0 + sin(x2 * 0.03 + t * 0.7) * 6.0 + 60.0 + sin(x2 * 0.02 + t) * 14.0
 			pts.append(Vector2(x2, y2))
 			cl.append(Color(cols[band], 0.16 + 0.06 * sin(t + i * 0.3)))

@@ -6,7 +6,6 @@ extends Node2D
 
 const ACCEL := 1100.0
 const GRAV := 1900.0
-const SIL := Color(0.06, 0.04, 0.1, 0.95)
 const JUMP_V := 760.0
 const DJUMP_V := 640.0
 const HALF_W := 8.0
@@ -439,8 +438,6 @@ func _draw() -> void:
 		var knee = hip + Vector2(sin(a2) * 6.0, cos(a2) * 5.2)
 		var lift = -sin(phase + off2) * 2.2 if (run > 0.1 and not air and sin(phase + off2) > 0.0) else 0.0
 		var foot = Vector2(knee.x + sin(a2 * 0.6) * 1.5, minf(0.0, knee.y + 4.2 - (2.0 if air else 0.0) + lift) - 1.0)
-		draw_polyline(PackedVector2Array([hip, knee, foot]), SIL, 6.6, true)
-		draw_circle(foot + Vector2(1.4, 0), 3.9, SIL)
 		draw_polyline(PackedVector2Array([hip, knee, foot]), leg_c, 4.0, true)
 		draw_circle(foot + Vector2(1.4, 0), 2.6, boot_c)
 	var bob = -absf(sin(phase)) * 2.0 if (run > 0.1 and not air) else sin(t * 2.4) * 0.7
@@ -462,9 +459,6 @@ func _draw() -> void:
 	for p in pts:
 		var k = clampf(((10.0 - p.x) * 0.45 + (p.y + 44.0) * 0.8) / 42.0, 0.0, 1.0)
 		cols.append(hi.lerp(moon.lerp(dusk, 0.12), minf(k * 2.2, 1.0)).lerp(lo, maxf(k - 0.45, 0.0) / 0.55))
-	var sil = PackedVector2Array(pts)
-	sil.append(pts[0])
-	draw_polyline(sil, SIL, 3.4, true)
 	draw_polygon(pts, cols)
 	if starlit:
 		for i in 7:
@@ -474,7 +468,7 @@ func _draw() -> void:
 	draw_line(Vector2(-13.5 - fl * 0.7, hem - 1.5), Vector2(14.5 + fl * 0.7, hem - 1.5), Color(ember, 0.55), 1.4, true)
 	var outline = PackedVector2Array(pts)
 	outline.append(pts[0])
-	draw_polyline(outline, Color(SIL, 0.55), 1.0, true)
+	draw_polyline(outline, Color(ink.darkened(0.4), 0.75), 1.3, true)
 	var rimc = Color(0.75, 0.94, 1.0, 0.95)
 	for i in pts.size():
 		var a3 = pts[i]

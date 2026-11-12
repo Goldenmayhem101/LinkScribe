@@ -14,6 +14,7 @@ var root_box: VBoxContainer
 var header: HBoxContainer
 var box: VBoxContainer
 var scroll: ScrollContainer
+var margin: MarginContainer
 var t := 0.0
 var wardrobe_slot := "scarf"
 var preview: Control = null
@@ -33,7 +34,7 @@ func _ready() -> void:
 	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	shade.stretch_mode = TextureRect.STRETCH_SCALE
 	add_child(shade)
-	var margin = MarginContainer.new()
+	margin = MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	margin.add_theme_constant_override("margin_left", 36)
 	margin.add_theme_constant_override("margin_right", 36)
@@ -58,6 +59,13 @@ func _ready() -> void:
 
 
 func _process(dt: float) -> void:
+	if main:
+		main._fit_orientation()
+	if margin:
+		var side = maxf(36.0, (get_viewport_rect().size.x - 760.0) * 0.5)
+		margin.add_theme_constant_override("margin_left", int(side))
+		margin.add_theme_constant_override("margin_right", int(side))
+		margin.add_theme_constant_override("margin_top", 54 if get_viewport_rect().size.y > 900.0 else 24)
 	t += dt
 	if screen == "wardrobe" and is_instance_valid(preview_player):
 		preview_player.t += dt
@@ -1037,7 +1045,7 @@ func _clear_screen(r: Dictionary) -> void:
 
 func _over(r: Dictionary) -> void:
 	_gap(60)
-	var ttl = _label("You fell...", 58, Color(1, 0.65, 0.65))
+	var ttl = _label("You fell..." if r.get("fell", false) else "Defeated!", 58, Color(1, 0.65, 0.65))
 	ttl.add_theme_font_override("font", TITLE_FONT)
 	box.add_child(ttl)
 	box.add_child(_label("Coins, XP and unlocks are kept. Try an upgrade or a new weapon!", 21, Color(pal.moon, 0.7)))
