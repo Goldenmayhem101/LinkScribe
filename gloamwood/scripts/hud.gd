@@ -278,7 +278,7 @@ func _draw() -> void:
 		var cc = Vector2(px + 18, 116)
 		draw_circle(cc, 17, Color(pal.ink, 0.8))
 		draw_arc(cc, 17, -PI / 2, -PI / 2 + TAU * frac, 28, info.col, 4.0, true)
-		draw_string(font, Vector2(cc.x - 20, cc.y + 7), {"triple": "x3", "homing": "@", "rapid": ">>", "magnet": "$", "star": "*"}.get(key, "?"), HORIZONTAL_ALIGNMENT_CENTER, 40, 18, info.col)
+		_power_icon(key, cc, info.col)
 		px += 44.0
 	# coins
 	var cw = 170.0
@@ -389,3 +389,34 @@ func _draw() -> void:
 		draw_string(font, Vector2(0, s.y * 0.36 + 118), subtitle, HORIZONTAL_ALIGNMENT_CENTER, s.x, 26, Color(ember, a4))
 	if fade > 0.0:
 		draw_rect(Rect2(Vector2.ZERO, s), Color(pal.ink.darkened(0.5), fade))
+
+
+func _power_icon(key: String, c: Vector2, col: Color) -> void:
+	match key:
+		"homing":
+			draw_arc(c, 7.5, 0, TAU, 20, col, 2.2, true)
+			draw_circle(c, 2.4, col)
+			for d in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				draw_line(c + d * 9.0, c + d * 12.5, col, 2.2, true)
+		"triple":
+			for a in [-0.5, 0.0, 0.5]:
+				var d = Vector2.from_angle(-PI / 2 + a)
+				draw_line(c - d * 6.0, c + d * 9.0, col, 2.4, true)
+				draw_circle(c + d * 9.0, 2.4, col)
+		"rapid":
+			for o in [-4.0, 4.0]:
+				draw_polyline(PackedVector2Array([c + Vector2(o - 4, -7), c + Vector2(o + 3, 0), c + Vector2(o - 4, 7)]), col, 2.6, true)
+		"magnet":
+			draw_arc(c + Vector2(0, 1), 7.0, PI, TAU, 14, col, 4.0, true)
+			draw_line(c + Vector2(-7, 1), c + Vector2(-7, 8), col, 4.0)
+			draw_line(c + Vector2(7, 1), c + Vector2(7, 8), col, 4.0)
+			draw_rect(Rect2(c + Vector2(-9, 6), Vector2(4, 3)), Color(1, 1, 1, 0.9))
+			draw_rect(Rect2(c + Vector2(5, 6), Vector2(4, 3)), Color(1, 1, 1, 0.9))
+		"star":
+			var p = PackedVector2Array()
+			for i in 10:
+				var r = 10.0 if i % 2 == 0 else 4.2
+				p.append(c + Vector2.from_angle(-PI / 2 + i * PI / 5.0) * r)
+			draw_colored_polygon(p, col)
+		_:
+			draw_circle(c, 5.0, col)

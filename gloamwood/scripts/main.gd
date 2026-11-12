@@ -1222,7 +1222,7 @@ func _update_props(dt: float) -> void:
 		bn.set_meta("squish", maxf(sq - dt * 4.0, 0.0))
 		bn.queue_redraw()
 		if player.vel.y > 0.0 and absf(player.position.x - bn.position.x) < 20.0 and absf(player.position.y - (bn.position.y - 12.0)) < 14.0:
-			player.bounce(1120.0)
+			player.bounce(1200.0)
 			bn.set_meta("squish", 1.0)
 			Sfx.play("bounce")
 			fx_burst(bn.position + Vector2(0, -12), pal.moss.lightened(0.5), 14, 140.0, 0.5, 100.0, 0.06)
@@ -1394,7 +1394,7 @@ func _hurt(from_x: float, dmg: float = 10.0, fell: bool = false) -> void:
 		player.reset_scarf()
 		return
 	if fell:
-		player.position = player.last_safe + Vector2(-24.0 * player.facing, 0)
+		player.position = player.last_safe
 		player.vel = Vector2.ZERO
 		player.reset_scarf()
 	else:
