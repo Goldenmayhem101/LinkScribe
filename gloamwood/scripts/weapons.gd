@@ -130,7 +130,7 @@ func fire(big: bool) -> void:
 	var homing = main.powers.has("homing")
 	p.shoot_t = 0.15
 	if big:
-		_add({"kind": "big", "pos": o, "vel": dir * 360.0, "dmg": (4.0 + float(w.dmg) * 2.0) * mult, "r": 14.0, "pierce": true, "home": homing, "col": col})
+		_add({"kind": "big", "pos": o, "vel": dir * 360.0, "dmg": (1.5 + float(w.dmg) * 1.2) * mult, "r": 14.0, "pierce": false, "home": homing, "col": col})
 		Sfx.play("bigshot")
 		main.shake(4.0)
 		main.fx_burst(o, col, 16, 160.0, 0.4, 0.0, 0.08)

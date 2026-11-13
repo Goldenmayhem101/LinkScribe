@@ -317,7 +317,8 @@ func _build_layers() -> void:
 				bg_root.add_child(ls)
 				lantern_sprites.append(ls)
 	fg_root = _canvas(5)
-	for sp in [["fog1", 1.1, 1.0, -70.0, 20.0, 0.3], ["foreground", 1.35, 0.0, 0.0, 0.0, 1.0]]:
+	# no dark foreground plants or hanging leaves: they covered the hero
+	for sp in [["fog1", 1.1, 1.0, -70.0, 20.0, 0.3]]:
 		var s2 = _region_sprite(fg_root)
 		s2.modulate.a = sp[5]
 		par.append({"sprite": s2, "name": sp[0], "fx": sp[1], "fy": sp[2], "top": sp[3], "auto": sp[4], "fg": true})
@@ -597,10 +598,12 @@ func toggle_pause() -> void:
 
 
 func _notification(what: int) -> void:
+	# only pause when the app really goes to the background; a notification or a floating
+	# chat bubble steals "focus" for a moment and used to pause the game for no reason
 	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		if playing and not autoplay and not transitioning:
 			save_snapshot()
-			if what != NOTIFICATION_WM_CLOSE_REQUEST and not get_tree().paused:
+			if what == NOTIFICATION_APPLICATION_PAUSED and not get_tree().paused:
 				toggle_pause()
 		Profile.save()
 		if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -1809,10 +1812,18 @@ func shake(a: float) -> void:
 	shake_amt = maxf(shake_amt, a)
 
 
+var hitstop_n := 0
 func hitstop(d: float) -> void:
-	Engine.time_scale = 0.05
-	await get_tree().create_timer(d, true, false, true).timeout
-	Engine.time_scale = 1.0
+	# a short slow-down on big hits, never a freeze; overlapping hits no longer stack up
+	if hitstop_n > 0:
+		return
+	hitstop_n += 1
+	Engine.time_scale = 0.3
+	await get_tree().create_timer(minf(d, 0.08), true, false, true).timeout
+	hitstop_n -= 1
+	if hitstop_n <= 0:
+		hitstop_n = 0
+		Engine.time_scale = 1.0
 
 
 func fx_burst(pos: Vector2, col: Color, amount: int = 16, speed: float = 120.0, life: float = 0.6, grav: float = 200.0, size: float = 0.07, additive: bool = true) -> void:

@@ -101,7 +101,7 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 	helpers_added = 0
 	var base_diff = 1.0 - exp(-(s - 1) / 7.0)
 	diff = clampf(base_diff * [0.6, 1.0, 1.25][difficulty] + (0.12 if difficulty == 2 else 0.0), 0.0, 1.0)
-	var budget = minf(1.0 + s * 0.7 + maxf(s - 3, 0) * 0.15, 12.0 + s * 0.1) * BUDGET_MULT[difficulty]
+	var budget = minf(3.0 + s * 0.9 + maxf(s - 3, 0) * 0.2, 16.0 + s * 0.1) * BUDGET_MULT[difficulty]
 	var boss_stage = is_boss_stage(s)
 	var x = -240.0
 	var h = 0.0
@@ -120,9 +120,13 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 				_ground(x, w, h)
 				if rng.randf() < 0.55:
 					_coin_line(x + 30.0, h - 26.0, int(w / 34.0) - 1)
-				if budget >= 1.0 and w > 210.0 and rng.randf() < 0.65:
+				if budget >= 1.0 and w > 170.0 and rng.randf() < 0.85:
 					_enemy(_ground_kind(), Vector2(x + w * 0.65, h), x + 24.0, x + w - 24.0)
 					budget -= 1.0
+					if budget >= 1.0 and s >= 3 and w > 260.0 and rng.randf() < 0.5:
+						var air = rng.randf() < 0.4
+						_enemy(_air_kind() if air else _ground_kind(), Vector2(x + w * 0.3, h - (115.0 if air else 0.0)), x + 24.0, x + w - 24.0)
+						budget -= 1.0
 				_maybe_chest(Vector2(x + w * 0.35, h))
 				_maybe_power(Vector2(x + w * 0.5, h - 40.0), 0.18)
 				if x - last_cp > 1100.0:
@@ -150,6 +154,9 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 				h = clampf(h - dh, -900.0, 0.0)
 				var w3 = rng.randf_range(150.0, 250.0)
 				_ground(x, w3, h)
+				if budget >= 1.0 and s >= 2 and w3 > 175.0 and rng.randf() < 0.5:
+					_enemy(_ground_kind(), Vector2(x + w3 * 0.6, h), x + 24.0, x + w3 - 24.0)
+					budget -= 1.0
 				x += w3
 			"floaters":
 				var n = 1 + rng.randi() % 2
@@ -161,7 +168,7 @@ func generate(s: int, seed_value: int, opts: Dictionary = {}) -> Dictionary:
 					var py = ph - rng.randf_range(50.0, 100.0)
 					_plat(px, py, pw)
 					_coin_line(px + 14.0, py - 24.0, int(pw / 30.0))
-					if budget >= 1.0 and rng.randf() < 0.45 + diff * 0.3:
+					if budget >= 1.0 and rng.randf() < 0.6 + diff * 0.3:
 						_enemy("spike" if rng.randf() < 0.6 or s < 2 else "slime", Vector2(px + pw * 0.5, py), px + 16.0, px + pw - 16.0)
 						budget -= 1.0
 					px += pw
@@ -393,7 +400,7 @@ func _maybe_power(p: Vector2, chance: float) -> void:
 func _enemy(kind: String, pos: Vector2, lo: float, hi: float) -> void:
 	var elite = rng.randf() < 0.06 + diff * 0.22
 	var golden = not elite and rng.randf() < 0.03 + luck * 0.015
-	var hpb = int(stage / 6) + (1 if difficulty == 2 else 0) - (1 if difficulty == 0 else 0)
+	var hpb = int(stage / 4) + (1 if difficulty == 2 else 0) - (1 if difficulty == 0 else 0)
 	enemies.append({"kind": kind, "pos": pos, "min": lo, "max": hi, "elite": elite, "golden": golden, "hpb": hpb})
 
 

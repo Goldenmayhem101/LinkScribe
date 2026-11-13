@@ -84,7 +84,8 @@ func setup(m: Node, data: Dictionary, tex: Texture2D, mdata: Dictionary, glow: T
 		"slime": hp = 1 if mini else 2; speed = 0.0; radius = 20.0; center_off = Vector2(0, -16)
 		"titan": hp = float(data.get("hp", 60)); speed = 40.0; radius = 62.0; center_off = Vector2(0, -70); state = "intro"
 	if not boss:
-		hp = maxf(1.0, hp + hpb + (2 if elite else 0) + (1 if golden else 0))
+		hp = maxf(2.0, hp + 1 + hpb + (2 if elite else 0) + (1 if golden else 0))
+		speed *= 1.15
 	max_hp = hp
 	radius *= size_k
 	center_off *= size_k
@@ -175,13 +176,13 @@ func vulnerable() -> bool:
 
 func contact_dmg() -> int:
 	match kind:
-		"brute": return 14
-		"charger": return 20 if state == "charge" else 12
-		"burrower": return 12
-		"titan": return 20
-		"slime": return 5 if mini else 8
-		"drone": return 8
-	return 10
+		"brute": return 18
+		"charger": return 26 if state == "charge" else 16
+		"burrower": return 16
+		"titan": return 26
+		"slime": return 7 if mini else 11
+		"drone": return 11
+	return 13
 
 
 func touch_damage() -> bool:
