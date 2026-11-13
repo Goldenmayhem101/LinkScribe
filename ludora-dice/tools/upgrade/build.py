@@ -42,6 +42,9 @@ rep("if(pl.bot){say(nameOf(pl)+' is getting ready…');", "if(pl.bot){say(pl.you
 
 rep("if(SPECIALFX[lookOf(pl).p]){await wait(Math.max(350,800*SPEED));", "if(SPECIALFX[lookOf(pl).p]){await wait(Math.max(700,1500*SPEED));")
 
+# no dice upgrade progress in the item sheet
+rep("if(cat==='die'&&owned('die',it.id)){var fq=set.dl[it.id]||0", "if(false){var fq=set.dl[it.id]||0")
+
 # inject CSS + JS
 css = open(os.path.join(D, 'v2.css'), encoding='utf-8').read()
 i = s.index('</style>')
@@ -53,6 +56,8 @@ if os.path.exists(os.path.join(D, 'v4.js')):
     js += '\n' + open(os.path.join(D, 'v4.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v5.js')):
     js += '\n' + open(os.path.join(D, 'v5.js'), encoding='utf-8').read()
+if os.path.exists(os.path.join(D, 'v6.js')):
+    js += '\n' + open(os.path.join(D, 'v6.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):
     js += '\n' + open(os.path.join(D, 'i18n.js'), encoding='utf-8').read()
 tail = '})();\n</script>'

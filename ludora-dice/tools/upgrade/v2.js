@@ -356,7 +356,7 @@ showWin=function(pl){
 /* ---------- board spinner: "Starting on ...'s board" ---------- */
 V2.beginPlay=beginPlay;
 beginPlay=function(){
-  if(S.mode!=='cpu'||S.spunGid===S.gid){return V2.beginPlay();}
+  if(true){return V2.beginPlay();} /* board spinner retired: vs computer uses your own board */
   S.spunGid=S.gid;
   var cands=[],pool=ITEMS.board.filter(function(b){return b.id!==curItem('board').id;});
   S.players.forEach(function(p){
