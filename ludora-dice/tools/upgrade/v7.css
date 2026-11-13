@@ -194,3 +194,13 @@ body.lowfx .p7pill.go,body.lowfx .ch7.ready svg,body.lowfx .chsvg .rays{animatio
 
 .seat .av b svg.me7{display:block!important;position:absolute;inset:0;width:100%;height:100%}
 .lt7 .toastx{background:#fff!important;color:var(--ink7)!important;border:2px solid var(--l7)!important;box-shadow:0 6px 18px rgba(28,29,43,.2)!important}
+/* clean outlined letters: no stroke (it traces the font's inner shapes and leaves lines inside letters on some phones) */
+*{-webkit-text-stroke:0!important}
+.h7card b{text-shadow:0 0 1px rgba(0,0,40,.6),1px 1px 0 rgba(0,0,40,.45),-1px 1px 0 rgba(0,0,40,.45),1px -1px 0 rgba(0,0,40,.45),-1px -1px 0 rgba(0,0,40,.45),0 3px 0 rgba(0,0,40,.4)!important}
+.h7vs{text-shadow:2px 2px 0 #45168f,-2px 2px 0 #45168f,2px -2px 0 #45168f,-2px -2px 0 #45168f,0 3px 0 #45168f!important}
+.su7play{text-shadow:0 2px 0 #0d5a1c,1px 0 0 #0d5a1c,-1px 0 0 #0d5a1c,0 -1px 0 #0d5a1c!important}
+.su7play:disabled{text-shadow:0 2px 0 #3a3f55!important}
+.pword{text-shadow:2px 2px 0 #c4151c,-2px 2px 0 #c4151c,2px -2px 0 #c4151c,-2px -2px 0 #c4151c,0 4px 0 #c4151c!important}
+.k2word{text-shadow:2px 2px 0 #2a1050,-2px 2px 0 #2a1050,2px -2px 0 #2a1050,-2px -2px 0 #2a1050,0 4px 0 #2a1050!important}
+.sixshow .sssix{text-shadow:3px 3px 0 var(--sb),-3px 3px 0 var(--sb),3px -3px 0 var(--sb),-3px -3px 0 var(--sb),0 5px 0 var(--sb)!important}
+.bump{text-shadow:2px 2px 0 #c4151c,-2px 2px 0 #c4151c,2px -2px 0 #c4151c,-2px -2px 0 #c4151c!important}
