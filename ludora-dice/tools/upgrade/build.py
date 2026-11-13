@@ -45,8 +45,13 @@ rep("if(SPECIALFX[lookOf(pl).p]){await wait(Math.max(350,800*SPEED));", "if(SPEC
 # no dice upgrade progress in the item sheet
 rep("if(cat==='die'&&owned('die',it.id)){var fq=set.dl[it.id]||0", "if(false){var fq=set.dl[it.id]||0")
 
+# winner takes all: no refund for 2nd place
+rep("    else if(!S.team&&sec&&sideMine(sec.seat))prize=S.stake;\n", "")
+
 # inject CSS + JS
 css = open(os.path.join(D, 'v2.css'), encoding='utf-8').read()
+if os.path.exists(os.path.join(D, 'v7.css')):
+    css += '\n' + open(os.path.join(D, 'v7.css'), encoding='utf-8').read()
 i = s.index('</style>')
 s = s[:i] + css + s[i:]
 js = open(os.path.join(D, 'v2.js'), encoding='utf-8').read()
@@ -58,6 +63,8 @@ if os.path.exists(os.path.join(D, 'v5.js')):
     js += '\n' + open(os.path.join(D, 'v5.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v6.js')):
     js += '\n' + open(os.path.join(D, 'v6.js'), encoding='utf-8').read()
+if os.path.exists(os.path.join(D, 'v7.js')):
+    js += '\n' + open(os.path.join(D, 'v7.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):
     js += '\n' + open(os.path.join(D, 'i18n.js'), encoding='utf-8').read()
 tail = '})();\n</script>'

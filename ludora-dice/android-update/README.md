@@ -1,6 +1,19 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.2 (versionCode 3)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.3 (versionCode 4)
+
+## What's new in 1.3
+- New white look with thin, even dark outlines on every icon, button and card
+- New home: player picture (with your equipped frame) top left, coins and diamonds bar on top, settings top right; one big mode card at a time that you swipe: Online, Vs Computer, Team 2 vs 2, Pass & Play. No game title, no Rules icon (How to play is in Settings)
+- New setup screens for each mode: 2 or 4 players, round mode pictures you swipe through with an "i" that explains the mode, entry fee with − and +, and the prize worked out automatically
+- Winner takes all: the prize is entry × players (Team: entry × 4, shared by the two partners). 2nd place no longer gets the entry back
+- Online: pick 2 or 4 players and tap Find Players; players with the same choices meet at the same table. If only 2 of 4 show up after 30 seconds, the computer fills the empty seats. Everyone pays the entry when the game starts
+- Team 2 vs 2: Online, or Friends (create a room and share the code, or join with a code)
+- Your colour: blue, yellow, green, red, or a white pawn you can paint in 10 colours (white, purple, orange, pink, teal, black, brown, gold, sky, lime). Your base and path take your colour too, and other players see it online
+- "Computer" is only shown when you play against the computer
+- Chests: Iron, Silver and Gold from wins; the new Crystal chest only from 500,000 and 1,000,000 games. Each chest opens its own window (start unlocking, or open now with a video). Chests give only coins and diamonds
+- Profile: 16 people pictures, a blank picture, or your own photo; your equipped frame shows around your picture on the home screen, in your profile and in games; country flag
+- No animals on the home screen or in the profile pictures
 
 ## What's new in 1.2
 - Real 3D dice for all 20 dice styles (rendered in Godot, files in `app/src/main/assets/dice/`)
@@ -15,7 +28,6 @@ Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)**
 - Profile with full stats and 12 achievements with bronze, silver and gold medals
 - The first game teaches as you play (pointing hand); the rule cards stay under How to play
 - 10 languages in Settings > Language; Arabic reads right to left
-- The light/dark option is gone (the game is always dark)
 - Fixed: Play again after an entry-fee game now charges the fee again (before, it paid the prize without the fee)
 - Fixed: winning with Auto play on now counts as your win (before, you lost the prize pool)
 - Store update text and new screenshots: `store/LAUNCH-PACK-v1.2-UPDATE.txt`, `store/screenshots-v1.2/`
