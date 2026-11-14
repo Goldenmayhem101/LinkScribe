@@ -242,7 +242,7 @@ class MainActivity : AppCompatActivity() {
 
         @JavascriptInterface
         fun sendEmail(to: String, subject: String, body: String) {
-            if (to != "thegoldenmayhem.games@gmail.com") return   // only ever opens mail to the studio address
+            if (to != "goldenmayhem.games@gmail.com") return   // only ever opens mail to the studio address
             runOnUiThread {
                 try {
                     val mail = Intent(Intent.ACTION_SENDTO).apply {

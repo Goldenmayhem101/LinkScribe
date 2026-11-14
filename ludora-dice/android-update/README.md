@@ -7,7 +7,7 @@ Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)**
 - Turn timer drawn around the player's picture frame (green, then yellow, then red). In the last 5 seconds a big countdown number shows inside the frame, with ticks and a buzz. At 0 the game rolls or moves for you ("Time's up! Rolled for you."). Miss 3 turns in a row against the computer and Auto play switches on. 15 seconds per turn (6 in Speed mode)
 - After a 6 (or a bump / reaching home with Bonus roll on) a "ROLL AGAIN!" pill pops over the dice
 - Computer levels: Easy, Normal, Hard, Expert, in Settings and on the Vs Computer setup screen. Harder levels only choose better moves (guard pawns, bump yours, avoid danger); the dice stay random for everyone. Online fill-in players stay on Normal
-- Settings > Ludora: Rate Ludora (opens the Play Store page), Share Ludora (phone's share menu), Send feedback (opens email to thegoldenmayhem.games@gmail.com), Replay tutorial, Fair play page
+- Settings > Ludora: Rate Ludora (opens the Play Store page), Share Ludora (phone's share menu), Send feedback (opens email to goldenmayhem.games@gmail.com), Replay tutorial, Fair play page
 - First-time home tour (5 steps, Skip any time), replay from Settings
 - MainActivity.kt: two new bridge functions, shareText and sendEmail (email only ever goes to the studio address)
 - Store text and honest production-access answers: `store/PLAY-STORE-TEXT-and-PRODUCTION-ANSWERS-v1.4.txt`

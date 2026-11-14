@@ -2,7 +2,7 @@
    rate / share / feedback / replay tutorial / fair play, first-time home tour ===================== */
 (function(){
 var V8={};window.__ludoraV8=V8;
-var MAIL='thegoldenmayhem.games@gmail.com';
+var MAIL='goldenmayhem.games@gmail.com';
 var STORE_URL='https://play.google.com/store/apps/details?id=com.goldenmayhem.ludoradice';
 function q8(s,r){return (r||document).querySelector(s);}
 function mk8(tag,cls,html,parent){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e;}
