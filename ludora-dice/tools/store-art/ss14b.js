@@ -1,0 +1,16 @@
+const {chromium}=require('playwright');
+(async()=>{const b=await chromium.launch();const errs=[];
+const p=await b.newPage({viewport:{width:390,height:800},deviceScaleFactor:2.4,isMobile:true,hasTouch:true});p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8765/dbg.html');await p.waitForTimeout(6000);
+await p.click('#gf-chest',{force:true}).catch(()=>{});await p.waitForTimeout(1800);const c=p.locator('.giftov .btn');if(await c.count())await c.first().click({force:true});await p.waitForTimeout(2500);
+await p.evaluate(()=>{document.querySelectorAll('.tour8').forEach(e=>e.remove());});
+await p.evaluate(()=>__ev(`set.tour8=1;set.tut=true;Object.keys(ITEMS).forEach(function(cat){ITEMS[cat].forEach(function(it){var k=cat+':'+it.id;if(set.own.indexOf(k)<0)set.own.push(k);});});set.coins=248500;set.gems=1250;set.name='Alex';set.st.g=86;set.st.w=51;set.eq.frame='dragon';set.level=3;save();refreshStars();`));
+await p.evaluate(()=>__ev("window.__ludoraV7.openSetup('cpu')"));await p.waitForTimeout(500);
+await p.evaluate(()=>{document.querySelectorAll('#ov-setup7 *').forEach(e=>{if(e.scrollTop)e.scrollTop=0;});});await p.waitForTimeout(300);await p.screenshot({path:'ss14/setup_cpu.png'});
+await p.evaluate(()=>{const o=document.getElementById('ov-setup7');if(o)o.hidden=true;});
+await p.evaluate(()=>__ev("window.__ludoraV7.chestWin(-1,{t:'crystal',c:60000,g:40})"));await p.waitForTimeout(1500);await p.screenshot({path:'ss14/chest.png'});
+await p.evaluate(()=>{const o=document.getElementById('ov-chest7');if(o)o.hidden=true;});
+await p.evaluate(()=>__ev("renderProf();openSheet('ov-prof')"));await p.waitForTimeout(1200);await p.screenshot({path:'ss14/profile.png'});
+await p.evaluate(()=>__ev("closeSheet('ov-prof')"));
+await p.evaluate(()=>__ev("window.__ludoraV8.fairPlay()"));await p.waitForTimeout(700);await p.screenshot({path:'ss14/fair.png'});
+console.log(errs);await b.close();})();
