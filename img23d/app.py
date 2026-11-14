@@ -13,6 +13,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from providers import get_provider
+from convert import glb_to_fbx
 
 DATA = Path(os.environ.get("DATA_DIR", Path(__file__).parent / "data"))
 IN_DIR, OUT_DIR = DATA / "inputs", DATA / "outputs"
@@ -101,6 +102,25 @@ def model(job_id: str):
                         filename=Path(job["name"]).stem + ".glb")
 
 
+def fbx_path(job):
+    fbx = Path(job["output"]).with_suffix(".fbx")
+    if not fbx.exists():
+        try:
+            glb_to_fbx(job["output"], str(fbx))
+        except Exception as e:
+            raise HTTPException(500, str(e))
+    return fbx
+
+
+@app.get("/api/jobs/{job_id}/model.fbx")
+def model_fbx(job_id: str):
+    job = get_job(job_id)
+    if job["status"] != "done":
+        raise HTTPException(409, "not ready")
+    return FileResponse(fbx_path(job), media_type="application/octet-stream",
+                        filename=Path(job["name"]).stem + ".fbx")
+
+
 @app.get("/api/jobs/{job_id}/input")
 def job_input(job_id: str):
     return FileResponse(get_job(job_id)["input"])
@@ -119,7 +139,7 @@ def retry(job_id: str):
 def delete(job_id: str):
     job = get_job(job_id)
     job["status"] = "cancelled"
-    for p in (job["input"], job["output"]):
+    for p in (job["input"], job["output"], Path(job["output"]).with_suffix(".fbx")):
         Path(p).unlink(missing_ok=True)
     jobs.pop(job_id, None)
     if job_id in order:
@@ -128,7 +148,7 @@ def delete(job_id: str):
 
 
 @app.get("/api/download.zip")
-def download_all():
+def download_all(fmt: str = "glb"):
     buf = io.BytesIO()
     seen = {}
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
@@ -137,8 +157,11 @@ def download_all():
             if j and j["status"] == "done":
                 stem = Path(j["name"]).stem
                 seen[stem] = seen.get(stem, 0) + 1
-                name = f"{stem}.glb" if seen[stem] == 1 else f"{stem}_{seen[stem]}.glb"
-                z.write(j["output"], name)
+                name = stem if seen[stem] == 1 else f"{stem}_{seen[stem]}"
+                if fmt == "fbx":
+                    z.write(fbx_path(j), name + ".fbx")
+                else:
+                    z.write(j["output"], name + ".glb")
     buf.seek(0)
     return StreamingResponse(buf, media_type="application/zip",
                              headers={"Content-Disposition": 'attachment; filename="models.zip"'})

@@ -37,7 +37,8 @@
     <input id="file" type="file" accept="image/*" multiple hidden></div>
   <div class="bar"><span id="summary">No images yet</span>
     <button class="ghost" id="clear">Clear finished</button>
-    <button id="zip" disabled>Download all (.zip)</button></div>
+    <button id="zip" disabled>All .glb (.zip)</button>
+    <button id="zipfbx" disabled>All .fbx (.zip)</button></div>
   <div id="grid"></div>
 </main>
 <script>
@@ -48,6 +49,7 @@ file.onchange = () => upload(file.files);
 ['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', ev => upload(ev.dataTransfer.files));
 $('#zip').onclick = () => location.href = '/api/download.zip';
+$('#zipfbx').onclick = () => location.href = '/api/download.zip?fmt=fbx';
 $('#clear').onclick = async () => { for (const j of jobs) if (j.status === 'done' || j.status === 'failed') await fetch('/api/jobs/' + j.id, {method:'DELETE'}); poll(); };
 
 async function upload(files) {
@@ -86,6 +88,7 @@ function render() {
         mv.src = `/api/jobs/${j.id}/model.glb`; mv.setAttribute('camera-controls',''); mv.setAttribute('auto-rotate','');
         mv.setAttribute('shadow-intensity','1'); b.view.replaceChildren(mv);
         const dl = el('button','', 'Download .glb'); dl.onclick = () => location.href = mv.src; b.row.append(dl);
+        const fb = el('button','', 'Download .fbx'); fb.onclick = () => location.href = `/api/jobs/${j.id}/model.fbx`; b.row.append(fb);
       }
       if (j.status === 'failed') { const r = el('button','','Retry'); r.onclick = async () => { await fetch(`/api/jobs/${j.id}/retry`, {method:'POST'}); poll(); }; b.row.append(r); }
       if (j.status !== 'processing' && j.status !== 'loading model') {
@@ -95,7 +98,7 @@ function render() {
   }
   const done = jobs.filter(j => j.status === 'done').length, failed = jobs.filter(j => j.status === 'failed').length;
   $('#summary').textContent = jobs.length ? `${done} of ${jobs.length} done` + (failed ? `, ${failed} failed` : '') : 'No images yet';
-  $('#zip').disabled = !done;
+  $('#zip').disabled = $('#zipfbx').disabled = !done;
 }
 async function poll() { try { jobs = await (await fetch('/api/jobs')).json(); render(); } catch (e) {} }
 setInterval(poll, 1500); poll();
