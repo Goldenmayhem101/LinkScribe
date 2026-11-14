@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>2D Vector Monsters</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Nunito:wght@700;800&display=swap">
+<style>
+:root{--bg:#171233;--card:#221b48;--line:#3a3070;--ink:#f3f0ff;--sub:#b9b2e0;--acc:#ffd35c}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:linear-gradient(#171233,#0e0b24);color:var(--ink);font-family:Nunito,system-ui,sans-serif;min-height:100vh}
+main{max-width:900px;margin:0 auto;padding:16px}
+h1{margin:0;font:800 26px/1.1 "Baloo 2",system-ui}
+p.lead{color:var(--sub);font-weight:700;font-size:13.5px;margin:6px 0 14px;line-height:1.4}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:16px}
+.card canvas{display:block;width:100%;height:auto}
+.cb{padding:10px 14px 14px}
+.cb h2{margin:0 0 4px;font:800 20px "Baloo 2",system-ui}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.cmp div{background:#120e2c;border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;font-weight:800;font-size:12px;color:var(--sub)}
+.cmp img,.cmp canvas{width:100%;height:150px;object-fit:contain;display:block;margin-bottom:4px}
+</style></head><body><main>
+<h1>2D vector test: two monsters</h1>
+<p class="lead">Fuzzhorn and Emberwing redrawn the way the hero is drawn: simple rounded shapes, soft gradients, thin dark outline, side view facing the hero. Their eyes follow the hero and blink, and every few seconds they attack.</p>
+<div class="card"><canvas id="c1"></canvas><div class="cb"><h2>Fuzzhorn</h2><p class="lead" style="margin:0">Waddles in place, crouches, then charges with its horns.</p>
+ <div class="cmp"><div><img src="mon/a00.webp" alt="">Current (restyled art)</div><div><canvas id="s1"></canvas>New 2D vector</div></div></div></div>
+<div class="card"><canvas id="c2"></canvas><div class="cb"><h2>Emberwing</h2><p class="lead" style="margin:0">Flaps its wings and swishes its tail, rears back, then breathes fire.</p>
+ <div class="cmp"><div><img src="mon/a02.webp" alt="">Current (restyled art)</div><div><canvas id="s2"></canvas>New 2D vector</div></div></div></div>
+</main>
+<script src="core.js"></script><script src="base.js"></script><script src="vec.js"></script>
+<script>
+const c1=document.getElementById('c1'),c2=document.getElementById('c2');sizeCanvas(c1,420,230);sizeCanvas(c2,420,230);
+addLoop(c1,vecScene('fuzz'));addLoop(c2,vecScene('ember'));
+const s1=document.getElementById('s1'),s2=document.getElementById('s2');sizeCanvas(s1,200,150);sizeCanvas(s2,200,150);
+addLoop(s1,(g,t,W,H)=>{const bt=t%3.3;drawFuzzhorn(g,W/2,H-8,1.15,t,{look:{x:-1,y:.2},blink:bt<.08?bt/.08:bt<.16?1-(bt-.08)/.08:0,sq:1+Math.sin(t*3)*.03});});
+addLoop(s2,(g,t,W,H)=>{const bt=t%3.3;drawEmberwing(g,W/2-4,H-8,1.3,t,{look:{x:-1,y:.2},blink:bt<.08?bt/.08:bt<.16?1-(bt-.08)/.08:0});});
+</script></body></html>

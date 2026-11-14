@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gloamwood Upgrade Preview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;800;900&display=swap">
+<style>
+:root{--bg:#171233;--bg2:#0e0b24;--card:#221b48;--line:#3a3070;--ink:#f3f0ff;--sub:#b9b2e0;--acc:#ffd35c;--mint:#8ff0d8}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(ellipse at 50% 0,rgba(120,90,220,.25),transparent 60%),linear-gradient(var(--bg),var(--bg2));background-attachment:fixed;color:var(--ink);font-family:Nunito,system-ui,sans-serif;min-height:100vh}
+header{padding:16px 16px 6px;max-width:980px;margin:0 auto}
+h1{margin:0;font:800 26px/1.1 "Baloo 2",system-ui}
+header p{margin:4px 0 0;color:var(--sub);font-weight:700;font-size:13px}
+nav{position:sticky;top:0;z-index:5;background:rgba(14,11,36,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 16px;max-width:980px;margin:0 auto}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--sub);font:800 13px Nunito,system-ui;padding:7px 12px;border-radius:999px;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--acc);color:#3a2400;border-color:var(--acc)}
+main{max-width:980px;margin:0 auto;padding:12px 16px 40px}
+section[hidden]{display:none}
+.lead{color:var(--sub);font-weight:700;font-size:13.5px;margin:2px 0 12px;line-height:1.4}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;overflow:hidden}
+.card canvas{display:block;width:100%;height:auto;background:#120e2c}
+.cb{padding:10px 12px 12px}
+.cb h3{margin:0;font:800 18px/1.1 "Baloo 2",system-ui;display:flex;align-items:center;gap:8px}
+.cb p{margin:4px 0 0;color:var(--sub);font-weight:700;font-size:12.5px;line-height:1.35}
+.tag{display:inline-block;font:800 10.5px Nunito;letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:#33295f;color:var(--mint)}
+.warn{color:#ffb0b0!important}
+.seg{display:flex;gap:4px;margin-top:8px}
+.seg button{flex:1;border:1.5px solid var(--line);background:#1a1438;color:var(--sub);font:800 12px Nunito;padding:6px 4px;border-radius:10px;cursor:pointer}
+.seg button[aria-pressed="true"].t0{background:#cfd3e6;color:#222;border-color:#cfd3e6}
+.seg button[aria-pressed="true"].t1{background:#5ad0ff;color:#06263a;border-color:#5ad0ff}
+.seg button[aria-pressed="true"].t2{background:linear-gradient(#ffe28a,#f0a010);color:#3a2400;border-color:#ffd35c}
+.wtop{display:flex;align-items:center;gap:10px}
+.card canvas.wicon,.wicon{width:64px!important;height:64px!important;flex:none;border-radius:14px;background:#1a1438;border:1.5px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.chips button{border:1.5px solid var(--line);background:var(--card);color:var(--sub);font:800 12px Nunito;padding:6px 10px;border-radius:999px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--mint);color:#06302a;border-color:var(--mint)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.row2{grid-template-columns:1fr}}
+.box{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:12px}
+.box h3{margin:0 0 6px;font:800 18px "Baloo 2"}
+.bar{height:10px;background:#120e2c;border-radius:6px;overflow:hidden;margin:6px 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,#8ff0d8,#5ad0ff)}
+.rw{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.rw span{background:#120e2c;border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-weight:800;font-size:12px}
+.btn{display:inline-block;border:0;border-radius:12px;padding:9px 14px;font:900 14px Nunito;cursor:pointer;background:linear-gradient(#6af07a,#1e9e34);color:#fff}
+.ov{position:fixed;inset:0;z-index:20;background:rgba(8,6,24,.7);display:grid;place-items:center;padding:16px}
+.ov[hidden]{display:none}
+.reveal{width:min(100%,360px);background:linear-gradient(#2b2258,#1a1440);border:2px solid var(--acc);border-radius:22px;padding:18px;text-align:center;box-shadow:0 0 60px rgba(255,210,90,.25)}
+.reveal h3{margin:0;font:800 22px "Baloo 2";color:var(--acc)}
+.reveal ul{list-style:none;padding:0;margin:12px 0;display:grid;gap:8px}
+.reveal li{display:flex;align-items:center;gap:10px;background:#120e2c;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-weight:800;text-align:left;animation:pop .35s both}
+.reveal li canvas{width:30px;height:30px}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.phone{position:relative;aspect-ratio:2/1;border-radius:22px;border:3px solid #3a3070;background:linear-gradient(#2a2156,#120e2c);overflow:hidden;touch-action:none}
+.phone .ctl{position:absolute;border-radius:50%;display:grid;place-items:center;font:900 12px Nunito;color:#fff;cursor:grab;user-select:none;border:2px solid rgba(255,255,255,.5)}
+.hint{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#2a1650;border-radius:14px;padding:8px 12px;font-weight:800;font-size:13px;position:relative;margin-top:8px}
+.hint:after{content:'';position:absolute;left:24px;bottom:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:800;margin-top:10px}
+input[type=range]{width:100%}
+.note{font-size:12px;color:var(--sub);font-weight:700;margin-top:8px}
+.bk{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.bk button{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:6px 4px 5px;color:var(--ink);cursor:pointer;font:800 11px Nunito;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bk img{width:72px;height:62px;object-fit:contain}.bk b{font-size:11.5px}.bk small{font-size:9.5px;color:var(--sub);line-height:1.15;text-align:center}
+.bk .lk img{filter:brightness(0) opacity(.45)}.bk .lk{color:var(--sub)}
+.st{display:flex;align-items:center;gap:8px;padding:7px 8px;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;color:var(--ink);text-align:left;font:800 13px Nunito}
+.st:hover{background:#2a2258}.st b{min-width:34px;color:var(--acc)}.st span{flex:1}
+.st img{width:30px;height:28px;object-fit:contain}.st i{font-style:normal;font-size:9px;background:#ff3b7a;color:#fff;border-radius:6px;padding:0 4px;margin-left:-6px;align-self:flex-start}
+.mo{position:fixed;inset:0;z-index:30;background:rgba(8,6,24,.75);display:grid;place-items:center;padding:12px}.mo[hidden]{display:none}
+.mo .in{width:min(100%,560px);max-height:92vh;overflow:auto;background:#1d1640;border:1.5px solid var(--line);border-radius:20px}
+.mo canvas{display:block;width:100%;height:auto}
+.mo .x{position:sticky;top:8px;float:right;margin:8px 8px 0 0;width:34px;height:34px;border-radius:50%;border:0;background:#e8394a;color:#fff;font-size:16px;cursor:pointer;z-index:2}
+.ml{display:grid;gap:6px;padding:10px}.ml div{display:flex;align-items:center;gap:10px;background:#120e2c;border:1px solid var(--line);border-radius:12px;padding:6px 8px;font-size:12.5px;font-weight:700;color:var(--sub)}
+.ml img{width:44px;height:40px;object-fit:contain}.ml b{color:var(--ink);font-size:14px}
+.dots3{color:var(--acc);letter-spacing:1px}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+</style></head>
+<body>
+<header><h1>Gloamwood upgrade preview</h1><p>Nothing here is in the game yet. Tell me what to change, then I build it.</p></header>
+<nav><div class="tabs" id="tabs"></div></nav>
+<main>
+<section id="s-weapons" hidden><p class="lead">Every weapon now has real art, its own swing, a slash trail and its own hit effect. Tap <b>Common</b>, <b>Glowing</b> or <b>Legendary</b> to see how each weapon changes as you upgrade it.</p>
+  <div class="chips" id="wkind"><button aria-pressed="true" data-k="m">Close combat (6)</button><button aria-pressed="false" data-k="r">Shooting (8)</button></div>
+  <div class="grid" id="wgrid"></div></section>
+<section id="s-worlds" hidden><p class="lead">The game no longer loops. Every world is a real mysterious place with its own look, hazards and stage names, and its monsters suit the place (fire monsters in volcanoes, sea creatures in the ocean). Every stage brings <b>new monsters</b>, stage 3 has an <b>elite</b> (⭐, glows gold) and stage 5 a <b>boss</b>. Some stages also have a surprise elite. Tap any stage to watch it.</p><div id="wlist" class="grid"></div>
+  <div class="box" style="margin-top:12px"><h3>After world 30: still new</h3><p class="lead" style="margin:0" id="remix"></p></div></section>
+<section id="s-book" hidden><p class="lead">The Monster Book as players will see it. Monsters you have met are shown. The rest stay dark, but you can see their name and which world they live in, so there is always something to look forward to.</p>
+  <p class="note" id="bk-c" style="margin:0 0 10px"></p><div class="bk" id="bkgrid"></div></section>
+<section id="s-review" hidden><p class="lead"><b>For you only, not in the game:</b> every monster moving and attacking. 155 now use your new 2D game art (from ChatGPT); the rest still use the older restyled art until their new drawings arrive.</p><div class="chips" id="rvchips"></div><div class="grid" id="rvgrid"></div></section>
+<section id="s-bosses" hidden><p class="lead">Every world has its own boss, chosen from your monsters: bigger, with a red aura and a health bar, and its own attack. Here are the first 12.</p><div class="grid" id="bgrid"></div></section>
+
+<section id="s-chests" hidden><p class="lead">5 chests, from Wooden to Crystal. Tap a chest to open it: it shakes, opens, the loot flies out, then a window shows exactly what you got before you collect it.</p><div class="grid" id="cgrid"></div></section>
+<section id="s-map" hidden><p class="lead">A world map instead of a long list: your path through every world (5 stages each, boss on the 5th), your stars on every stage, a crown on boss stages, and worlds unlock when you beat the boss before them.</p>
+  <div class="card" style="max-width:420px;margin:0 auto"><canvas id="mapc"></canvas></div></section>
+<section id="s-stars" hidden><p class="lead">Up to 3 stars per stage: finish it, collect every coin, take no damage. Stars unlock the Crystal chest, which gives players a reason to replay.</p>
+  <div class="row2"><div class="card"><canvas id="starc"></canvas></div>
+  <div style="display:grid;gap:12px">
+   <div class="box"><h3>⚡ Daily challenge</h3><p class="lead" style="margin:0">Today: clear stage 1-6 using only the Thorn Lash, without dashing.</p><div class="rw"><span>🪙 300</span><span>💎 5</span><span>⏱ 14h left</span></div></div>
+   <div class="box"><h3>🔥 Weekly event: Ember Week</h3><p class="lead" style="margin:0">Double coins in Emberfen, plus a special event boss: the Magma King with a golden crown.</p><div class="bar"><i style="width:45%"></i></div><p class="note" style="margin:0">Event progress 9 / 20 stages · prize: Ember Mage outfit</p></div>
+  </div></div></section>
+<section id="s-outfits" hidden><p class="lead">Full hero outfits, built on top of the wardrobe you already have (scarf, cloak, hat, eyes, trail). Earned from Golden and Crystal chests, events, or bought with coins. Looks only, they do not change power.</p><div class="grid" id="ogrid"></div></section>
+<section id="s-feel" hidden><p class="lead">Small touches that make the game feel great: dust when you land, a little squash, coins flying to your counter, health bars only on monsters you hit, damage numbers, attack warnings and combo flashes.</p>
+  <div class="row2"><div class="card"><canvas id="feelc"></canvas><div class="cb"><h3>Game feel</h3><p>Plays on a loop: jump, land, collect, warning, hit, combo.</p></div></div>
+  <div class="box"><h3>First-time hints</h3><p class="lead" style="margin:0">New players get short hints right where they are needed, only the first time:</p><div class="hint">👆 Hold Spark to charge a big shot</div><br><div class="hint">⬆ Tap Jump twice to double jump</div>
+   <label class="sw">Fewer effects (older phones)<input type="checkbox" id="lowfx"></label><p class="note">Turn this on to see every animation with fewer particles.</p></div></div>
+  <div class="box" style="margin-top:12px"><h3>Move and resize your controls</h3><p class="lead" style="margin:0 0 8px">In Settings, players can drag each button where they like and change its size and see-through level.</p>
+   <div class="phone" id="phone"></div>
+   <label class="sw">Button size<input type="range" id="csize" min="70" max="140" value="100"></label>
+   <label class="sw">See-through<input type="range" id="calpha" min="30" max="100" value="80"></label>
+   <button class="btn" id="creset" style="margin-top:10px;background:#3a3070">Reset</button></div></section>
+</main>
+<div class="mo" id="mo" hidden><div class="in"><button class="x" aria-label="Close" onclick="closeMo()">✕</button><div id="mo-b"></div></div></div>
+<div class="ov" id="reveal" hidden><div class="reveal"><h3 id="rv-title"></h3><p class="note" id="rv-where" style="margin:4px 0 0"></p><ul id="rv-list"></ul><button class="btn" id="rv-ok">Collect</button></div></div>
+<script src="core.js"></script><script src="base.js"></script><script src="monsters.js"></script><script src="weapons.js"></script><script src="chestart.js"></script><script src="chests.js"></script><script src="extras.js"></script><script src="catalog.js"></script><script src="worlds.js"></script><script src="anim.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const TABS=[['worlds','🌍 Worlds'],['review','🎬 Monster animations'],['book','📖 Monster book'],['bosses','👑 Bosses'],['weapons','⚔ Weapons'],['chests','🎁 Chests'],['map','🗺 World map'],['stars','⭐ Stars & challenges'],['outfits','🧥 Outfits'],['feel','✨ Feel & settings']];
+const tabs=$('#tabs');TABS.forEach(([k,n],i)=>{const b=document.createElement('button');b.textContent=n;b.setAttribute('aria-pressed',String(i===0));b.onclick=()=>{tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));document.querySelectorAll('main section').forEach(s=>s.hidden=s.id!=='s-'+k);scrollTo({top:0});};tabs.appendChild(b);});
+function canvasCard(w,h){const c=document.createElement('canvas');sizeCanvas(c,w,h);return c;}
+/* weapons */
+function weaponCard(w,melee){const card=document.createElement('div');card.className='card';const c=canvasCard(340,200);
+  addLoop(c,melee?meleeScene(w):rangedScene(w));w._tier=w._tier||0;
+  const cb=document.createElement('div');cb.className='cb';cb.innerHTML='<div class="wtop"></div><div class="seg">'+TIERS.map((n,i)=>'<button class="t'+i+'" aria-pressed="'+(i===w._tier)+'" data-t="'+i+'">'+n+'</button>').join('')+'</div>';
+  const top=cb.querySelector('.wtop');top.appendChild(iconCanvas(w,melee?(w.id==='lash'?'whip':'1'):null));const tx=document.createElement('div');tx.innerHTML='<h3>'+w.name+'</h3><p>'+w.desc+'</p>';top.appendChild(tx);
+  cb.querySelector('.seg').onclick=e=>{const b=e.target.closest('button');if(!b)return;w._tier=+b.dataset.t;cb.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};
+  card.appendChild(c);card.appendChild(cb);return card;}
+function drawWeapons(k){const g=$('#wgrid');g.innerHTML='';LOOPS.length=0;(k==='m'?MELEE:RANGED).forEach(w=>g.appendChild(weaponCard(w,k==='m')));rebuildOthers();}
+$('#wkind').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#wkind').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));drawWeapons(b.dataset.k);};
+/* monsters */
+function curW(){return $('#wkind [aria-pressed="true"]').dataset.k;}
+/* chests */
+function chestCard(ch){const card=document.createElement('div');card.className='card';const c=canvasCard(300,190);const st={openAt:0};
+  const o=addLoop(c,chestScene(ch,st));c.style.cursor='pointer';
+  c.onclick=()=>{if(st.openAt){st.openAt=0;return;}st.openAt=(performance.now()-o.t0)/1000;setTimeout(()=>showReveal(ch),1500);};
+  const cb=document.createElement('div');cb.className='cb';cb.innerHTML='<h3>'+ch.n+'</h3><p>📍 '+ch.where+'</p>';card.appendChild(c);card.appendChild(cb);return card;}
+function showReveal(ch){$('#rv-title').textContent=ch.n;$('#rv-where').textContent='You got:';const ul=$('#rv-list');ul.innerHTML='';
+  ch.items.forEach((it,i)=>{const li=document.createElement('li');li.style.animationDelay=(i*.12)+'s';const ic=canvasCard(30,30);addLoop(ic,(g,t)=>itemIcon(g,it[0],15,15,1.1,t));li.appendChild(ic);li.appendChild(document.createTextNode(it[1]));ul.appendChild(li);});$('#reveal').hidden=false;}
+$('#rv-ok').onclick=()=>{$('#reveal').hidden=true;};
+/* everything that is not the weapon grid */
+function rebuildOthers(){
+  drawWorlds();drawBook();drawBosses();drawReview('mixed');
+  const cg=$('#cgrid');cg.innerHTML='';GCH.forEach(ch=>cg.appendChild(chestCard(ch)));
+  const mc=$('#mapc');sizeCanvas(mc,380,900);addLoop(mc,mapScene());
+  const sc=$('#starc');sizeCanvas(sc,340,180);addLoop(sc,starsScene());
+  const og=$('#ogrid');og.innerHTML='';OUTFITS.forEach(o=>{const card=document.createElement('div');card.className='card';const c=canvasCard(240,170);addLoop(c,(g,t,W,H)=>{sceneBg(g,W,H);ground(g,W,H,H-24);drawHero(g,W/2,H-24,2.2,t,o.look);});const cb=document.createElement('div');cb.className='cb';cb.innerHTML='<h3>'+o.n+'</h3><p>'+o.d+'</p>';card.appendChild(c);card.appendChild(cb);og.appendChild(card);});
+  const fc=$('#feelc');sizeCanvas(fc,340,200);addLoop(fc,feelScene());
+}
+$('#lowfx').onchange=e=>{LOWFX=e.target.checked;};
+/* control layout editor */
+const CTL=[['MOVE ◀',8,62,'#4a4380'],['▶',24,62,'#4a4380'],['SPARK',72,56,'#1e8a70'],['DASH',80,22,'#6a4a90'],['JUMP',87,58,'#c07a2a']];
+function layoutCtl(){const ph=$('#phone');ph.innerHTML='';const sz=+$('#csize').value/100,al=+$('#calpha').value/100;
+  CTL.forEach((c,i)=>{const d=document.createElement('div');d.className='ctl';d.textContent=c[0];const base=i===4?64:i===2?54:46;d.style.width=d.style.height=(base*sz)+'px';d.style.left=c[1]+'%';d.style.top=c[2]+'%';d.style.background=c[3];d.style.opacity=al;d.style.translate='-50% -50%';
+    d.onpointerdown=ev=>{d.setPointerCapture(ev.pointerId);const r=ph.getBoundingClientRect();d.onpointermove=e2=>{c[1]=clamp((e2.clientX-r.left)/r.width*100,5,95);c[2]=clamp((e2.clientY-r.top)/r.height*100,10,90);d.style.left=c[1]+'%';d.style.top=c[2]+'%';};d.onpointerup=()=>{d.onpointermove=null;};};ph.appendChild(d);});}
+$('#csize').oninput=layoutCtl;$('#calpha').oninput=layoutCtl;$('#creset').onclick=()=>{[[8,62],[24,62],[72,56],[80,22],[87,58]].forEach((p,i)=>{CTL[i][1]=p[0];CTL[i][2]=p[1];});$('#csize').value=100;$('#calpha').value=80;layoutCtl();};
+layoutCtl();
+/* ---------- worlds, stages, monster book, animation review, bosses ---------- */
+const ATKDESC={charge:'Paws the ground, then charges straight at you.',pounce:'Crouches low, then leaps onto you.',bite:'Rears back, then lunges in for a chomp.',tailwhip:'Turns around and swipes its tail.',spit:'Spits a glob that leaves a sticky puddle.',
+ breath:'Breathes a long stream at you. Jump over it.',beam:'Charges a glowing orb, then fires a beam.',quills:'Puffs up and fires a fan of spikes.',shockwave:'Jumps and slams the ground: the shockwave rolls toward you.',roll:'Curls into a ball and rolls at you.',
+ burrow:'Digs underground, tunnels to you and bursts up under your feet.',dive:'Rises up, then dives at you.',stingers:'Flies over you and drops stingers.',sonic:'Screeches sound waves that leave you dizzy.',tongue:'Shoots out a long tongue and pulls you in.',
+ ink:'Bursts a cloud that blinds you for a moment.',split:'Splits into two little copies that hop at you.',blink:'Vanishes, appears behind you and strikes.',zap:'Crackles with power, then zaps you with lightning.',spore:'Puffs a drifting spore cloud that makes you dizzy.',
+ boulder:'Lifts a rock over its head and throws it.',crystal:'Stomps and makes crystal spikes burst out of the ground.',whirl:'Spins into a whirlwind and spins through you.',claw:'Rears up and slashes you with its claws.',feathers:'Shoots a quick volley of darts.',
+ bubble:'Blows wobbly bubbles that pop on you.',lure:'Glows to hypnotise you, then snaps when you come close.',icicle:'Makes icicles fall from above. Watch their shadows.',vine:'Grows vines under you that hold you in place.',bounce:'Jumps sky high and lands right on top of you.'};
+const BODYN={quad:'walks on four legs',stout:'waddles',tall:'stalks on long legs',blob:'jiggles and hops',fly:'flies',hover:'floats',snake:'slithers',swim:'swims',crawl:'skitters',shell:'plods',plant:'sways in place',roll:'rolls about',toy:'springs about'};
+const GROUPS=[['mixed','Wild'],['shapes','Shapes'],['beasts','Beasts'],['sea','Sea'],['forest','Forest'],['reptile','Reptiles'],['sky','Sky']];
+function stageLabel(n){return Math.floor((n-1)/5)+1+'-'+((n-1)%5+1);}
+function thumb(m,badge){return '<img alt="" src="mon/'+m.id+'.webp">'+(badge?'<i>'+badge+'</i>':'');}
+function sceneLoop(c,S){let last=null;return addLoop(c,(g,t,W,H)=>{const dt=last==null?1/60:Math.min(.05,t-last);last=t;S.update(dt);S.render(g,t);if(S.bossBar){const a=S.bossBar;g.fillStyle='rgba(10,8,30,.75)';g.beginPath();g.roundRect(W*.18,8,W*.64,12,6);g.fill();g.fillStyle='#ff4a5a';g.beginPath();g.roundRect(W*.18+2,10,(W*.64-4)*(.55+.45*Math.cos(t*.4)**2),8,4);g.fill();g.font='800 10px Nunito,system-ui';g.fillStyle='#fff';g.textAlign='center';g.fillText(a.m.name,W/2,32);}});}
+function duelScene(m,W,H,role){const S=new Scene(W,H,homeTheme(m),PLAN.unlock[m.id]||3);const a=new Actor(m,S,{x:W*.7,h:role==='boss'?H*.56:H*.4,delay:.8,role});S.actors.push(a);if(role==='boss')S.bossBar=a;return S;}
+function removeLoops(arr){for(const o of arr){const i=LOOPS.indexOf(o);if(i>=0)LOOPS.splice(i,1);}arr.length=0;}
+let MOLOOPS=[];
+function openMo(html,setup){removeLoops(MOLOOPS);$('#mo-b').innerHTML=html;$('#mo').hidden=false;if(setup)setup();}
+function closeMo(){$('#mo').hidden=true;removeLoops(MOLOOPS);}
+function monRow(m,tag){return '<div>'+thumb(m)+'<span><b>'+m.name+'</b> '+(tag||'')+'<br><b style="font-size:12px;color:#ffd35c">'+m.an+'</b>: '+ATKDESC[m.atk]+'</span></div>';}
+function stageModal(st){const w=worldOf(st.world);
+  openMo('<canvas id="sv"></canvas><div class="ml"><b style="font-size:18px">'+stageLabel(st.n)+' · '+st.name+'</b><p class="note" style="margin:0">'+w.name+' ('+w.where+') · '+st.total+' monsters in this stage</p>'+
+    st.neu.map(m=>monRow(m,'🆕 New')).join('')+(st.elite?monRow(st.elite,'⭐ Elite (glows gold, a bit tougher)'):'')+(st.boss?monRow(st.boss,'Boss'):'')+
+    (st.surprise?'<p class="note" style="margin:4px 0 0">Surprise encounter: an elite '+st.surprise.name+' may show up here.</p>':'')+'</div>',
+    ()=>{const c=$('#sv');sizeCanvas(c,560,250);const S=new Scene(560,250,w.theme,st.n);S.hero.x=60;
+      let list=[...st.neu];if(st.elite)list.push(st.elite);if(st.boss)list=[st.boss];const extra=st.seen.filter(m=>!list.includes(m)).slice(-2);if(!st.boss)list=list.concat(extra).slice(0,4);
+      list.forEach((m,i)=>{const boss=st.boss===m,el=st.elite===m;S.actors.push(new Actor(m,S,{x:boss?400:200+i*95,h:boss?135:el?92:70,delay:.8+i*1.7,calm:true,role:boss?'boss':el?'elite':''}));});
+      if(st.boss)S.bossBar=S.actors[0];MOLOOPS.push(sceneLoop(c,S));});}
+function duelModal(m){const n=PLAN.unlock[m.id],st=PLAN.stages[n-1],role=PLAN.role[m.id]||'';
+  openMo('<canvas id="bv"></canvas><div class="ml"><b style="font-size:20px">'+m.name+(role?' <span class="tag">'+(role==='boss'?'Boss':'Elite')+'</span>':'')+'</b>'+monRow(m)+'<div><span>It '+BODYN[m.body]+'. First met: stage '+stageLabel(n)+', '+st.name+' ('+worldOf(st.world).name+')</span></div></div>',
+    ()=>{const c=$('#bv');sizeCanvas(c,560,250);MOLOOPS.push(sceneLoop(c,duelScene(m,560,250,role)));});}
+function drawWorlds(){const L=$('#wlist');L.innerHTML='';
+  for(let k=0;k<PLACES.length;k++){const w=worldOf(k),T=THEMES[w.theme];const card=document.createElement('div');card.className='card';const c=canvasCard(340,150);
+    const boss=PLAN.stages[k*5+4].boss;const fake={gy:120,H:150,heroPt(){return {x:0,y:90};},add(){},later(){},draw2(){},proj:[]};const a=boss?new Actor(boss,fake,{x:250,h:78,attacks:false}):null;let last=null;
+    addLoop(c,(g,t,W,H)=>{const dt=last==null?1/60:Math.min(.05,t-last);last=t;fake.gy=paintWorld(g,W,H,w.theme,t,k*5+1);if(a){a.update(dt);a.drawShadow(g);a.draw(g);}g.font='900 15px "Baloo 2",Nunito';g.fillStyle='#fff';g.textAlign='left';g.fillText('World '+(k+1),10,20);});
+    const cb=document.createElement('div');cb.className='cb';cb.innerHTML='<h3>'+w.name+'</h3><p>📍 '+w.where+' · Hazards: '+T.haz.join(', ')+'</p>';
+    const list=document.createElement('div');list.style.marginTop='6px';
+    for(let s=0;s<5;s++){const st=PLAN.stages[k*5+s];const b=document.createElement('button');b.className='st';
+      b.innerHTML='<b>'+stageLabel(st.n)+'</b><span>'+st.name+(s===2?' ⭐':'')+(s===4?' · Boss':'')+'</span>'+st.neu.map(m=>thumb(m,'NEW')).join('')+(st.elite?thumb(st.elite,'⭐'):'')+(st.boss?thumb(st.boss,'BOSS'):'');
+      b.onclick=()=>stageModal(st);list.appendChild(b);}
+    cb.appendChild(list);card.appendChild(c);card.appendChild(cb);L.appendChild(card);}
+  $('#remix').innerHTML='After the 30 real places, worlds come back as new twists, e.g. <b>'+[30,31,32,45,61].map(k=>worldOf(k).name).join('</b>, <b>')+'</b>, with fresh layouts. New monsters you give me join from there. All '+PLAN.usedCount+' of your monsters are placed in the first 150 stages, so no stage repeats a "new" monster.';}
+function drawBook(){const reached=3;const g=$('#bkgrid');const order=MONS.slice().sort((a,b)=>(PLAN.unlock[a.id]||999)-(PLAN.unlock[b.id]||999));let found=0;
+  g.innerHTML=order.map(m=>{const u=PLAN.unlock[m.id]||999,ok=u<=reached;if(ok)found++;const w=u<999?worldOf(PLAN.stages[u-1].world):null;
+    return '<button class="'+(ok?'':'lk')+'" data-id="'+m.id+'"><img alt="" loading="lazy" src="mon/'+m.id+'.webp"><b>'+m.name+'</b><small>'+(ok?m.an:'🔒 '+(w?w.name:'Later'))+'</small></button>';}).join('');
+  $('#bk-c').textContent='Example: a player who has reached stage 1-3 has met '+found+' of '+MONS.length+' monsters. Tap a met monster to watch it.';}
+$('#bkgrid').onclick=e=>{const b=e.target.closest('button');if(!b||b.classList.contains('lk'))return;duelModal(CATBY[b.dataset.id]);};
+let RVLOOPS=[];
+function drawReview(grp){removeLoops(RVLOOPS);const g=$('#rvgrid');g.innerHTML='';
+  CAT.filter(m=>m.hab===grp).forEach(m=>{const card=document.createElement('div');card.className='card';const c=canvasCard(340,190);const role=PLAN.role[m.id]||'';
+    RVLOOPS.push(sceneLoop(c,duelScene(m,340,190,role)));const cb=document.createElement('div');cb.className='cb';
+    cb.innerHTML='<h3>'+m.name+(role?' <span class="tag">'+(role==='boss'?'Boss':'Elite')+'</span>':'')+'</h3><p><b style="color:#ffd35c">'+m.an+'</b>: '+ATKDESC[m.atk]+'</p><p>It '+BODYN[m.body]+'.</p>';
+    card.appendChild(c);card.appendChild(cb);g.appendChild(card);});}
+$('#rvchips').innerHTML=GROUPS.map((x,i)=>'<button aria-pressed="'+(i===0)+'" data-g="'+x[0]+'">'+x[1]+' ('+CAT.filter(m=>m.hab===x[0]).length+')</button>').join('');
+$('#rvchips').onclick=e=>{const b=e.target.closest('button');if(!b)return;$('#rvchips').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));drawReview(b.dataset.g);};
+function drawBosses(){const g=$('#bgrid');g.innerHTML='';for(let k=0;k<12;k++){const st=PLAN.stages[k*5+4],m=st.boss;if(!m)continue;const w=worldOf(k);const card=document.createElement('div');card.className='card';const c=canvasCard(320,220);
+  sceneLoop(c,duelScene(m,320,220,'boss'));
+  const cb=document.createElement('div');cb.className='cb';cb.innerHTML='<h3>'+m.name+' <span class="tag">'+w.name+'</span></h3><p><b style="color:#ffd35c">'+m.an+'</b>: '+ATKDESC[m.atk]+' As a boss it is bigger, attacks faster and calls in helpers at half health.</p>';card.appendChild(c);card.appendChild(cb);g.appendChild(card);}}
+drawWeapons('m');
+tabs.firstChild.click();
+</script>
+</body></html>

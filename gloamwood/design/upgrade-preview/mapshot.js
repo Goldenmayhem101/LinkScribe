@@ -1,0 +1,2 @@
+const {chromium}=require('playwright');(async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:390,height:844}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8799/gloamwood-upgrade.html');await p.waitForTimeout(2500);const n=await p.$$eval('#tabs button',x=>x.map(b=>b.textContent));const i=n.findIndex(t=>t.includes('map'));await p.click(`#tabs button:nth-child(${i+1})`);await p.waitForTimeout(1200);await p.screenshot({path:'map.png'});console.log(errs);await b.close();})();
