@@ -1,0 +1,8 @@
+Ludora 1.4 (versionCode 5) - What's new (paste into Play Console release notes, 500 characters max):
+
+• Clear "YOUR TURN" marker, and every player's turn is named
+• Countdown around your picture: if time runs out, Ludora plays for you
+• "Roll again!" message after a 6
+• New computer levels: Hard and Expert
+• Settings: Rate, Share, Send feedback, Replay tutorial, Fair play
+• Short home tour for new players

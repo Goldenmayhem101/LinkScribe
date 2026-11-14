@@ -17,8 +17,8 @@ android {
         applicationId = "com.goldenmayhem.ludoradice"   // the package name you type in Google Play Console
         minSdk = 26
         targetSdk = 36                                 // Android 16, required by Google Play
-        versionCode = 4                                // raise by 1 for every upload to Google Play
-        versionName = "1.3"
+        versionCode = 5                                // raise by 1 for every upload to Google Play
+        versionName = "1.4"
         manifestPlaceholders["admobAppId"] = admobAppId
     }
 

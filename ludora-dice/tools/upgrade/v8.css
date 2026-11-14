@@ -1,0 +1,48 @@
+/* ===================== v1.4 ===================== */
+/* whose turn */
+.seat{position:relative}
+.seat .who{position:relative}
+.seat .tbadge{display:none!important}
+.tp8{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:6;white-space:nowrap;font-weight:900;font-size:12px;letter-spacing:.03em;padding:3px 10px;border-radius:999px;color:#fff;background:var(--sc,#2F86FF);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);pointer-events:none}
+.tp8.you{font-size:12.5px;padding:3px 11px;background:linear-gradient(#6af07a,#1e9e34);animation:tp8 1s ease-in-out infinite}
+@keyframes tp8{50%{scale:1.1}}
+.arr8{position:fixed;z-index:40;translate:-50% -100%;display:flex;flex-direction:column;align-items:center;pointer-events:none;animation:arr8 .9s ease-in-out infinite}
+.arr8 span{font-weight:900;font-size:12px;color:#fff;background:#1e9e34;border:2px solid #fff;border-radius:999px;padding:2px 9px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.arr8 i{width:0;height:0;border:12px solid transparent;border-top:16px solid #ffd35c;border-bottom:0;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.arr8[hidden]{display:none}
+@keyframes arr8{50%{translate:-50% calc(-100% - 8px)}}
+/* timer you can't miss */
+
+
+@keyframes hur8{50%{scale:1.12}}
+/* roll again */
+.ra8{position:fixed;z-index:41;translate:-50% -100%;font-weight:900;font-size:15px;color:#5a3000;background:linear-gradient(#ffe066,#f5a40e);border:2.5px solid #fff;border-radius:999px;padding:4px 14px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.35);pointer-events:none;animation:ra8 1.9s ease-out forwards}
+@keyframes ra8{0%{scale:.3;opacity:0}15%{scale:1.15;opacity:1}25%{scale:1}80%{opacity:1;translate:-50% -100%}100%{opacity:0;translate:-50% -150%}}
+/* settings extras */
+.grid8{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.grid8 button{display:flex;align-items:center;gap:8px;border:2px solid var(--l7,#1c1d2b);border-radius:14px;background:#fff;color:#1c1d2b;font-weight:800;font-size:13.5px;padding:10px;cursor:pointer;text-align:left}
+.grid8 button i{font-style:normal;font-size:18px}
+.grid8 .wide{grid-column:1/-1}
+.fair8 div{background:#fff6e0;border:2px solid #e7d3a5;border-radius:14px;padding:8px 12px;margin-bottom:8px;text-align:left}
+.fair8 b{display:block;font-size:15px}.fair8 p{margin:3px 0 0;font-size:13px}
+.mail8{font-size:16px;word-break:break-all}
+.lv8[hidden]{display:none}
+/* home tour */
+.tour8{position:fixed;inset:0;z-index:90}
+.hole8{position:fixed;border-radius:20px;box-shadow:0 0 0 9999px rgba(10,8,30,.72);border:3px solid #ffd35c;transition:all .3s ease;pointer-events:none}
+.tip8{position:fixed;left:16px;right:16px;max-width:420px;margin:0 auto;background:#fff;color:#1c1d2b;border:2px solid #1c1d2b;border-radius:18px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.tip8 b{display:block;font-size:18px}.tip8 p{margin:4px 0 10px;font-size:14px;line-height:1.35}
+.row8{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.row8 button{border:2px solid #1c1d2b;border-radius:12px;background:#fff;font-weight:900;font-size:14px;padding:7px 14px;cursor:pointer}
+.row8 button.go{background:linear-gradient(#6af07a,#1e9e34);color:#fff}
+.dots8{font-weight:800;font-size:12px;color:#5a5f78}
+@media (prefers-reduced-motion:reduce){.tp8.you,.arr8,.seat.hurry8 .tring,.seat.hurry8 .tbadge{animation:none}}
+/* countdown drawn around the player's own frame (replaces the thin circle) */
+.seat .tring{display:none!important}
+.tf8{position:absolute;inset:-7px;width:calc(100% + 14px);height:calc(100% + 14px);z-index:4;pointer-events:none;opacity:0;transition:opacity .2s}
+.av.tm8 .tf8{opacity:1}
+.tf8 rect{fill:none;stroke-width:7;stroke-linecap:round}
+.tf8 .bg{stroke:rgba(0,0,0,.35)}
+.tf8 .fg{stroke:#3be05a;stroke-dasharray:100 100;transition:stroke-dashoffset .1s linear,stroke .3s;filter:drop-shadow(0 0 3px rgba(255,255,255,.6))}
+.tn8{position:absolute;inset:7px;z-index:5;display:none;place-items:center;font-style:normal;font-family:var(--font-display);font-weight:900;font-size:34px;color:#fff;background:rgba(200,20,30,.55);border-radius:12%;text-shadow:0 2px 3px rgba(0,0,0,.6);pointer-events:none}
+.av.tm8 .tn8:not(:empty){display:grid;animation:hur8 .5s ease-in-out infinite}

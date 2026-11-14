@@ -1,0 +1,103 @@
+LUDORA 1.4: PLAY STORE TEXT + PRODUCTION ACCESS ANSWERS
+=========================================================
+Paste these into Play Console yourself (browser chat can help you find the fields).
+
+-------------------------------------------------
+A) STORE LISTING (Main store listing)
+-------------------------------------------------
+App name (30 max):
+Ludora: Fair Play Dice Game
+
+Short description (80 max):
+Classic ludo dice board game. Play online, vs computer or with friends offline.
+
+Full description (4000 max):
+Roll the dice, race your four pawns home and bump your rivals back to start! Ludora is the classic ludo board game with a clean, colourful look and fair play built in.
+
+PLAY YOUR WAY
+• Online: quick matches with 2 or 4 players, winner takes all
+• Vs Computer: four levels, from Easy to Expert. Expert never wastes a move
+• Team 2 vs 2: team up online or with friends using a room code
+• Pass & Play: 2 to 4 players on one phone, no internet needed
+• Play offline against the computer anywhere
+
+FAIR PLAY, ALWAYS
+• Every dice roll is random, for you and for the computer
+• Harder computer levels only make smarter moves, they never get better dice
+• No real money and nothing to buy. Coins and diamonds are game coins you earn by playing
+• No pop-up ads. Videos only play when you choose to watch one for a reward
+
+EASY TO LEARN
+• Your first game teaches you as you play
+• A short home tour shows you around, and you can replay it any time in Settings
+• Big "YOUR TURN" marker, a countdown around your picture, and auto play if you step away
+• Roll a 6 and Ludora tells you to roll again
+
+COLLECT AND CUSTOMISE
+• Win chests: Iron, Silver, Gold and the rare Crystal chest
+• Unlock boards, pawns, dice, frames and reactions with game coins
+• Pick your colour, picture, frame and country flag
+• Daily rewards, a free season pass and weekly events
+
+Ludora is a ludo dice game for families, friends and board game fans of all ages. 2 to 4 players, quick games, easy rules.
+
+Questions or ideas? Settings > Send feedback, or write to thegoldenmayhem.games@gmail.com
+
+Made by Goldenmayhem.
+
+(Keywords used naturally above: ludo, dice game, board game, offline, online, 2 to 4 players, vs computer, pass and play, family game. Do not add a keyword list; Google treats that as spam.)
+
+-------------------------------------------------
+B) WHAT'S NEW (release notes for 1.4)
+-------------------------------------------------
+• Clear "YOUR TURN" marker, and every player's turn is named
+• Countdown around your picture: if time runs out, Ludora plays for you
+• "Roll again!" message after a 6
+• New computer levels: Hard and Expert
+• Settings: Rate, Share, Send feedback, Replay tutorial, Fair play
+• Short home tour for new players
+
+-------------------------------------------------
+C) PRODUCTION ACCESS QUESTIONNAIRE: HONEST ANSWERS
+-------------------------------------------------
+The tester company's sample answers claimed things that were not true (surveys, in-app forms, "seven game modes", and features that were not built yet). These answers only say what really happened. If something does not match what you did, change it before you send.
+
+1) How did you recruit users for your closed test?
+We used a paid testing provider (Testers Community) so that real people on different Android phones used the app every day for 14 days. [Only add this if true: "We also shared the test link with friends and family who play board games."]
+
+2) How easy was it to recruit testers?
+Easy (we used a testing provider).
+
+3) Describe the engagement you received from testers.
+Testers opened and played the app throughout the 14 days on a range of devices. They reported no crashes or bugs. They sent written suggestions about first-time guidance, the store listing, and ways to rate, share and give feedback.
+
+4) Summary of the feedback, and how you collected it.
+We collected the feedback through the testing provider's written report at the end of the test. Testers found no crashes or bugs. Their suggestions:
+• a guided walkthrough for new players, with a way to replay it
+• a better store description
+• a "Rate" button and a "Share" option
+• a way to send feedback from inside the app
+• clear information on how the game stays fair
+
+5) Who is the intended audience?
+Casual players, families and friends who enjoy classic board games like ludo. The app suits all ages: it has no real-money features, no purchases, and only optional rewarded videos.
+
+6) How does your app provide value?
+Ludora is a free, fair version of the classic ludo dice game. You can play online with 2 or 4 players, against the computer at four difficulty levels, in teams of 2 vs 2, or pass one phone around offline. Every roll is random, the computer never cheats, and there is nothing to buy. Ads only play when the player chooses a video for a reward.
+
+7) How many installs do you expect in the first year?
+[Choose yourself. A careful choice for a new studio is 1K - 10K.]
+
+8) What changes did you make based on the closed test?
+In version 1.4 we added:
+• a short home tour for new players that can be replayed from Settings, plus the existing teach-as-you-play first game
+• Rate, Share and Send feedback buttons in Settings (feedback opens an email to our studio address)
+• a Fair play page that explains how dice and the computer work
+• a rewritten store description
+We also used the test to improve play: a clear "YOUR TURN" marker, a visible countdown with auto play when time runs out, a "Roll again" message after a 6, and two new harder computer levels.
+
+9) How did you decide your app is ready for production?
+The 14-day test found no crashes or bugs on testers' devices. We made the changes testers asked for, and before release we tested full games in every mode, including online play, coin rewards and chests.
+
+10) What did you do differently this time?
+We used a testing provider to get feedback from people outside our circle. Before building, we checked every suggestion and only described features that are really in the app.
