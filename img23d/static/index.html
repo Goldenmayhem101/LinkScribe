@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image to 3D Batch</title>
+<script type="module" src="https://cdnjs.cloudflare.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1c1f24; --muted:#6b7280; --accent:#4f46e5; --border:#e3e5e9; --bad:#dc2626; --ok:#16a34a; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#14161a; --card:#1d2025; --text:#e8eaed; --muted:#9aa0a8; --border:#2c3037; } }
+  * { box-sizing:border-box } body { margin:0; font:15px system-ui,sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:22px; margin:0 0 4px } p.sub { color:var(--muted); margin:0 0 20px }
+  #drop { border:2px dashed var(--border); border-radius:12px; padding:36px 16px; text-align:center; background:var(--card); cursor:pointer; }
+  #drop.over { border-color:var(--accent); } #drop b { color:var(--accent) }
+  .bar { display:flex; gap:12px; align-items:center; margin:20px 0 12px; flex-wrap:wrap }
+  .bar span { color:var(--muted); flex:1 }
+  button { background:var(--accent); color:#fff; border:0; border-radius:8px; padding:8px 14px; font:inherit; cursor:pointer }
+  button.ghost { background:transparent; color:var(--text); border:1px solid var(--border) }
+  button:disabled { opacity:.45; cursor:default }
+  #grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; display:flex; flex-direction:column }
+  .view { height:220px; background:var(--bg); display:flex; align-items:center; justify-content:center; position:relative }
+  .view img { max-width:100%; max-height:100%; object-fit:contain; opacity:.6 }
+  model-viewer { width:100%; height:100%; --poster-color:transparent }
+  .meta { padding:10px 12px; display:flex; flex-direction:column; gap:6px }
+  .name { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .status { font-size:13px; color:var(--muted) } .status.done { color:var(--ok) } .status.failed { color:var(--bad) }
+  .row { display:flex; gap:6px } .row button { padding:5px 10px; font-size:13px }
+</style>
+</head>
+<body>
+<main>
+  <h1>Image → 3D Batch</h1>
+  <p class="sub">Drop as many images as you like. Each becomes a 3D model (.glb) you can preview and download.</p>
+  <div id="drop"><b>Click to choose</b> or drag images here
+    <input id="file" type="file" accept="image/*" multiple hidden></div>
+  <div class="bar"><span id="summary">No images yet</span>
+    <button class="ghost" id="clear">Clear finished</button>
+    <button id="zip" disabled>Download all (.zip)</button></div>
+  <div id="grid"></div>
+</main>
+<script>
+const $ = s => document.querySelector(s), drop = $('#drop'), file = $('#file'), grid = $('#grid');
+drop.onclick = () => file.click();
+file.onchange = () => upload(file.files);
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => upload(ev.dataTransfer.files));
+$('#zip').onclick = () => location.href = '/api/download.zip';
+$('#clear').onclick = async () => { for (const j of jobs) if (j.status === 'done' || j.status === 'failed') await fetch('/api/jobs/' + j.id, {method:'DELETE'}); poll(); };
+
+async function upload(files) {
+  const BATCH = 10;                       // upload in chunks so big batches stay reliable
+  const list = [...files];
+  for (let i = 0; i < list.length; i += BATCH) {
+    const fd = new FormData();
+    list.slice(i, i + BATCH).forEach(f => fd.append('files', f));
+    await fetch('/api/upload', {method:'POST', body:fd});
+    poll();
+  }
+  file.value = '';
+}
+
+let jobs = [], built = {};
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+
+function render() {
+  const ids = new Set(jobs.map(j => j.id));
+  for (const id in built) if (!ids.has(id)) { built[id].card.remove(); delete built[id]; }
+  for (const j of jobs) {
+    let b = built[j.id];
+    if (!b) {
+      const card = el('div','card'), view = el('div','view'), meta = el('div','meta');
+      const img = el('img'); img.src = `/api/jobs/${j.id}/input`; view.append(img);
+      const name = el('div','name', j.name), status = el('div','status'), row = el('div','row');
+      meta.append(name, status, row); card.append(view, meta); grid.append(card);
+      b = built[j.id] = {card, view, status, row, shown:null};
+    }
+    b.status.textContent = j.status + (j.error ? ': ' + j.error : '');
+    b.status.className = 'status ' + j.status;
+    if (b.shown !== j.status) {
+      b.shown = j.status; b.row.replaceChildren();
+      if (j.status === 'done') {
+        const mv = document.createElement('model-viewer');
+        mv.src = `/api/jobs/${j.id}/model.glb`; mv.setAttribute('camera-controls',''); mv.setAttribute('auto-rotate','');
+        mv.setAttribute('shadow-intensity','1'); b.view.replaceChildren(mv);
+        const dl = el('button','', 'Download .glb'); dl.onclick = () => location.href = mv.src; b.row.append(dl);
+      }
+      if (j.status === 'failed') { const r = el('button','','Retry'); r.onclick = async () => { await fetch(`/api/jobs/${j.id}/retry`, {method:'POST'}); poll(); }; b.row.append(r); }
+      if (j.status !== 'processing' && j.status !== 'loading model') {
+        const d = el('button','ghost','Remove'); d.onclick = async () => { await fetch('/api/jobs/' + j.id, {method:'DELETE'}); poll(); }; b.row.append(d);
+      }
+    }
+  }
+  const done = jobs.filter(j => j.status === 'done').length, failed = jobs.filter(j => j.status === 'failed').length;
+  $('#summary').textContent = jobs.length ? `${done} of ${jobs.length} done` + (failed ? `, ${failed} failed` : '') : 'No images yet';
+  $('#zip').disabled = !done;
+}
+async function poll() { try { jobs = await (await fetch('/api/jobs')).json(); render(); } catch (e) {} }
+setInterval(poll, 1500); poll();
+</script>
+</body>
+</html>
