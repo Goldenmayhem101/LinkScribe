@@ -1,6 +1,17 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.4 (versionCode 5)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.5 (versionCode 6)
+
+## What's new in 1.5
+- New deep look: deep blue home with a dot pattern, chunky 3D buttons (shiny top, thick bottom edge, shadow), chunky white lettering with a dark outline, white 3D pop-ups on top
+- Original illustrated art (made in ChatGPT, cut out in `tools/ui-art/`), in `app/src/main/assets/ui/`:
+  - `av/`: 24 new profile pictures (also the faces of Ruby, Mint, Sunny and Blu)
+  - `sc/`: mode card scenes (Online, Vs Computer, Team 2 vs 2, Pass & Play), fully inside each card
+  - `ic/`: coins, diamonds, gift, star, trophy, gear, dice, 6 chests, shop, ticket, calendar, medal, clover, video and more
+  - `fx/`: win, team win, "try again" and open-chest pictures
+- Home: smaller top bar; Daily / Season / Events banners with the icon beside the words; small Lucky, Free and Medals buttons; new bottom bar (Store, Pass, Home, Events, Daily)
+- Dice: the roll is about twice as fast (about 0.45 s instead of 0.85 s), and the turn moves on sooner after a roll
+- Dice dots: dark dots on the plain coloured dice and on the Berry, Sundown, Reef and Prism styles (re-rendered in `dice/`)
 
 ## What's new in 1.4
 - Turn marker: the active player's name tag turns into a pill ("YOUR TURN", "MOVE A PAWN", "Ruby's turn"); a yellow arrow bounces over your dice when it is your roll

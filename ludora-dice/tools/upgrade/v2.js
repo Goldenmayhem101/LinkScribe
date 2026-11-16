@@ -26,7 +26,7 @@ function d3url(id,col){
   D3URL[key]=d3img(id).then(function(im){
     var c=document.createElement('canvas');c.width=im.width;c.height=im.height;var x=c.getContext('2d');x.drawImage(im,0,0);
     var d=x.getImageData(0,0,c.width,c.height),a=d.data,t=rgbOf(col),glass=id==='glass';
-    var bt=glass?t.map(function(v){return v*.4+255*.6;}):t,pc=glass?t:[255,255,255];
+    var bt=glass?t.map(function(v){return v*.4+255*.6;}):t,pc=glass?t:[24,16,70];
     for(var i=0;i<a.length;i+=4){
       if(!a[i+3])continue;
       var r=a[i],g=a[i+1],b=a[i+2],k=Math.max(0,Math.min(1,(g-Math.max(r,b))/200)),gray=Math.min(1,(r+b)/2/255/Math.max(.05,1-k)),sh=Math.min(1.08,gray/.9),hl=Math.max(0,(gray-.975)/.025);
@@ -52,9 +52,9 @@ animateDie=async function(v,gid,seat){
   moveDie(seat);
   if(!dieEl.classList.contains('has3d'))return V2.animateDie(v,gid,seat);
   dieEl.classList.remove('land');void dieEl.offsetWidth;dieEl.classList.add('tumble');
-  for(var k=0;k<12;k++){d3frame(k);if(k%3===0)sfx.tick();await wait(48);if(gid!==S.gid){dieEl.classList.remove('tumble');return;}}
+  for(var k=0;k<12;k++){d3frame(k);if(k%3===0)sfx.tick();await wait(26);if(gid!==S.gid){dieEl.classList.remove('tumble');return;}}
   dieEl.classList.remove('tumble');setDie(v);void dieEl.offsetWidth;dieEl.classList.add('land');
-  if(v===6)sixFx(seat);await wait(260);
+  if(v===6)sixFx(seat);await wait(150);
 };
 d3skin(String(curItem('die').id),SEATHEX[3]);setDie(0);
 
@@ -98,7 +98,7 @@ var FACE=[
   {bg:'#2FD34E',skin:'#e7b58f',hair:'#1f6e3c',st:'beanie'},
   {bg:'#FFC82A',skin:'#f8d6b4',hair:'#e39a12',st:'bun'},
   {bg:'#2F86FF',skin:'#c9906a',hair:'#1a3f9a',st:'cap'}];
-function faceSvg(k,big){
+function faceSvg(k,big){if(window.__avImg)return window.__avImg([7,3,1,6][k]!=null?[7,3,1,6][k]:k).replace('<svg ','<svg class="face" ');
   var f=FACE[k%4],h=f.hair,sk=f.skin,o='<svg class="face" viewBox="0 0 64 64" aria-hidden="true"><defs><radialGradient id="fb'+k+(big?'b':'')+'" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="'+f.bg+'"/></radialGradient></defs>';
   o+='<rect width="64" height="64" fill="url(#fb'+k+(big?'b':'')+')"/>';
   if(f.st==='bob')o+='<path d="M14 40c-2-18 6-28 18-28s20 10 18 28c-4 4-8 6-8 6H22s-4-2-8-6z" fill="'+h+'"/>';

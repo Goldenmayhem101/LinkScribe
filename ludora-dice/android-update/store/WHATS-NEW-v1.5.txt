@@ -1,0 +1,8 @@
+Ludora 1.5 (versionCode 6) - What's new (paste into Play Console release notes, 500 characters max):
+
+• A brand-new look: deep blue home with chunky 3D buttons
+• New illustrated players, game modes, chests and rewards
+• Daily, Season and Events right at the top, plus a new bottom bar
+• Win and team-win celebrations
+• Dice roll twice as fast
+• Dice dots are now dark and easy to read

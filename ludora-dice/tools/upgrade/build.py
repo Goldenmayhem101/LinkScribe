@@ -20,6 +20,9 @@ rep("se('circle',{cx:cx,cy:cy,r:.55,fill:TH?", "se('circle',{cx:cx,cy:cy,r:.8,fi
 
 # entry fee + prize pool wording (no "bet")
 rep('<h3>Entry bet</h3>', '<h3>Entry fee</h3>')
+# 1.5: snappier turns after a roll
+rep("await wait(pl.bot?800:550);if(gid!==S.gid)return;", "await wait(pl.bot?560:380);if(gid!==S.gid)return;")
+rep("await wait(1300);if(gid!==S.gid)return;nextTurn();return;", "await wait(950);if(gid!==S.gid)return;nextTurn();return;")
 rep("$('#su-prize').textContent=wStake?('You pay '+nf(wStake)+' to enter. Win and you get '+nf(prize)+' coins. Balance: '+nf(set.coins)+'.'):('Free game, no coins at stake. Balance: '+nf(set.coins)+'.');",
     "$('#su-prize').textContent=wStake?('Entry fee: '+nf(wStake)+' coins. Prize pool: '+nf(prize)+' coins for 1st place'+(team?' (your team)':'')+'. Game coins only, never real money. Balance: '+nf(set.coins)+'.'):('Free game, no entry fee. Balance: '+nf(set.coins)+'.');")
 rep("$('#x-text').textContent+=prize>S.stake?(' You won '+nf(prize)+' coins!'):(prize?(' Your bet of '+nf(S.stake)+' coins is returned.'):(' You lost your bet of '+nf(S.stake)+' coins.'));",
@@ -50,7 +53,7 @@ rep("    else if(!S.team&&sec&&sideMine(sec.seat))prize=S.stake;\n", "")
 
 # inject CSS + JS
 css = open(os.path.join(D, 'v2.css'), encoding='utf-8').read()
-for _f in ('v7.css','v8.css'):
+for _f in ('v7.css','v8.css','v9.css'):
     if os.path.exists(os.path.join(D, _f)):
         css += '\n' + open(os.path.join(D, _f), encoding='utf-8').read()
 i = s.index('</style>')
@@ -64,7 +67,7 @@ if os.path.exists(os.path.join(D, 'v5.js')):
     js += '\n' + open(os.path.join(D, 'v5.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v6.js')):
     js += '\n' + open(os.path.join(D, 'v6.js'), encoding='utf-8').read()
-for _f in ('v7.js','v8.js'):
+for _f in ('v7.js','v8.js','v9.js'):
     if os.path.exists(os.path.join(D, _f)):
         js += '\n' + open(os.path.join(D, _f), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):

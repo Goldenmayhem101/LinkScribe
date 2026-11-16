@@ -169,8 +169,10 @@ function svgUrl(svg){return 'url("data:image/svg+xml,'+encodeURIComponent(svg)+'
 document.body.classList.add('lt7');
 
 /* ---------- profile picture: people, blank, or own photo ---------- */
-if(set.av==null)set.av='h'+Math.floor(Math.random()*PEOPLE.length);
-function avSvg(id){id=id||set.av;if(id==='blank')return BLANK;var k=+String(id).slice(1);return person(PEOPLE[k]||PEOPLE[0]);}
+var NAV=24;function avImg(k){k=Math.max(0,Math.min(NAV-1,+k||0));return '<svg viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" fill="#8fd0ff"/><image href="ui/av/p'+(k<10?'0':'')+k+'.webp" x="0" y="2" width="100" height="100" preserveAspectRatio="xMidYMin slice"/></svg>';}
+window.__avImg=avImg;
+if(set.av==null||(+String(set.av).slice(1))>=NAV)set.av='h'+Math.floor(Math.random()*NAV);
+function avSvg(id){id=id||set.av;if(id==='blank')return BLANK;var k=+String(id).slice(1);return avImg(k);}
 function myPicHtml(){return set.photo?'<img alt="" class="photo" src="'+set.photo+'">':avSvg();}
 var BOTAV=[7,13,9,2];
 V7.avSvg=avSvg;
@@ -592,7 +594,7 @@ function profHtml(){
   var L2=window.__ludoraV2&&window.__ludoraV2.lvl?window.__ludoraV2.lvl():{l:1,xp:0,need:300};
   var st=set.st||{},g=+st.g||0,w=+st.w||0;
   var h='<div class="p7head"><div class="fr7 p7pic"></div><div class="p7who"><input class="p7name" maxlength="12" aria-label="Your name"><div class="p7lv">Level '+L2.l+' · '+L2.xp+' / '+L2.need+' XP</div><div class="p7xp"><i style="width:'+Math.round(L2.xp/L2.need*100)+'%"></i></div></div></div>';
-  h+='<h4 class="p7h">Profile picture</h4><div class="p7avs"><button type="button" class="p7av blank" data-a="blank" aria-label="No picture">'+BLANK+'</button>'+PEOPLE.map(function(o,i){return '<button type="button" class="p7av" data-a="h'+i+'" aria-label="Picture '+(i+1)+'">'+person(o)+'</button>';}).join('')+
+  h+='<h4 class="p7h">Profile picture</h4><div class="p7avs"><button type="button" class="p7av blank" data-a="blank" aria-label="No picture">'+BLANK+'</button>'+Array.from({length:NAV},function(o,i){return '<button type="button" class="p7av" data-a="h'+i+'" aria-label="Picture '+(i+1)+'">'+avImg(i)+'</button>';}).join('')+
      '<label class="p7av up"><span>📷</span>Your photo<input type="file" accept="image/*" hidden></label></div>';
   h+='<h4 class="p7h">Frame</h4><div class="p7frs">'+ITEMS.frame.filter(function(it){return owned('frame',it.id);}).map(function(it){return '<button type="button" class="p7fr" data-f="'+it.id+'" style="--fc:'+(it.css||'#ffd35c')+'" aria-label="'+it.name+' frame"><span class="in"></span><small>'+it.name+'</small></button>';}).join('')+'<button type="button" class="p7fr more" aria-label="Get more frames"><span class="in">+</span><small>More</small></button></div>';
   h+='<h4 class="p7h">Your country</h4><div class="p7fls">'+FLAGS7.map(function(f){return '<button type="button" class="p7fl" data-f="'+f+'">'+f+'</button>';}).join('')+'</div>';
