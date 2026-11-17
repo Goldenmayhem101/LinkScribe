@@ -1,6 +1,16 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.6 (versionCode 7)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.7 (versionCode 8)
+
+## What's new in 1.7
+- Legendary pawns: each of the 30 has its own capture show (the big character drops in, energy burst in its colour, shockwave, themed sparks, its own word like FROZEN! or STORM STRIKE!, a little ghost rises from the knocked-out pawn) and comes alive in its store preview (bounce, jump, blast)
+- Pawn art cleaned: the light gray halo / glow cloud left from the ChatGPT background is removed (`tools/ui-art/outline.py`, fallback `dehalo.py`)
+- The big old classic pawn is removed; Glossy Classic is the free starter
+- Pawn taps listen to touch, pointer and click, and always move the nearest glowing pawn
+- Store never wider than the screen (no sideways scrolling)
+- New boards: Dune Run art, plus "II" versions of Sunset Glow, Island Breeze, Frost Hall, Moonlit Pier, Sunny Meadow, Treasure Isle, Arctic Ice and Coral Reef. Pixel Lounge background cleaned (no copied game items)
+- Prices raised: dice Common 150K / Rare 450K / Epic 3,000 diamonds / Legendary 6,000; pawns 150K / 350K / 3,500 / 7,500; boards 200K / 500K / 3,000 / 6,000
+- Lucky Rolls: 3 free each day (leftovers expire at midnight), 5 max saved, 3 per game
 
 ## What's new in 1.6
 - Every pawn, dice and board replaced with new original illustrated art (made in ChatGPT, cut out with `tools/ui-art/`)

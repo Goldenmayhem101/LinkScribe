@@ -1,0 +1,9 @@
+Ludora 1.7 (versionCode 8) - What's new:
+
+• Every Legendary pawn has its own capture show
+• Legendary pawns come alive in the store
+• Cleaner, sharper pawn art
+• 9 more boards, including Dune Run and new versions of favourites
+• Easier, more reliable pawn tapping
+• Store fits every screen, no sideways scrolling
+• Lucky Rolls: 3 fresh every day
