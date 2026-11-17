@@ -1,0 +1,35 @@
+<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="fonts.css"><style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1024px;height:500px;overflow:hidden}
+body{position:relative;font-family:'Baloo 2',sans-serif;background:radial-gradient(circle at 28% 45%,#6a5cff 0,#4b36d9 38%,#2c1a93 75%,#1d0f66 100%)}
+.rays{position:absolute;inset:-500px;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.075) 0 5deg,transparent 5deg 13deg);left:-200px;top:-520px;right:-60px}
+.glow{position:absolute;left:-120px;top:-60px;width:760px;height:620px;background:radial-gradient(closest-side,rgba(255,255,255,.22),transparent)}
+.spark{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.55) 1.4px,transparent 2px);background-size:38px 38px;opacity:.18}
+.logo{position:absolute;left:46px;top:58px;font-weight:800;font-size:128px;line-height:1;letter-spacing:1px;
+ background:linear-gradient(180deg,#fff5a8 0%,#ffd23a 40%,#ff9d10 78%,#e86f00 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+ -webkit-text-stroke:0;filter:drop-shadow(0 4px 0 #8a3c00) drop-shadow(0 7px 0 rgba(30,10,80,.55)) drop-shadow(0 14px 18px rgba(0,0,0,.35))}
+.sub{position:absolute;left:52px;top:210px;font-family:Nunito,sans-serif;font-weight:900;font-size:38px;color:#fff;text-shadow:0 3px 0 rgba(30,10,90,.55),0 6px 12px rgba(0,0,0,.3)}
+.pills{position:absolute;left:50px;top:278px;display:flex;flex-direction:column;gap:14px}
+.pill{display:inline-flex;align-items:center;gap:12px;align-self:flex-start;background:#fff;border-radius:999px;padding:8px 22px 8px 9px;font-family:Nunito,sans-serif;font-weight:900;font-size:24px;color:#2b1f8a;box-shadow:0 4px 0 #b9b2f2,0 10px 18px rgba(10,0,60,.35)}
+.pill i{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-style:normal;font-size:18px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.ph{position:absolute;width:236px;height:498px;border-radius:34px;background:#0e0b22;padding:9px;box-shadow:0 0 0 4px rgba(255,255,255,.9),0 26px 40px rgba(5,0,40,.55)}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:top;border-radius:26px;display:block}
+.ph.a{left:478px;top:118px;rotate:-9deg;z-index:2}
+.ph.b{left:668px;top:48px;rotate:3deg;z-index:3;width:250px;height:528px}
+.ph.c{left:862px;top:104px;rotate:11deg;z-index:1}
+.die{position:absolute;z-index:5;filter:drop-shadow(0 12px 14px rgba(0,0,0,.45))}
+</style><body>
+<div class="glow"></div><div class="rays"></div><div class="spark"></div>
+<div class="logo">Ludora</div>
+<div class="sub">Fair Play Dice Game</div>
+<div class="pills">
+ <span class="pill"><i style="background:#22b04a">✓</i>Fair dice, always</span>
+ <span class="pill"><i style="background:#f59a0e">★</i>No pay-to-win</span>
+ <span class="pill"><i style="background:#2f86ff">●</i>Ads only if you choose</span>
+</div>
+<div class="ph a"><img src="raw_phone/g_lava.png"></div>
+<div class="ph b"><img src="raw_phone/g_sakura.png"></div>
+<div class="ph c"><img src="raw_phone/store_pawns.png"></div>
+<img class="die" src="die_fire.png" style="width:118px;left:592px;top:28px;rotate:-16deg">
+<img class="die" src="die_gold.png" style="width:126px;left:610px;top:378px;rotate:14deg">
+</body>

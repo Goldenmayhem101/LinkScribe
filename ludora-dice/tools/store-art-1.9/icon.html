@@ -1,0 +1,13 @@
+<!doctype html><meta charset="utf-8"><style>
+*{margin:0;box-sizing:border-box}html,body{width:512px;height:512px;overflow:hidden}
+body{position:relative;background:radial-gradient(circle at 50% 42%,#7a6bff 0,#4b36d9 40%,#2a1890 75%,#1a0c5e 100%)}
+.rays{position:absolute;inset:-300px;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,255,255,.08) 0 6deg,transparent 6deg 15deg)}
+.sp{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.6) 1.5px,transparent 2.2px);background-size:34px 34px;opacity:.16}
+.board{position:absolute;left:50%;top:58%;width:400px;height:400px;translate:-50% -50%;transform:perspective(700px) rotateX(52deg) rotateZ(-8deg);border-radius:34px;overflow:hidden;
+ background:center/cover no-repeat;box-shadow:0 0 0 8px #fff,0 0 0 14px #1a0c5e,0 40px 50px rgba(0,0,0,.55)}
+.d{position:absolute;filter:drop-shadow(0 16px 16px rgba(10,0,50,.55))}
+</style><body><div class="rays"></div><div class="sp"></div>
+<div class="board" style="background-image:url(BOARD)"></div>
+<img class="d" src="DIE1" style="width:DW1px;left:DX1px;top:DY1px;rotate:-10deg">
+<img class="d" src="DIE2" style="width:DW2px;left:DX2px;top:DY2px;rotate:12deg">
+</body>

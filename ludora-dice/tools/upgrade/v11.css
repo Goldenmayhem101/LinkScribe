@@ -1,0 +1,53 @@
+/* ===== 1.9: Lucky Roll rows, home banner, 7-day offers ===== */
+.lk11{display:flex;align-items:center;gap:10px;margin:10px 0 8px;padding:8px 10px;border-radius:16px;background:linear-gradient(180deg,#1f8f4a,#147238);box-shadow:0 3px 0 #0b4d25,inset 0 1px 0 rgba(255,255,255,.3);color:#fff}
+.lk11[hidden]{display:none}
+.lk11i{font-size:24px;line-height:1;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
+.lk11t{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left}
+.lk11t b{font-size:14px;font-weight:900;letter-spacing:.2px}
+.lk11t small{font-size:11px;font-weight:700;opacity:.85;line-height:1.25}
+.lk11b{flex:none;border:0;border-radius:12px;padding:8px 12px;font:900 13px/1 inherit;font-family:inherit;color:#3b2300;background:linear-gradient(#ffe066,#ffb21e);box-shadow:0 3px 0 #b86e00,inset 0 1px 0 rgba(255,255,255,.6);cursor:pointer}
+.lk11b:active{transform:translateY(2px);box-shadow:0 1px 0 #b86e00}
+.lkw11{display:flex;flex-direction:column;align-items:center;gap:3px;margin:8px 0 2px}
+.lkw11 .lk11b.wide{width:100%;padding:11px 12px;font-size:14px;background:linear-gradient(#5fe08a,#22a456);color:#fff;box-shadow:0 3px 0 #0f6a33,inset 0 1px 0 rgba(255,255,255,.45);text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.lkw11 small{font-size:11px;font-weight:800;opacity:.7}
+
+/* small home banner, standard 320x50 slot, sits right above the tab bar */
+.ban11{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));width:320px;max-width:calc(100% - 16px);height:50px;z-index:54;display:none;align-items:center;gap:8px;padding:0 8px;box-sizing:border-box;border-radius:6px;background:#fff;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.3);font-family:Arial,sans-serif;pointer-events:none}
+.ban11.on{display:flex}
+.ban11 .adt{flex:none;font:700 10px/1 Arial,sans-serif;color:#fff;background:#f2b600;border-radius:3px;padding:3px 4px}
+.ban11 .adx{flex:1;min-width:0;display:flex;flex-direction:column}
+.ban11 .adx b{font-size:13px}
+.ban11 .adx small{font-size:10px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ban11 .adb{flex:none;font:700 12px/1 Arial,sans-serif;color:#fff;background:#1a73e8;border-radius:4px;padding:7px 10px}
+body.ban11on.deep9 .h7{padding-bottom:132px}
+
+/* 7-day offers */
+.of11h{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.of11h small{font-size:11px;font-weight:800;color:#fff;background:#e2412f;border-radius:999px;padding:3px 8px}
+.of11n{margin:2px 0 8px!important}
+.of11g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.of11{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 8px;border-radius:14px;background:linear-gradient(180deg,#2c3fae,#1d2a7e);box-shadow:0 3px 0 #111a55,inset 0 1px 0 rgba(255,255,255,.18);color:#fff;min-width:0;overflow:hidden}
+.of11.r-epic{background:linear-gradient(180deg,#7a36c8,#4f1d93);box-shadow:0 3px 0 #2f0d60,inset 0 1px 0 rgba(255,255,255,.2)}
+.of11.r-legendary{background:linear-gradient(180deg,#d68a12,#9b5205);box-shadow:0 3px 0 #5e3002,inset 0 1px 0 rgba(255,255,255,.25)}
+.of11 .pv{width:100%;height:78px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;border-radius:10px}
+.of11 .rar{position:absolute;top:6px;left:6px;font-size:9px;font-weight:900;color:#fff;border-radius:6px;padding:2px 5px}
+.of11nm{font-size:12px;font-weight:900;text-align:center;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.of11ct{font-size:10px;font-weight:800;opacity:.75}
+.of11b{width:100%;margin-top:3px}
+.of11b s{opacity:.6;font-size:10px}
+
+/* one big pawn per store card */
+.pv9.pv11{position:relative;display:block;padding:0;height:100%}
+.pv11h{position:absolute;left:50%;bottom:13%;height:96%;aspect-ratio:200/224;translate:-50% 0}
+.pv11h .spr9{position:absolute!important;left:0!important;bottom:0!important;width:100%!important;height:100%!important;translate:none!important}
+.pv11d{position:absolute;left:0;right:0;bottom:5%;display:flex;justify-content:center;gap:3px}
+.pv11d i{width:7px;height:7px;border-radius:50%;box-shadow:0 0 0 1.5px rgba(255,255,255,.85)}
+.item .pv:has(.pv11){height:104px}
+
+/* tablets: menus scale up (the board already fills the screen) */
+.tab11 #w-main{zoom:var(--z11);width:calc(100vw / var(--z11));min-height:calc(100vh / var(--z11))}
+.tab11 .tb9{zoom:var(--z11);width:calc(100vw / var(--z11))}
+.tab11 .ban11{zoom:var(--z11)}
+.tab11 .overlay:not(#ov-welcome) > .sheet{zoom:var(--z11)}
+.tab11 #ov-setup7 .su7in{zoom:var(--z11);height:calc(100vh / var(--z11))}
+.tab11 .overlay:not(#ov-welcome) > .sheet .sb{max-height:calc((100dvh - 150px * var(--z11)) / var(--z11))}
