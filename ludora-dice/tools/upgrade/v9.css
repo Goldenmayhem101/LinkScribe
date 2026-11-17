@@ -133,7 +133,7 @@ img.chimg{display:block;width:100%;height:auto;max-height:100%;object-fit:contai
 #c-items{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 #c-items>*{min-width:0}
 #c-items .sbar,#c-items .sbar>*{min-width:0;max-width:100%}
-.sheet{max-width:calc(100vw - 16px);overflow-x:hidden}
+.sheet{max-width:calc(100vw - 16px)}
 .sheet .sb{min-width:0;overflow-x:hidden}
 .pv9{min-width:0;max-width:100%;overflow:hidden;justify-content:center}
 .pv9c{min-width:0;flex:0 1 22%;height:auto;max-height:70%}

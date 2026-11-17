@@ -51,3 +51,17 @@ body.ban11on.deep9 .h7{padding-bottom:132px}
 .tab11 .overlay:not(#ov-welcome) > .sheet{zoom:var(--z11)}
 .tab11 #ov-setup7 .su7in{zoom:var(--z11);height:calc(100vh / var(--z11))}
 .tab11 .overlay:not(#ov-welcome) > .sheet .sb{max-height:calc((100dvh - 150px * var(--z11)) / var(--z11))}
+
+/* confetti falls behind the winner text */
+#ov-win .sheet .sb{position:relative;z-index:1}
+#ov-win .confetti{z-index:0}
+/* tablets: the game's bottom bar and menu button scale too */
+.tab11 #gbar{zoom:var(--z11);width:calc(100vw / var(--z11))}
+.tab11 #bar{zoom:var(--z11)}
+.tab11 .pillrow .pill{zoom:var(--z11)}
+/* home top row never wider than the screen on small phones */
+.b9{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.b9>.t9{min-width:0}
+/* profile flag grid fits narrow phones */
+.p7fls{grid-template-columns:repeat(8,minmax(0,1fr))!important}
+.p7fl{min-width:0;font-size:clamp(14px,5vw,20px)}

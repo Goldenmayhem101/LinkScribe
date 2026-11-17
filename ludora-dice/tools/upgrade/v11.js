@@ -118,6 +118,44 @@ setInterval(banSync,300);banSync();
   fit();addEventListener('resize',fit);
 })();
 
+
+/* ---------- polish: number commas in daily rewards, "an Iron chest", turn pill kept on screen ---------- */
+(function(){
+  function commas(root){if(!root)return;var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),n;
+    while((n=w.nextNode())){if(/\d{4,}/.test(n.nodeValue))n.nodeValue=n.nodeValue.replace(/\b\d{4,}\b/g,function(x){return Number(x).toLocaleString('en-US');});}}
+  var rd11=renderDaily;renderDaily=function(){var r=rd11.apply(this,arguments);try{commas(document.getElementById('ov-daily'));}catch(e){}return r;};
+  var t11=toast;toast=function(m){if(typeof m==='string')m=m.replace(/\bYou won a ([AEIOU])/,'You won an $1');return t11.apply(this,[m].concat([].slice.call(arguments,1)));};
+  setInterval(function(){document.querySelectorAll('.tp8').forEach(function(p){p.style.marginLeft='0px';var r=p.getBoundingClientRect();if(!r.width)return;
+    var dx=0;if(r.left<4)dx=4-r.left;else if(r.right>innerWidth-4)dx=innerWidth-4-r.right;if(dx)p.style.marginLeft=dx+'px';});},400);
+})();
+
+
+/* ---------- short phones: shrink the board so the bottom players and dice stay above the game bar ---------- */
+(function(){
+  var busy=false;
+  function fitHeight(){
+    if(busy)return;var g=document.getElementById('gbar'),rows=document.querySelectorAll('.seatrow');
+    if(!g||!rows.length||!g.getBoundingClientRect().height)return;
+    var last=rows[rows.length-1].getBoundingClientRect(),over=Math.ceil(last.bottom+4-g.getBoundingClientRect().top);
+    if(over<=2)return;
+    busy=true;
+    try{BS=Math.max(250,Math.round(BS-over));CELL=BS/15;stage.style.setProperty('--S',BS+'px');stage.style.setProperty('--u',CELL+'px');
+      stage.style.maxWidth=BS+'px';stage.style.setProperty('margin-left','auto','important');stage.style.setProperty('margin-right','auto','important');stage.style.alignSelf='center';if(S.pawns)layout(true);}catch(e){}
+    busy=false;
+  }
+  var fs11=fitStage;fitStage=function(){stage.style.maxWidth='';stage.style.removeProperty('margin-left');stage.style.removeProperty('margin-right');stage.style.alignSelf='';var r=fs11.apply(this,arguments);setTimeout(fitHeight,30);return r;};
+  addEventListener('resize',function(){setTimeout(function(){fitStage();},60);});
+  setInterval(fitHeight,700);
+})();
+
+
+/* ---------- game bar coin counter: short form for big numbers (2.5M) so it fits small phones ---------- */
+(function(){
+  function short(n){n=+n||0;if(n>=1e6)return (Math.floor(n/1e5)/10).toString().replace(/\.0$/,'')+'M';if(n>=1e5)return Math.floor(n/1e3)+'K';return nf(n);}
+  var rs11=refreshStars;refreshStars=function(){var r=rs11.apply(this,arguments);document.querySelectorAll('#gbar .coincount').forEach(function(e){e.textContent=short(set.coins);});return r;};
+  try{refreshStars();}catch(e){}
+})();
+
 /* ---------- 5. 7-day offers (Store > Special) ---------- */
 function weekNo(){return Math.floor((Date.now()/864e5+3)/7);}
 function rnd(seed){return function(){seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};}
