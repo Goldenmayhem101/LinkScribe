@@ -793,6 +793,13 @@ img.chimg{display:block;width:100%;height:auto;max-height:100%;object-fit:contai
 .seat.right .dslot{justify-self:end!important}
 .die{width:44px!important;height:44px!important}
 .die::before{content:"";position:absolute;inset:-14px}
+
+/* 1.7: pawn sprites */
+.pawn.g9 .bob{background:none!important}
+.spr9{position:absolute;left:50%;bottom:6%;height:56%;aspect-ratio:200/224;translate:-50% 0;background:var(--u) var(--x) 0/500% 100% no-repeat;pointer-events:none;filter:drop-shadow(0 2px 1px rgba(0,0,30,.35))}
+.spr9.tint{background:var(--c);-webkit-mask:var(--u) var(--x) 0/500% 100% no-repeat;mask:var(--u) var(--x) 0/500% 100% no-repeat;mix-blend-mode:multiply;filter:none}
+.pv9c{position:relative;display:inline-block;height:66%;aspect-ratio:200/224}
+.pv9c .spr9{bottom:0;height:100%}
 </style></head><body>
 <title>Ludora</title>
 <meta name="claude:viewport-fit-sides" content="cover">
@@ -6633,24 +6640,43 @@ var PDESC={common:'Clean and classic.',rare:'A cute little racer.',epic:'A hero 
 })();
 PGROUPS.length=0;[['all','All'],['common','Classic'],['rare','Cute'],['epic','Heroes'],['legendary','Mythic']].forEach(function(g){PGROUPS.push(g);});pawnGrp='all';
 var NSET={};ITEMS.pawn.forEach(function(p){if(p.id!=='classic')NSET[p.id]=1;});
-var STDC={red:1,green:1,yellow:1,blue:1},TINT={};
+var COLI={red:0,green:1,yellow:2,blue:3,white:4},SHEET={},CUT={},TINT={};
+var BLANKP='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 function hexOf(cname){var c=PCOLORS.filter(function(x){return x.id===cname;})[0];return c&&c.hex?c.hex:'#ffffff';}
-function tinted(id,cname){
-  var k=id+'|'+cname;if(TINT[k]&&TINT[k]!==1)return TINT[k];
-  if(!TINT[k]){TINT[k]=1;var im=new Image();im.onload=function(){var c=document.createElement('canvas');c.width=im.width;c.height=im.height;var x=c.getContext('2d');
-    x.drawImage(im,0,0);x.globalCompositeOperation='multiply';x.fillStyle=hexOf(cname);x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='destination-in';x.drawImage(im,0,0);
-    try{TINT[k]=c.toDataURL('image/png');}catch(e){TINT[k]='pawnset/'+id+'_white.webp';}try{applyPawnLooks();}catch(e){}};im.src='pawnset/'+id+'_white.webp';}
-  return 'pawnset/'+id+'_white.webp';
+function sheet(id,cb){
+  if(SHEET[id]&&SHEET[id].ok)return cb(SHEET[id].im);
+  if(!SHEET[id]){SHEET[id]={cbs:[]};var im=new Image();im.onload=function(){SHEET[id].ok=1;SHEET[id].im=im;SHEET[id].cbs.forEach(function(f){f(im);});SHEET[id].cbs=[];};im.src='pawnset/'+id+'.webp';}
+  SHEET[id].cbs.push(cb);
 }
+/* one pawn picture: cut from the set's sheet, painted for custom colours */
+function pawnURL(id,col,done){
+  var std=COLI[col]!=null&&col!=='white',k=id+'|'+col;
+  if(CUT[k])return CUT[k];
+  sheet(id,function(im){if(CUT[k])return;var c=document.createElement('canvas');c.width=200;c.height=224;var x=c.getContext('2d');
+    x.drawImage(im,(std?COLI[col]:4)*200,0,200,224,0,0,200,224);
+    if(!std&&col!=='white'){x.globalCompositeOperation='multiply';x.fillStyle=hexOf(col);x.fillRect(0,0,200,224);x.globalCompositeOperation='destination-in';x.drawImage(im,4*200,0,200,224,0,0,200,224);}
+    try{CUT[k]=c.toDataURL('image/png');}catch(e){CUT[k]=BLANKP;}
+    if(done)done(CUT[k]);else{try{applyPawnLooks();}catch(e){}}});
+  return BLANKP;
+}
+V9.pawnURL=pawnURL;
+/* sprite version (no canvas): one sheet per set, frames red,green,yellow,blue,white */
+function sprHTML(id,col){
+  var std=COLI[col]!=null,ix=std?COLI[col]:4,u='url("pawnset/'+id+'.webp")',x=(ix*25)+'%';
+  var h='<span class="spr9" style="--u:'+u.replace(/"/g,"&quot;")+';--x:'+x+'"></span>';
+  if(!std)h+='<span class="spr9 tint" style="--u:'+u.replace(/"/g,"&quot;")+';--x:100%;--c:'+hexOf(col)+'"></span>';
+  return h;
+}
+V9.sprHTML=sprHTML;
 var pimg0=window.__ludoraPawnImg;
-window.__ludoraPawnImg=function(id,col){id=String(id);if(NSET[id])return STDC[col]?'pawnset/'+id+'_'+col+'.webp':tinted(id,col);return pimg0?pimg0(id,col):null;};
+window.__ludoraPawnImg=function(id,col){id=String(id);if(NSET[id])return pawnURL(id,col);return pimg0?pimg0(id,col):null;};
 var apl9=applyPawnLooks;
 applyPawnLooks=function(){
   apl9.apply(this,arguments);
   S.players.forEach(function(pl){
     var id=String(lookOf(pl).p);if(!NSET[id])return;
-    var cname=(window.__ludoraV7&&window.__ludoraV7.colorName&&window.__ludoraV7.colorName[pl.seat])||SEATS[pl.seat],u=window.__ludoraPawnImg(id,cname);
-    for(var i=0;i<4;i++){var pw=PW[pl.seat]&&PW[pl.seat][i];if(!pw)continue;pw.el.classList.add('g3','g3c','g9');pw.el.style.setProperty('--g3','url("'+u+'")');}
+    var cname=(window.__ludoraV7&&window.__ludoraV7.colorName&&window.__ludoraV7.colorName[pl.seat])||SEATS[pl.seat];
+    for(var i=0;i<4;i++){var pw=PW[pl.seat]&&PW[pl.seat][i];if(!pw)continue;pw.el.classList.add('g3','g3c','g9');pw.el.style.setProperty('--g3','none');var bob=pw.el.querySelector('.bob');if(bob&&bob.dataset.spr!==id+'|'+cname){bob.dataset.spr=id+'|'+cname;bob.querySelectorAll('.spr9').forEach(function(n){n.remove();});bob.insertAdjacentHTML('beforeend',sprHTML(id,cname));}}
   });
 };
 var piv9=previewInto;
@@ -6658,7 +6684,7 @@ previewInto=function(pv,cat,it,big){
   if(cat==='pawn'&&NSET[String(it.id)]){
     pv.innerHTML='';pv.style.background='radial-gradient(circle at 50% 70%,#3a56e0 0,#16206e 70%)';
     var row=document.createElement('div');row.className='pvset pv9';
-    ['red','green','yellow','blue'].forEach(function(c){var im=document.createElement('img');im.alt='';im.src='pawnset/'+it.id+'_'+c+'.webp';row.appendChild(im);});
+    ['red','green','yellow','blue'].forEach(function(c){var d=document.createElement('span');d.className='pv9c';d.innerHTML=sprHTML(String(it.id),c);row.appendChild(d);});
     pv.appendChild(row);return;
   }
   return piv9.apply(this,arguments);

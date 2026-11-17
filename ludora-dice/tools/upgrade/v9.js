@@ -111,6 +111,14 @@ function pawnURL(id,col,done){
   return BLANKP;
 }
 V9.pawnURL=pawnURL;
+/* sprite version (no canvas): one sheet per set, frames red,green,yellow,blue,white */
+function sprHTML(id,col){
+  var std=COLI[col]!=null,ix=std?COLI[col]:4,u='url("pawnset/'+id+'.webp")',x=(ix*25)+'%';
+  var h='<span class="spr9" style="--u:'+u.replace(/"/g,"&quot;")+';--x:'+x+'"></span>';
+  if(!std)h+='<span class="spr9 tint" style="--u:'+u.replace(/"/g,"&quot;")+';--x:100%;--c:'+hexOf(col)+'"></span>';
+  return h;
+}
+V9.sprHTML=sprHTML;
 var pimg0=window.__ludoraPawnImg;
 window.__ludoraPawnImg=function(id,col){id=String(id);if(NSET[id])return pawnURL(id,col);return pimg0?pimg0(id,col):null;};
 var apl9=applyPawnLooks;
@@ -118,8 +126,8 @@ applyPawnLooks=function(){
   apl9.apply(this,arguments);
   S.players.forEach(function(pl){
     var id=String(lookOf(pl).p);if(!NSET[id])return;
-    var cname=(window.__ludoraV7&&window.__ludoraV7.colorName&&window.__ludoraV7.colorName[pl.seat])||SEATS[pl.seat],u=window.__ludoraPawnImg(id,cname);
-    for(var i=0;i<4;i++){var pw=PW[pl.seat]&&PW[pl.seat][i];if(!pw)continue;pw.el.classList.add('g3','g3c','g9');pw.el.style.setProperty('--g3','url("'+u+'")');}
+    var cname=(window.__ludoraV7&&window.__ludoraV7.colorName&&window.__ludoraV7.colorName[pl.seat])||SEATS[pl.seat];
+    for(var i=0;i<4;i++){var pw=PW[pl.seat]&&PW[pl.seat][i];if(!pw)continue;pw.el.classList.add('g3','g3c','g9');pw.el.style.setProperty('--g3','none');var bob=pw.el.querySelector('.bob');if(bob&&bob.dataset.spr!==id+'|'+cname){bob.dataset.spr=id+'|'+cname;bob.querySelectorAll('.spr9').forEach(function(n){n.remove();});bob.insertAdjacentHTML('beforeend',sprHTML(id,cname));}}
   });
 };
 var piv9=previewInto;
@@ -127,7 +135,7 @@ previewInto=function(pv,cat,it,big){
   if(cat==='pawn'&&NSET[String(it.id)]){
     pv.innerHTML='';pv.style.background='radial-gradient(circle at 50% 70%,#3a56e0 0,#16206e 70%)';
     var row=document.createElement('div');row.className='pvset pv9';
-    ['red','green','yellow','blue'].forEach(function(c){var im=document.createElement('img');im.alt='';im.src=pawnURL(String(it.id),c,function(u){im.src=u;});row.appendChild(im);});
+    ['red','green','yellow','blue'].forEach(function(c){var d=document.createElement('span');d.className='pv9c';d.innerHTML=sprHTML(String(it.id),c);row.appendChild(d);});
     pv.appendChild(row);return;
   }
   return piv9.apply(this,arguments);

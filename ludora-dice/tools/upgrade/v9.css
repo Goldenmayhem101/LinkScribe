@@ -122,3 +122,10 @@ img.chimg{display:block;width:100%;height:auto;max-height:100%;object-fit:contai
 .seat.right .dslot{justify-self:end!important}
 .die{width:44px!important;height:44px!important}
 .die::before{content:"";position:absolute;inset:-14px}
+
+/* 1.7: pawn sprites */
+.pawn.g9 .bob{background:none!important}
+.spr9{position:absolute;left:50%;bottom:6%;height:56%;aspect-ratio:200/224;translate:-50% 0;background:var(--u) var(--x) 0/500% 100% no-repeat;pointer-events:none;filter:drop-shadow(0 2px 1px rgba(0,0,30,.35))}
+.spr9.tint{background:var(--c);-webkit-mask:var(--u) var(--x) 0/500% 100% no-repeat;mask:var(--u) var(--x) 0/500% 100% no-repeat;mix-blend-mode:multiply;filter:none}
+.pv9c{position:relative;display:inline-block;height:66%;aspect-ratio:200/224}
+.pv9c .spr9{bottom:0;height:100%}
