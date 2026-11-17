@@ -27,3 +27,7 @@ Cutting tools: `ludora-dice/tools/ui-art/` (`cutgrid.py` even grids, `holes.py` 
 - Never put keystores, passwords or tokens in files or replies; the owner signs builds and enters passwords themselves.
 - Studio email used in games: goldenmayhem.games@gmail.com
 - Ads: rewarded videos the player chooses only; no IAP, no pop-up ads.
+- EXCEPTION, Ludora only (owner decision 2026-11-17): in-app purchases allowed for LOOKS ONLY (pawns, dice, boards,
+  frames, bundles, diamonds spent only on looks, Weekly event premium row, remove-banner). Never sell coins, Lucky
+  Rolls or anything that converts to coins (coins are used for bets); no paid random chests (loot boxes).
+  Other games keep the no-IAP rule.
