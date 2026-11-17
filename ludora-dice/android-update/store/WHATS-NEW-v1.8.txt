@@ -1,0 +1,9 @@
+Ludora 1.8 (versionCode 9) - What's new:
+
+• Every Legendary pawn has its own finishing move: the hero bursts onto the board and takes out the pawn in style
+• Watch any Legendary's finishing move in the store
+• Cleaner pawn art, no more gray edges
+• Lucky Rolls now work online too (3 per game)
+• Try Common and Rare items for 7 days
+• Smoother, more reliable online games
+• New sounds for dice, captures and buttons

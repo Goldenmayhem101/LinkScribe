@@ -162,7 +162,7 @@ function gbarSync(){
   var live=S.players.length&&S.phase!=='idle'&&$('#ov-welcome').hidden;
   gbar.style.display=live?'':'none';
   var b=$('#b-luck'),gl=$('#g-luck');
-  var lkShow=S.mode!=='online'&&S.mode!=='pass';gl.style.display=lkShow?'':'none';
+  var lkShow=S.mode!=='pass';gl.style.display=lkShow?'':'none';
   gl.disabled=!b||b.disabled;gl.classList.toggle('on',!!(b&&b.classList.contains('set')));
   var seat=luckSeat();$('#g-lkn').textContent=String(seat>=0?luckLeft(seat):luckLeft(3));
   $('#g-gift').style.display=(S.mode==='pass')?'none':'';

@@ -1,6 +1,15 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.7 (versionCode 8)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.8 (versionCode 9)
+
+## What's new in 1.8
+- `tools/upgrade/v10.js`: Legendary finishing moves. Each of the 30 Legendary pawns has its own show (slam, charge, breath, lightning bolt, beam, tidal wave, gulp, claw slash, meteor, time stop, tornado, foxfire orbs, island rise, roar, shock, pounce, dive, rainbow, holy light, black hole) with its own victim reaction (squashed, launched, frozen and shattered, burnt, zapped, dissolved, swallowed, split, turned to sand, ascended), sounds, buzz and word. Store item sheet has "See finishing move"
+- Pawn art re-cleaned from the original cut-outs (`tools/ui-art/clean2.py`): gray pockets and gray rims removed without cutting into bodies; glows kept
+- Prices: dice/pawns Common 1M coins, Rare 5M coins, Epic 4,000 diamonds, Legendary 6,000 diamonds; boards Common 2.5M coins, Rare 3,000, Epic 4,000, Legendary 6,000 diamonds. 4 Common dice and 4 Common pawns
+- Lucky Rolls: 3 free a day, 5 max saved, 3 per game, now also online (sent to the host, limited per player); in-game "watch a video for +1" when out
+- 7-day trials for Common and Rare items (10% of the price in coins)
+- Online: host re-sends the game state every 2.5 s and the result after a win, so a dropped message can't leave a player stuck
+- Sound polish: dice landing, captures, home, win, button taps
 
 ## What's new in 1.7
 - Legendary pawns: each of the 30 has its own capture show (the big character drops in, energy burst in its colour, shockwave, themed sparks, its own word like FROZEN! or STORM STRIKE!, a little ghost rises from the knocked-out pawn) and comes alive in its store preview (bounce, jump, blast)

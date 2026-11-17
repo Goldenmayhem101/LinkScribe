@@ -67,7 +67,7 @@ if os.path.exists(os.path.join(D, 'v5.js')):
     js += '\n' + open(os.path.join(D, 'v5.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v6.js')):
     js += '\n' + open(os.path.join(D, 'v6.js'), encoding='utf-8').read()
-for _f in ('v7.js','v8.js','v9.js'):
+for _f in ('v7.js','v8.js','v9.js','v10.js'):
     if os.path.exists(os.path.join(D, _f)):
         js += '\n' + open(os.path.join(D, _f), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):

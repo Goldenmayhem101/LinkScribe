@@ -74,19 +74,19 @@ showWin=function(pl){
 
 /* ---------- 1.6: every dice and pawn is new illustrated art ---------- */
 var DM=[["d_yellow", "Sunny Yellow", "common"], ["d_purple", "Grape Purple", "common"], ["d_orange", "Tangerine", "common"], ["d_pink", "Bubble Pink", "common"], ["d_white", "Classic White", "common"], ["d_gold", "Polished Gold", "rare"], ["d_silver", "Sapphire Silver", "rare"], ["d_ruby", "Ruby", "rare"], ["d_emerald", "Emerald", "rare"], ["d_pearl", "Pearl", "rare"], ["d_pirate", "Pirate Chest", "rare"], ["d_candy", "Frosted Candy", "rare"], ["d_ice", "Ice Crystal", "rare"], ["d_space", "Deep Space", "rare"], ["d_jungle", "Jungle Stone", "rare"], ["d_lava", "Lava Rock", "legendary"], ["d_ocean", "Ocean Wave", "legendary"], ["d_sun", "Golden Sun", "legendary"], ["d_amethyst", "Shadow Amethyst", "legendary"], ["d_blossom", "Cherry Blossom", "legendary"], ["d_fire", "Inferno", "legendary"], ["d_lightning", "Lightning", "legendary"], ["d_galaxy", "Galaxy", "legendary"], ["d_dragon", "Dragon Scale", "legendary"], ["d_prism", "Rainbow Prism", "legendary"], ["e_viking", "Viking Runes", "epic"], ["e_samurai", "Samurai Lacquer", "epic"], ["e_pharaoh", "Pharaoh Gold", "epic"], ["e_aztec", "Temple Jade", "epic"], ["e_marble", "Olympus Marble", "epic"], ["e_vinyl", "Vinyl Neon", "epic"], ["e_origami", "Origami", "epic"], ["e_knit", "Cosy Knit", "epic"], ["e_tin", "Tin Toy", "epic"], ["e_terrarium", "Terrarium", "epic"], ["e_knight", "Knight Steel", "epic"], ["e_spellbook", "Spellbook", "epic"], ["e_crystal", "Crystal Ball", "epic"], ["e_mermaid", "Mermaid Scales", "epic"], ["e_phoenix", "Phoenix Feather", "epic"], ["e_choc", "Chocolate Truffle", "epic"], ["e_icecream", "Ice Cream", "epic"], ["e_bubblegum", "Bubblegum", "epic"], ["e_disco", "Disco Ball", "epic"], ["e_street", "Street Art", "epic"], ["e_robot", "Robot Mech", "epic"], ["e_ghost", "Friendly Ghost", "epic"], ["e_fossil", "Amber Fossil", "epic"], ["e_mushroom", "Mushroom Grove", "epic"], ["e_unicorn", "Unicorn Dream", "epic"]],PM=[["p_yeti_cub", "Yeti Cub", "rare"], ["p_owl_aviator", "Owl Aviator", "rare"], ["p_clockwork_mouse", "Clockwork Mouse", "rare"], ["p_cactus_cowboy", "Cactus Cowboy", "rare"], ["p_hedgehog", "Hedgehog Explorer", "rare"], ["p_penguin_chef", "Penguin Chef", "rare"], ["p_frog", "Rainy Frog", "rare"], ["p_sloth", "Chill Sloth", "rare"], ["p_bee_mail", "Bee Mail", "rare"], ["p_crab_sailor", "Crab Sailor", "rare"], ["p_raccoon", "Raccoon Mechanic", "rare"], ["p_turtle_surfer", "Turtle Surfer", "rare"], ["p_snail", "Snail Courier", "rare"], ["p_capybara", "Capybara", "rare"], ["p_lemur", "Lemur Acrobat", "rare"], ["p_bunny", "Bunny Gardener", "rare"], ["p_otter", "Seashell Otter", "rare"], ["p_puffin", "Puffin Sailor", "rare"], ["p_ghostie", "Lantern Ghost", "rare"], ["p_hamster", "Hamster Pilot", "rare"], ["p_beaver", "Beaver Builder", "rare"], ["p_lamb", "Raincoat Lamb", "rare"], ["p_fox_detective", "Fox Detective", "rare"], ["p_toucan", "Toucan DJ", "rare"], ["p_axolotl", "Axolotl", "rare"], ["p_rhino", "Rhino Gladiator", "epic"], ["p_shark", "Shark Diver", "epic"], ["p_armadillo", "Armadillo Knight", "epic"], ["p_scorpion", "Scorpion Warrior", "epic"], ["p_stag", "Stag Druid", "epic"], ["p_moon_rabbit", "Moon Rabbit Monk", "epic"], ["p_polar_bear", "Polar Berserker", "epic"], ["p_pumpkin_knight", "Pumpkin Knight", "epic"], ["p_coral_knight", "Coral Knight", "epic"], ["p_beetle", "Beetle Knight", "epic"], ["p_sky_pirate", "Sky Pirate", "epic"], ["p_minotaur", "Minotaur Smith", "epic"], ["p_owl_sorcerer", "Owl Sorcerer", "epic"], ["p_gorilla", "Cyborg Gorilla", "epic"], ["p_hawk", "Storm Hawk", "epic"], ["p_salamander", "Lava Salamander", "epic"], ["p_chameleon", "Chameleon Thief", "epic"], ["p_vampire", "Count Batley", "epic"], ["p_inventor", "Steam Inventor", "epic"], ["p_gecko", "Gecko Ninja", "epic"], ["p_frost_elf", "Frost Elf Archer", "epic"], ["p_scarecrow", "Scarecrow Mage", "epic"], ["p_mantis", "Mantis Blademaster", "epic"], ["p_ronin_cat", "Ronin Cat", "epic"], ["p_bee_queen", "Bee Queen", "epic"], ["p_whale", "Celestial Whale", "legendary"], ["p_griffin", "Storm Griffin", "legendary"], ["p_ninefox", "Nine-Tailed Fox", "legendary"], ["p_time_golem", "Time Keeper", "legendary"], ["p_star_knight", "Star Knight", "legendary"], ["p_volcano_titan", "Volcano Titan", "legendary"], ["p_ice_queen", "Ice Queen", "legendary"], ["p_thunderbird", "Thunderbird", "legendary"], ["p_sun_stag", "Sun Stag", "legendary"], ["p_sea_serpent", "Coral Serpent", "legendary"], ["p_cosmic_owl", "Cosmic Owl", "legendary"], ["p_sphinx", "Guardian Sphinx", "legendary"], ["p_moon_goddess", "Moon Goddess", "legendary"], ["p_island_turtle", "Island Turtle", "legendary"], ["p_lightning_tiger", "Lightning Tiger", "legendary"], ["p_koi", "Koi Spirit", "legendary"], ["p_drum_titan", "Thunder Drum Titan", "legendary"], ["p_cat_queen", "Golden Cat Queen", "legendary"], ["p_jellyfish", "Aurora Jellyfish", "legendary"], ["p_galaxy_panther", "Galaxy Panther", "legendary"], ["p_hydra", "Crystal Hydra", "legendary"], ["p_reindeer", "Aurora Reindeer", "legendary"], ["p_ram_king", "Lava Ram King", "legendary"], ["p_mech_titan", "Space Mech", "legendary"], ["p_sky_giant", "Sky Castle Giant", "legendary"], ["p_samurai", "Oni Samurai", "epic"], ["p_tree_spirit", "Tree Spirit", "epic"], ["p_phoenix", "Phoenix", "legendary"], ["p_crystal_golem", "Crystal Golem", "epic"], ["p_wolf", "Frost Wolf", "epic"], ["p_robot_knight", "Robot Knight", "epic"], ["p_wizard", "Wizard", "epic"], ["p_baby_dragon", "Baby Dragon", "epic"], ["p_lion_king", "Lion King", "legendary"], ["p_hooded_mage", "Hooded Mage", "epic"], ["p_octopus", "Octopus", "epic"], ["p_panda_monk", "Panda Monk", "epic"], ["p_robot", "Robot", "epic"], ["p_unicorn", "Unicorn", "legendary"], ["p_alien", "Alien", "epic"], ["p_stone_golem", "Stone Golem", "epic"], ["p_mermaid", "Mermaid", "legendary"], ["p_anubis", "Jackal Guardian", "epic"], ["p_angel_knight", "Angel Knight", "legendary"], ["p_imp", "Horned Imp", "epic"], ["p_crystal_mage", "Crystal Mage", "epic"], ["p_cobra", "Cobra", "epic"], ["p_leaf_spirit", "Leaf Spirit", "epic"], ["p_star_mage", "Star Mage", "epic"]];
-var PRICE={common:{c:150000,g:0},rare:{c:450000,g:0},epic:{c:0,g:3000},legendary:{c:0,g:6000}};
-var PPRICE={common:{c:150000,g:0},rare:{c:350000,g:0},epic:{c:0,g:3500},legendary:{c:0,g:7500}};
+var PRICE={common:{c:1000000,g:0},rare:{c:5000000,g:0},epic:{c:0,g:4000},legendary:{c:0,g:6000}};
+var PPRICE={common:{c:1000000,g:0},rare:{c:5000000,g:0},epic:{c:0,g:4000},legendary:{c:0,g:6000}};
 var DDESC={common:'Glossy and bold, easy to read.',rare:'Polished, precious and dotted with style.',epic:'Themed design with big bold numbers.',legendary:'Glowing magic. The rarest dice in Ludora.'};
 var PDESC={common:'Clean and classic.',rare:'A cute little racer.',epic:'A hero in full gear.',legendary:'Majestic, glowing and one of a kind.'};
 (function(){
   var keepD=ITEMS.die.filter(function(x){return x.id==='classic';});
   var nd=[['n_red','Ruby Red','common'],['n_blue','Ocean Blue','common'],['n_green','Lucky Green','common']].concat(DM);
   ITEMS.die.length=0;keepD.forEach(function(x){ITEMS.die.push(x);});
-  nd.forEach(function(d){var p=PRICE[d[2]];ITEMS.die.push({id:d[0],name:d[1],r:d[2],c:p.c,g:p.g,d:DDESC[d[2]]});});
+  nd.forEach(function(d){if(d[2]==='common'&&/^d_/.test(d[0]))d[2]='rare';var p=PRICE[d[2]];ITEMS.die.push({id:d[0],name:d[1],r:d[2],c:p.c,g:p.g,d:DDESC[d[2]]});});
   var keepP=ITEMS.pawn.filter(function(x){return x.id==='classic';});
   var np=[['n_classic','Glossy Classic','common'],['n_royal','Royal Gem','common'],['n_buddy','Buddy','common']].concat(PM);
   ITEMS.pawn.length=0;keepP.forEach(function(x){ITEMS.pawn.push(x);});
-  np.forEach(function(p){var c=PPRICE[p[2]];ITEMS.pawn.push({id:p[0],name:p[1],r:p[2],c:c.c,g:c.g,grp:p[2],d:PDESC[p[2]]});});
+  np.forEach(function(p){if(p[0]==='p_bunny')p[2]='common';var c=PPRICE[p[2]];ITEMS.pawn.push({id:p[0],name:p[1],r:p[2],c:c.c,g:c.g,grp:p[2],d:PDESC[p[2]]});});
   if(!hasId('die',set.eq.die))set.eq.die='classic';if(!hasId('pawn',set.eq.pawn))set.eq.pawn='classic';
 })();
 PGROUPS.length=0;[['all','All'],['common','Classic'],['rare','Cute'],['epic','Heroes'],['legendary','Mythic']].forEach(function(g){PGROUPS.push(g);});pawnGrp='all';
@@ -184,16 +184,62 @@ stage.style.touchAction='manipulation';
 })();
 
 /* boards cost more too */
-ITEMS.board.forEach(function(b){if(b.id==='classic')return;var m={common:200000,rare:500000,epic:0,legendary:0}[b.r],gm={epic:3000,legendary:6000}[b.r];if(m){b.c=m;b.g=0;}else if(gm){b.c=0;b.g=gm;}});
-/* ---------- 1.7: Lucky Rolls can't be stockpiled ---------- */
+ITEMS.board.forEach(function(b){if(b.id==='classic')return;var m={common:2500000}[b.r],gm={rare:3000,epic:4000,legendary:6000}[b.r];if(m){b.c=m;b.g=0;}else if(gm){b.c=0;b.g=gm;}});
+/* ---------- 1.8: Lucky Rolls: 3 a day, 5 max saved, 3 per game, also online ---------- */
 LUCK_PER_GAME=3;LUCK_DAILY=3;var LUCK_CAP=5;
 luckBank=function(){
   var t=todayKey();
-  if(set.lkd!==t||set.lkv!==3){set.lkd=t;set.lkv=3;set.lk=LUCK_DAILY;save();}   // a new day: 3 fresh, yesterday's leftovers expire
+  if(set.lkd!==t||set.lkv!==4){set.lkd=t;set.lkv=4;set.lk=Math.min(LUCK_CAP,Math.max(+set.lk||0,LUCK_DAILY));save();}
   if((+set.lk||0)>LUCK_CAP){set.lk=LUCK_CAP;save();}
   return +set.lk||0;
 };
+luckSeat=function(){var pl=cur();return pl&&mine(pl)&&!pl.bot&&S.mode!=='pass'?pl.seat:-1;};
+luckSync=function(){
+  var row=$('#luckrow'),b=$('#b-luck');if(!row)return;
+  var show=S.players.length&&S.phase!=='over'&&S.phase!=='idle'&&S.mode!=='pass';
+  row.hidden=!show;if(!show)return;
+  var seat=luckSeat(),can=seat>=0&&S.phase==='roll',left=luckLeft(seat);
+  b.disabled=!can||left<1;b.classList.toggle('set',!!S.luckPick&&can);
+  b.textContent=S.luckPick&&can?'🍀 '+LUCK[S.luckPick].n+' ready':'🍀 Lucky Roll ×'+left;
+};
+function useLuck(){var k=S.luckPick;S.luckPick=null;set.lk=Math.max(0,luckBank()-1);S.lkUsed=(S.lkUsed||0)+1;save();try{dgAdd('l',1);}catch(e){}lkHomeSync();return k;}
+luckyValue=function(pl){
+  if(!pl||pl.bot)return 0;var pick=null;
+  if(S.mode==='online'&&!mine(pl)){pick=S.remoteLk;S.remoteLk=null;var u=(S.rlk=S.rlk||{}),key=pl.peer||pl.seat;if(!pick||!LUCK[pick]||(u[key]||0)>=LUCK_PER_GAME)return 0;u[key]=(u[key]||0)+1;}
+  else{if(!S.luckPick||luckLeft(pl.seat)<1){S.luckPick=null;return 0;}pick=useLuck();}
+  var v=LUCK[pick].v;return v[Math.floor(Math.random()*v.length)];
+};
+var hr9=humanRoll;
+humanRoll=function(){
+  var pl=cur();
+  if(S.mode==='online'&&!NET.host&&S.phase==='roll'&&pl&&mine(pl)&&S.luckPick&&luckLeft(pl.seat)>0){var k=useLuck();ensureAudio();netIntent({a:'roll',lk:k});dieEl.disabled=true;luckSync();return;}
+  return hr9.apply(this,arguments);
+};
+var noi9=netOnIntent;
+netOnIntent=function(m){var d=m&&m.data;if(d&&d.a==='roll'&&typeof d.lk==='string'&&LUCK[d.lk])S.remoteLk=d.lk;return noi9.apply(this,arguments);};
+var sg9l=startGame;startGame=function(){var r=sg9l.apply(this,arguments);S.rlk={};S.remoteLk=null;return r;};
 
+/* ---------- 1.8: try a Common or Rare item for 7 days ---------- */
+set.trial=set.trial||{};
+function trialLeft(cat,id){var t=set.trial[cat+':'+id];return t?Math.max(0,t-Date.now()):0;}
+function trialExpire(){
+  var ch=false;Object.keys(set.trial).forEach(function(k){if(set.trial[k]<=Date.now()){delete set.trial[k];ch=true;var p=k.split(':');
+    if(String(set.eq[p[0]])===p[1]&&set.own.indexOf(k)<0){set.eq[p[0]]=p[0]==='pawn'?'n_classic':'classic';toast('Your 7-day trial ended.');}}});
+  if(ch){save();try{applyCosmetics();}catch(e){}}
+}
+var own9=owned;owned=function(k,id){return own9(k,id)||trialLeft(k,id)>0;};
+var rib9=renderItemBtns;
+renderItemBtns=function(){
+  rib9.apply(this,arguments);
+  try{var cat=itemCtx.cat,it=itemCtx.it,box=$('#i-btns'),own=own9(cat,it.id),tl=trialLeft(cat,it.id);
+    if(!own&&tl>0){var n=el('p','note',box);n.style.cssText='text-align:center;font-weight:800;margin:6px 0 0';n.textContent='Trial: '+Math.ceil(tl/864e5)+' day'+(tl>864e5?'s':'')+' left';box.insertBefore(n,box.firstChild);}
+    else if(!own&&(it.r==='common'||it.r==='rare')&&it.c){var price=Math.round(it.c*0.1/1000)*1000;
+      var b=el('button','btn ghost',box);b.type='button';b.innerHTML='Try 7 days '+cn(price);b.disabled=set.coins<price;
+      b.addEventListener('click',function(){if(set.coins<price)return;set.coins-=price;set.trial[cat+':'+it.id]=Date.now()+7*864e5;set.eq[cat]=String(it.id);save();refreshStars();applyCosmetics();renderColl();renderItemBtns();toast('Enjoy '+it.name+' for 7 days!');});
+      var cl=[].filter.call(box.querySelectorAll('button'),function(x){return x.textContent.trim()==='Close';})[0];if(cl)box.insertBefore(b,cl);}
+  }catch(e){}
+};
+trialExpire();setInterval(trialExpire,60000);
 /* ---------- 1.7: every Legendary pawn has its own capture show ---------- */
 var LGX={
  p_whale:['#7ad8ff','✨','🫧','SPLASH!'],p_griffin:['#ffe14d','⚡','🪶','STORM STRIKE!'],p_ninefox:['#ff7a3a','🔥','✨','FOXFIRE!'],
@@ -246,5 +292,21 @@ previewInto=function(pv,cat,it,big){
     ART[p[0]]={a:(ART[p[1]]||{}).a||'',f:(ART[p[1]]||{}).f||''};
     var i=ITEMS.board.indexOf(base);ITEMS.board.splice(i+1,0,it);
   });
+})();
+
+/* ---------- 1.8: Lucky Roll videos (never forced) ---------- */
+(function(){
+  var h=document.getElementById('h-luck');
+  if(h)h.addEventListener('click',function(e){if(luckBank()>=LUCK_CAP){e.stopImmediatePropagation();toast('You already have '+LUCK_CAP+' Lucky Rolls. Use some first!');}},true);
+  var ol=openLuck;
+  openLuck=function(){
+    ol.apply(this,arguments);
+    var seat=luckSeat();if(seat<0)return;var left=luckLeft(seat),used=S.lkUsed||0,box=$('#lk-grid');
+    var old=document.getElementById('lk-vid');if(old)old.remove();
+    if(left<1&&used<LUCK_PER_GAME&&luckBank()<1){
+      var b=document.createElement('button');b.type='button';b.id='lk-vid';b.className='btn';b.innerHTML='▶ Watch a video for +1 Lucky Roll';box.parentNode.insertBefore(b,box.nextSibling);
+      b.addEventListener('click',function(){Ads.reward(function(ok){if(!ok){toast('The video did not finish.');return;}luckBank();set.lk=Math.min(LUCK_CAP,(+set.lk||0)+1);save();lkHomeSync();closeSheet('ov-luck');openLuck();toast('+1 Lucky Roll');});});
+    }
+  };
 })();
 })();
