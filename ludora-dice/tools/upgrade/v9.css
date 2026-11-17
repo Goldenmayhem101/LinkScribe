@@ -98,3 +98,27 @@ img.chimg{display:block;width:100%;height:auto;max-height:100%;object-fit:contai
 /* faster dice */
 .die.has3d.tumble .d3{animation-duration:.36s!important}
 .die.has3d.land .d3{animation-duration:.22s!important}
+
+/* 1.6: dice no bigger than the player's picture, right beside it; livelier roll */
+.seat .dslot{width:50px!important;min-width:50px}
+.die{width:46px!important;height:46px!important}
+.die.has3d .d3{filter:drop-shadow(0 4px 3px rgba(5,10,50,.45))}
+.die.has3d.tumble .d3{animation:dtumble9 .44s cubic-bezier(.25,.8,.35,1)!important}
+@keyframes dtumble9{0%{transform:translate(-18px,-26px) rotate(-160deg) scale(.6)}35%{transform:translate(6px,-30px) rotate(-40deg) scale(1.12)}62%{transform:translate(2px,0) rotate(8deg) scale(.96,1.04)}80%{transform:translate(0,-6px) rotate(-3deg) scale(1)}100%{transform:none}}
+.die.has3d.land .d3{animation:dland9 .24s ease-out!important}
+@keyframes dland9{0%{transform:scale(1.22,.8)}55%{transform:scale(.93,1.07)}100%{transform:none}}
+.pawn.g9 .bob{background-size:auto 54%!important;background-position:center 90%!important}
+.pv9{display:flex;gap:6px;justify-content:center;align-items:flex-end;height:100%;padding:8% 6%}
+.pv9 img{height:62%;max-width:24%;object-fit:contain;filter:drop-shadow(0 4px 3px rgba(0,0,30,.4))}
+@media (prefers-reduced-motion:reduce){.die.has3d.tumble .d3,.die.has3d.land .d3{animation:none!important}}
+
+/* 1.6: flat, square board with a thin edge (no tilt, no thick frame) */
+.plane{transform:none!important}
+.board{border-radius:10px!important;box-shadow:0 0 0 2px #170f45,0 0 0 4px rgba(255,255,255,.55),0 10px 24px rgba(0,0,20,.55)!important}
+.stage{width:calc(100vw - 16px)!important;margin-left:calc(50% - 50vw + 8px)!important;margin-top:10px!important}
+/* dice right beside the player's picture, a bit smaller than the frame */
+.seat{column-gap:4px!important}
+.seat .dslot{justify-self:start!important;align-self:start!important;width:48px!important;height:48px!important;margin-top:6px}
+.seat.right .dslot{justify-self:end!important}
+.die{width:44px!important;height:44px!important}
+.die::before{content:"";position:absolute;inset:-14px}

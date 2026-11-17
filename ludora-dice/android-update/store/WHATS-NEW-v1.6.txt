@@ -1,0 +1,9 @@
+Ludora 1.6 (versionCode 7) - What's new (paste into Play Console release notes, 500 characters max):
+
+• 100 brand-new pawn characters: Rare, Epic and Legendary heroes
+• 53 new dice; Epic dice have big bold numbers
+• 34 brand-new boards, each with its own world
+• Full board always visible, with a clean thin edge
+• Dice now sits right beside each player
+• Easier tapping on pawns
+• Computer players bring their own dice and pawns

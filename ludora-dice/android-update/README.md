@@ -1,6 +1,17 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.5 (versionCode 6)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.6 (versionCode 7)
+
+## What's new in 1.6
+- Every pawn, dice and board replaced with new original illustrated art (made in ChatGPT, cut out with `tools/ui-art/`)
+  - `pawnset/`: 99 new pawn characters (25 Rare, 44 Epic, 30 Legendary) plus 3 Common sets; one image per set holding red, green, yellow, blue and white (white is painted for the 10 custom colours)
+  - `dice/`: 53 dice (8 Common, 15 Rare, 20 Epic, 10 Legendary). Epic dice show big bold numbers that the build adds to blank ChatGPT faces
+  - `boards/`: 34 boards, each a world background (`*-w.webp`) and a board picture with themed stickers in the four yards
+- Board is flat and square with a thin edge, so the outer rows are never cut off
+- Dice sits right beside each player's picture
+- Tapping near a glowing pawn always moves the nearest one
+- Computer players use random dice and pawns from the whole collection
+- Old dice and pawns that players owned are gone; anyone using one goes back to the classic set
 
 ## What's new in 1.5
 - New deep look: deep blue home with a dot pattern, chunky 3D buttons (shiny top, thick bottom edge, shadow), chunky white lettering with a dark outline, white 3D pop-ups on top
