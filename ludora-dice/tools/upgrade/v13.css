@@ -22,7 +22,7 @@
 /* pawn previews fully inside */
 .pv13pw .pv11h{height:74%!important;bottom:15%!important}
 /* dice viewer: solid cube, bigger faces */
-.dv19f{inset:-5%!important;border-radius:20%;background-size:cover}
+.dv19f.dv13f{inset:0!important;border-radius:9%;background-repeat:no-repeat;box-shadow:inset 0 0 0 2px rgba(23,15,69,.85),inset 0 0 18px rgba(0,0,0,.25)}
 .dv13c{position:absolute;inset:4%;border-radius:12%;background:#2a2050;backface-visibility:hidden}
 .dv19{touch-action:none;user-select:none;-webkit-user-select:none}
 .dv19stage{cursor:grab}
@@ -74,3 +74,15 @@
 [dir=rtl] .hub19c{direction:rtl;text-align:right;background-position:left center,left center,0 0!important}
 [dir=rtl] .hub19c.wide,[dir=rtl] .hub19c.mn{background:linear-gradient(270deg,rgba(20,10,80,.92) 0,rgba(20,10,80,.7) 45%,rgba(20,10,80,.05)),var(--bg,none) left center/62% auto no-repeat,linear-gradient(170deg,#6b7dff,#3a3fd0)!important}
 [dir=rtl] .hub19btn{align-self:flex-end}
+
+/* guardian reveal: fits between the title and the buttons */
+.dv19gd{inset:6% 2% 2% 2%!important}
+.gd19img{width:100%!important;height:100%!important;object-fit:contain}
+.gd19name{bottom:-24%!important;font-size:18px!important;white-space:nowrap;background:#170f45;border-radius:999px;padding:6px 16px;-webkit-text-stroke:0!important}
+.dv19.rv .dv19tip,.dv19.rv .dv19hint,.dv19.rv .dv19ctl{opacity:0;transition:opacity .3s}
+/* profile picture: the whole frame stays inside the picture area */
+.p7pic.fr13{width:96px!important;height:96px!important;flex:none}
+.p7pic.fr13>.fb19{inset:0!important;width:100%!important;height:100%!important}
+.p7pic.fr13 .p7flag{z-index:5}
+.seat .fr19{transform:scale(.8)!important;transform-origin:50% 50%!important}
+.tab11 .dv19>*:not(.dv19bg):not(.dv19rays){zoom:var(--z11)}

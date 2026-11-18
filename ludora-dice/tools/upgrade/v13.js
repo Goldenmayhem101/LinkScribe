@@ -46,7 +46,16 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
 /* ---------- dice viewer: solid cube, spin with a finger anywhere on the screen ---------- */
 (function(){
   var o=null,rx=-24,ry=35,vx=0,vy=.6,drag=false,lx=0,ly=0,lt=0;
-  function core(){
+  function faces(){
+    var o=q('#dv19');if(!o)return;var id=o.dataset.id,cube=q('.dv19cube',o);if(!cube)return;
+    var F=cube.offsetWidth;if(!F)return;var it=ITEMS.die.filter(function(d){return d.id===id;})[0];if(!it)return;
+    var order=[1,3,6,4,2,5],v19=!!it.v19,N=v19?6:18,k=v19?1.2:1.42,url=v19?UI+'dv6/'+id+'.webp':'dice/'+id+'.webp';
+    cube.querySelectorAll('.dv19f').forEach(function(f,i){var n=order[i],cell=v19?n-1:11+n,S=F*k;
+      f.style.backgroundImage="url('"+url+"')";f.style.backgroundSize=(N*S)+'px '+S+'px';
+      f.style.backgroundPosition=(-(cell*S+(S-F)/2))+'px '+(-(S-F)/2)+'px';f.classList.add('dv13f');});
+  }
+  window.__dv13faces=faces;
+  function core(){faces();
     var cube=q('#dv19 .dv19cube');if(!cube||cube.querySelector('.dv13c'))return;
     var rot=['rotateY(0deg)','rotateY(90deg)','rotateY(180deg)','rotateY(-90deg)','rotateX(90deg)','rotateX(-90deg)'];
     for(var i=0;i<6;i++){var c=document.createElement('div');c.className='dv13c';c.style.transform=rot[i]+' translateZ(calc(var(--hz) - 3px))';cube.insertBefore(c,cube.firstChild);}
