@@ -359,13 +359,13 @@ function openHub(){
   mk('div','hub19ban','<img alt="" src="'+UI+'ev/hub.webp"><b>EVENTS HUB</b>',b);
   var g=mk('div','hub19g',null,b),s=wk(),m=mn(),th=wkTheme(),end=(weekNo()+1)*7*864e5-3*864e5,de=new Date();de.setHours(24,0,0,0);
   function card(o2){
-    var c=mk('button','hub19c '+(o2.cls||''),'<span class="hub19ic"><img alt="" src="'+UI+'ev/'+o2.ic+'.webp"></span><b>'+esc(o2.t)+'</b><small>'+o2.s+'</small>'+(o2.p!=null?'<i class="hub19p"><em style="width:'+Math.round(o2.p*100)+'%"></em></i>':'')+'<span class="hub19btn'+(o2.claim?' cl':'')+'">'+(o2.claim?'Claim':o2.btn||'Open')+'</span>'+(o2.claim?'<span class="hub19dot"></span>':''),g);
+    var c=mk('button','hub19c '+(o2.cls||''),'<span class="hub19ic"><img alt="" src="'+UI+'ev/'+o2.ic+'.webp"></span>'+(o2.k?'<em class="hub19k">'+esc(o2.k)+'</em>':'')+'<b>'+esc(o2.t)+'</b><small>'+o2.s+'</small>'+(o2.p!=null?'<i class="hub19p"><em style="width:'+Math.round(o2.p*100)+'%"></em></i>':'')+'<span class="hub19btn'+(o2.claim?' cl':'')+'">'+(o2.claim?'Claim':o2.btn||'Open')+'</span>'+(o2.claim?'<span class="hub19dot"></span>':''),g);
     c.type='button';c.addEventListener('click',o2.go);return c;
   }
   var wkReady=s.m<7&&wkOpen()&&wkDone(s.m);
-  card({cls:'wide wk',ic:'ic01',t:'Weekly: '+th[0],s:s.m>=7?'All 7 milestones done!':'Milestone '+(s.m+1)+' / 7 · Ends in '+msLeft(end-Date.now()),p:s.m/7,claim:wkReady,go:function(){openWeekly();}}).style.setProperty('--bg','url('+UI+'ev/'+th[1]+'.webp)');
+  card({cls:'wide wk',ic:'ic01',k:'Weekly Event',t:th[0],s:s.m>=7?'All 7 milestones done!':'Milestone '+(s.m+1)+' / 7 · Ends in '+msLeft(end-Date.now()),p:s.m/7,claim:wkReady,go:function(){openWeekly();}}).style.setProperty('--bg','url('+UI+'ev/'+th[1]+'.webp)');
   var nxt=MSTEP[Math.min(m.cl,9)];
-  card({cls:'wide mn',ic:'ic02',t:'Mini Event: Tiny Trouble',s:nf(m.pts)+' points · Ends in '+msLeft(de-Date.now()),p:m.cl>=10?1:Math.min(1,m.pts/nxt),claim:m.cl<10&&m.pts>=nxt,go:function(){openMini();}}).style.setProperty('--bg','url('+UI+'ev/mini.webp)');
+  card({cls:'wide mn',ic:'ic02',k:'Mini Event',t:'Tiny Trouble',s:nf(m.pts)+' points · Ends in '+msLeft(de-Date.now()),p:m.cl>=10?1:Math.min(1,m.pts/nxt),claim:m.cl<10&&m.pts>=nxt,go:function(){openMini();}}).style.setProperty('--bg','url('+UI+'ev/mini.webp)');
   card({ic:'ic03',t:'Season Pass',s:'Free rewards as you level up',go:function(){clickReal('h-pass');}});
   card({ic:'ic04',t:'Token Hunt',s:'Collect tokens on the board',go:function(){clickReal('h-ev');}});
   card({ic:'ic05',t:'Daily Goals',s:'Small goals, big rewards',go:function(){clickReal('h-chest');setTimeout(function(){var t=[].filter.call(document.querySelectorAll('.overlay:not([hidden]) button'),function(x){return /goal/i.test(x.textContent);})[0];if(t)t.click();},250);}});
