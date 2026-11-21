@@ -16,7 +16,7 @@ h2{position:absolute;left:0;right:0;top:${230*k}px;text-align:center;font-family
 <body><div class="glow"></div><div class="rays"></div><h1>${h1}</h1><h2>${h2}</h2><div class="row">${shots.map((s,i)=>`<div class="dev${shots.length===3&&i===1?' big':''}"><img src="raw_tablet/${s}.png"></div>`).join('')}</div>`;}
 const S=[
  ['square-1x1',2160,2160,'lava','ROLL. RACE. <em>WIN!</em>','Classic ludo on stunning boards',['g_lava','g_dragon'],1600],
- ['landscape-4x3',2560,1920,'night','PLAY <em>YOUR WAY</em>','Online · Computer · 2 vs 2 · Pass &amp; Play',['home','g_finish','g_sakura'],1200],
+ ['landscape-4x3',2560,1920,'night','PLAY <em>YOUR WAY</em>','Vs Computer · Team 2 vs 2 · Pass &amp; Play',['home','g_finish','g_sakura'],1200],
 ];
 (async()=>{const b=await chromium.launch();fs.mkdirSync('out_wide',{recursive:true});
 for(const [n,W,H,bg,a,c,sh,dh] of S){const p=await b.newPage({viewport:{width:W,height:H}});fs.writeFileSync('_w.html',page(W,H,bg,a,c,sh,dh));
