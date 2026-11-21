@@ -1,6 +1,14 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.9 (versionCode 11)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.10 (versionCode 12)
+
+## What's new in 1.10
+- Google Play cloud save (`CloudSave.kt`, game side `tools/upgrade/v15.js`): players are signed in to Google Play Games
+  automatically and their progress is saved to their Google account after changes and when they leave the app. On a new
+  install it comes back on its own; if a phone already has its own progress, the player is asked which one to keep.
+  Settings has a "Google Play save" box (Sign in / Save now). The avatar photo stays on the phone.
+- Needs `playGamesId=` in gradle.properties (Play Console > Play Games Services > Configuration > Project ID).
+  Until it is set, cloud save is off and the game works exactly like 1.9.
 
 ## What's new in 1.9
 - Activity Center (Weekly Event with a rotating grand prize: Epic dice, Epic pawn, Rare board or Epic frame; daily Mini Event), Inbox

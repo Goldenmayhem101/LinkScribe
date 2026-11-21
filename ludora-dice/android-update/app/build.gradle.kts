@@ -10,6 +10,8 @@ val serverUrl = (project.findProperty("serverUrl") as String?) ?: ""
 val privacyUrl = (project.findProperty("privacyUrl") as String?) ?: ""
 // Live content (new items/events without a Play Store update). Change it in gradle.properties with contentUrl=...
 val contentUrl = (project.findProperty("contentUrl") as String?) ?: "https://raw.githubusercontent.com/goldenmayhem101/ludora-live/main/"
+// Google Play Games project ID (Play Console > Play Games Services > Configuration). Empty = cloud save is off.
+val playGamesId = ((project.findProperty("playGamesId") as String?) ?: "").trim()
 
 android {
     namespace = "com.goldenmayhem.ludoradice"
@@ -19,9 +21,11 @@ android {
         applicationId = "com.goldenmayhem.ludoradice"   // the package name you type in Google Play Console
         minSdk = 26
         targetSdk = 36                                 // Android 16, required by Google Play
-        versionCode = 11                                // raise by 1 for every upload to Google Play
-        versionName = "1.9"
+        versionCode = 12                                // raise by 1 for every upload to Google Play
+        versionName = "1.10"
         manifestPlaceholders["admobAppId"] = admobAppId
+        resValue("string", "game_services_project_id", playGamesId)
+        buildConfigField("String", "PLAY_GAMES_ID", "\"$playGamesId\"")
     }
 
     buildFeatures { buildConfig = true }
@@ -56,6 +60,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.webkit:webkit:1.11.0")
     implementation("com.google.android.gms:play-services-ads:23.3.0")
+    implementation("com.google.android.gms:play-services-games-v2:22.1.0")  // Google Play cloud save
     implementation("com.google.android.ump:user-messaging-platform:3.0.0")
     implementation("com.google.android.play:review-ktx:2.0.2")   // Google Play in-app rating card
     implementation("androidx.work:work-runtime-ktx:2.9.1")       // daily reminder notification

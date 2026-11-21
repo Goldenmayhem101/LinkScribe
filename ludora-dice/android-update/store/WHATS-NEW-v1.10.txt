@@ -1,0 +1,4 @@
+New in Ludora 1.10:
+• Cloud save with Google Play Games: your progress is saved to your Google account
+• Reinstall or change phones and pick up right where you left off
+• New "Google Play save" box in Settings

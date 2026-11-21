@@ -47,7 +47,7 @@ for f in sorted(glob.glob(B+'/outn/*.json')):
     json.dump({'d':d,'p':[]},open(f'{OUT}/{code}.json','w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
     done.append(code)
 # newest words for every language (NLLB), added on top
-for f in sorted(glob.glob(B+'/outx/*.json')):
+for f in sorted(glob.glob(B+'/outx/*.json')+glob.glob(B+'/outx2/*.json')+glob.glob(B+'/outx3/*.json')):
     code=os.path.basename(f)[:-5];p=f'{OUT}/{code}.json'
     if not os.path.exists(p):continue
     cur=json.load(open(p,encoding='utf-8'));x=json.load(open(f,encoding='utf-8'))

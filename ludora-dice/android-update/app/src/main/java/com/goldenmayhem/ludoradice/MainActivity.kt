@@ -52,6 +52,8 @@ class MainActivity : AppCompatActivity() {
     // New items, events and pictures downloaded without a Play Store update (see LiveContent.kt)
     private val live by lazy { LiveContent(this, BuildConfig.CONTENT_URL) }
     private val launchedAt = SystemClock.uptimeMillis()
+    // Google Play cloud save (see CloudSave.kt); off until playGamesId is set in gradle.properties
+    private val cloud by lazy { CloudSave(this) { s -> runOnUiThread { if (::web.isInitialized) web.evaluateJavascript(s, null) } } }
 
     // Asks Android 13+ for permission to show the daily reminder; turns the reminder off if the player says no.
     private val notifPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -131,6 +133,7 @@ class MainActivity : AppCompatActivity() {
         web.addJavascriptInterface(AdsBridge(), "AndroidAds")
         web.addJavascriptInterface(AppBridge(), "AndroidApp")
         web.loadUrl(startUrl)
+        cloud.start()
 
         // Back button: pauses a run, closes menus, and only leaves the app from the home screen
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -234,6 +237,22 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun privacyUrl(): String = BuildConfig.PRIVACY_URL
 
+        // Google Play cloud save: "off" (not set up), "in" (signed in) or "out"
+        @JavascriptInterface
+        fun cloudStatus(): String = cloud.status()
+
+        @JavascriptInterface
+        fun cloudSignIn() { runOnUiThread { cloud.check(true) } }
+
+        @JavascriptInterface
+        fun cloudLoad() { runOnUiThread { cloud.load() } }
+
+        @JavascriptInterface
+        fun cloudSave(data: String, progress: Double, desc: String) {
+            if (data.length > 2_500_000) return                     // Google allows up to 3 MB per save
+            runOnUiThread { cloud.save(data, progress.toLong(), desc) }
+        }
+
         // Version of the live content pack on this phone (0 = only what came with the app)
         @JavascriptInterface
         fun liveVersion(): Int = live.version
@@ -282,6 +301,10 @@ class MainActivity : AppCompatActivity() {
             { v, msg -> runOnUiThread { web.evaluateJavascript("window.__liveReady&&window.__liveReady($v," + org.json.JSONObject.quote(msg) + ")", null) } })
     }
 
-    override fun onPause() { super.onPause(); web.onPause() }
+    override fun onPause() {
+        // save to Google Play when the player leaves the app
+        if (pageReady && cloud.enabled) web.evaluateJavascript("window.__cloud&&__cloud.flush()", null)
+        super.onPause(); web.onPause()
+    }
     override fun onResume() { super.onResume(); web.onResume(); if (pageReady) checkLive(false) }
 }
