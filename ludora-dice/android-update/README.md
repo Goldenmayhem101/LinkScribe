@@ -1,6 +1,6 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.9 (versionCode 10)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.9 (versionCode 11)
 
 ## What's new in 1.9
 - Activity Center (Weekly Event with a rotating grand prize: Epic dice, Epic pawn, Rare board or Epic frame; daily Mini Event), Inbox
