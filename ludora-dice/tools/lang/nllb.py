@@ -1,5 +1,5 @@
 # translate the game's words into the extra languages with NLLB-200 (CTranslate2). One model for all languages.
-import json,os,sys,re,time
+import json,os,sys,re,time,unicodedata
 import ctranslate2,sentencepiece as spm
 B=os.path.dirname(os.path.abspath(__file__));M=B+'/../nllb'
 KEYS=[];[KEYS.extend(json.load(open(B+'/../l2/'+f))) for f in os.environ.get('KEYS','keys19.json,keys19c.json').split(',')]
@@ -16,9 +16,11 @@ if os.environ.get('ALL'):LANGS=dict(OLDMAP,**{k:v for k,v in LANGS.items() if k!
 if os.environ.get('ONLY'):LANGS={k:v for k,v in LANGS.items() if k in os.environ['ONLY'].split(',')}
 NUM=['17','23','38','46','59']
 CTX={'Open':'Open it','Claim':'Claim your reward','Activity Center':'Events center','ACTIVITY CENTER':'EVENTS CENTER','Activity':'Events','Watch':'Watch the video','▶ Watch':'▶ Watch the video','Weekly Event':'Weekly game event','Mini Event':'Daily mini game event','Buy':'Buy it','Equip':'Use it','Equipped':'In use','Inbox':'Message inbox','Updates':'News updates','Requests':'Friend requests','Collect':'Collect reward','Chests':'Treasure chests','Chest':'Treasure chest','Owned':'Items you own','Offers':'Special offers','Home':'Home screen','Pass':'Season pass','Daily':'Daily rewards','Events':'Game events','Play':'Play the game','Videos':'Watch videos','Event prize':'Prize from an event'}
+CTX2={"Close": "Close this window", "Back": "Go back", "Store": "Game shop", "Shop": "Game shop", "STORE": "GAME SHOP", "Play": "Play the game", "Dice": "Dice for the board game", "Board": "Game board", "Boards": "Game boards", "Pawns": "Game pieces", "Pawn": "Game piece", "Frames": "Picture frames", "Frame": "Picture frame", "Free": "Free of charge", "Cancel": "Cancel it", "Accept": "Accept the request", "Done": "Finished", "Easy": "Easy level", "Hard": "Hard level", "Expert": "Expert level", "Normal": "Normal level", "Coins": "Gold coins", "Roll the dice": "Roll the dice in the board game", "Tap the dice to roll.": "Tap the dice to roll it.", "Settings": "Game settings", "Profile": "Player profile", "Online": "Play online", "Computer": "Play against the computer", "Friends": "Your friends", "Daily": "Daily rewards", "Find players": "Find other players", "Play again": "Play another game", "Change game": "Choose another game", "Collect": "Collect the reward", "Open": "Open it", "Your turn": "It is your turn", "YOUR TURN": "IT IS YOUR TURN", "Owned": "Items you own", "Search": "Search for items", "Got it": "Understood", "Sounds": "Game sounds", "Music": "Game music"}
 def prot(s):
-    s=CTX.get(s,s);s=s.replace('Activity Center','Events Center')
+    s=CTX2.get(s,CTX.get(s,s)) if os.environ.get('CTXPASS') else CTX.get(s,s);s=s.replace('Activity Center','Events Center')
     if 'reasure' not in s: s=re.sub(r'\b([Cc])hest(s?)\b',lambda m:('T' if m.group(1)=='C' else 't')+'reasure chest'+m.group(2),s)
+    if os.environ.get('RAWPH'): return s
     return re.sub(r'\{(\d)\}',lambda m:NUM[int(m.group(1))],s)
 sp=spm.SentencePieceProcessor(model_file=M+'/sentencepiece.bpe.model')
 tr=ctranslate2.Translator(M,device='cpu',inter_threads=1,intra_threads=4,compute_type='int8')
@@ -38,6 +40,7 @@ for L,code in LANGS.items():
     out={}
     for k,(a,n) in zip(KEYS,SEG):
         t=re.sub(r'\s+',' ',' '.join(sp.decode(outs[j]) for j in range(a,a+n))).strip()
+        t=''.join(str(unicodedata.digit(ch)) if ch.isdigit() and not ch.isascii() else ch for ch in t)
         for i,n in enumerate(NUM):
             if '{'+str(i)+'}' in k: t=re.sub(r'(?<!\d)'+n+r'(?!\d)','{'+str(i)+'}',t,count=1)
         need=set(re.findall(r'\{\d\}',k))

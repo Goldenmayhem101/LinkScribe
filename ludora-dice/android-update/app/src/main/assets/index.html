@@ -8890,6 +8890,21 @@ setInterval(function(){if(pending&&idle()){pending=false;apply();}},2000);
 function tr14(s){try{var r=window.__ludoraLang&&__ludoraLang.tr?__ludoraLang.tr(s):null;return r||s;}catch(e){return s;}}
 })();
 
+/* long words in some languages: shrink a title or button text until it fits instead of cutting it off */
+(function(){
+  var SEL='.lt9,.h7card b,button,.btn,.tab13,[class*=tab] b';
+  function fit(e){
+    var key=e.textContent+'|'+e.clientWidth;
+    if(e.__fitKey===key)return;
+    e.style.removeProperty('font-size');var base=parseFloat(getComputedStyle(e).fontSize)||16,s=base;
+    var n=0;while(e.scrollWidth>e.clientWidth+2&&s>base*0.55&&n<12){s*=0.9;e.style.setProperty('font-size',s+'px','important');n++;}
+    e.__fitKey=e.textContent+'|'+e.clientWidth;
+  }
+  function run(){try{document.querySelectorAll(SEL).forEach(function(e){if(e.offsetParent&&e.clientWidth>0)fit(e);});}catch(x){}}
+  setInterval(run,700);window.addEventListener('resize',function(){setTimeout(run,50);});
+  window.__fitText=run;
+})();
+
 /* ===================== languages: the game follows the phone's language (about 50 languages), changeable in Settings =====================
    Text on screen is translated as it appears. Each language lives in its own small file (lang/<code>.json).
    Names of boards, dice and other collectibles stay as they are. */
