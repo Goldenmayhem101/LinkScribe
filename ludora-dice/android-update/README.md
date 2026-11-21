@@ -123,7 +123,7 @@ Until you do, every build uses Google's test ads. Never tap your own real ads.
 
 ## 4. Online play (optional, later)
 The app works fully offline (vs the computer, team match, pass and play). Online rooms, friends and quick match need the Ludora server
-(folder `ludora-server` in the zip). When it is hosted, paste its address on the `serverUrl=` line in `gradle.properties`
+(folder `ludora-dice/ludora-server` in the repository; steps in its README). When it is hosted, paste its address on the `serverUrl=` line in `gradle.properties`
 (e.g. `https://ludora-xxxx.onrender.com`), raise `versionCode`, and upload an update. Then also use the "online" answers in `store/LAUNCH-PACK.txt` (Data safety, content rating).
 Google/Facebook sign-in does not work inside an app, so the app uses guest play online.
 
