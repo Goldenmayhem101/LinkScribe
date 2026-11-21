@@ -8,64 +8,50 @@ Short description (80 max):
 Classic ludo with fair dice, epic boards, heroes and weekly events. Play offline
 
 Full description (4000 max):
-Roll the dice, race your four pawns home and bump your rivals back to start! Ludora is the classic ludo board game you grew up with, rebuilt with stunning boards, collectable heroes, weekly events and fair play at its heart. Quick to learn, hard to put down, and perfect for a five-minute break or a long game night with family and friends.
+Roll the dice, race your four pawns home and bump your rivals back to start! Ludora is the classic ludo board game, rebuilt with stunning boards, collectable heroes, weekly events and fair play at its heart.
 
-🎲 FAIR DICE FOR EVERYONE
+★ FAIR DICE FOR EVERYONE
 • Every roll is pure chance: a 1 in 6 for every number, for you and for the computer
-• No boosts, no lucky rolls and no paid dice. The best player wins, not the biggest wallet
-• Harder computer levels only make smarter moves. They never get better dice
-• Everything that affects a game is the same for every player. Collectables only change how things look
-• No pop-up ads, ever. Videos only play when you choose to watch one for a reward, and never during a match
+• No boosts, no lucky rolls, no paid dice. The best player wins
+• Harder computer levels make smarter moves, never better dice
+• No pop-up ads. Videos only play when you choose one for a reward, never during a match
 
-🏁 PLAY YOUR WAY
-• Vs Computer: four levels, from Easy for beginners to Expert for ludo masters
-• Team 2 vs 2: team up with a partner against two rivals. Win together, lose together
-• Pass & Play: 2 to 4 players on one phone, perfect for family nights
-• Plays fully offline, so you can roll on a plane, on the bus or anywhere without Wi-Fi
-• Daily Twist: a new rule every day to keep games fresh. Blitz with fewer pawns, Safe Haven with extra safe stars, Hunter where only start squares are safe, and more
+★ PLAY YOUR WAY
+• Vs Computer: four levels, from Easy to Expert
+• Team 2 vs 2: team up with a partner against two rivals
+• Pass & Play: 2 to 4 players on one phone
+• Plays fully offline, anywhere
+• Daily Twist: a new rule every day, like Blitz, Safe Haven and Hunter
 
-📅 WEEKLY EVENTS AND PRIZES
-• Activity Center with a new Weekly Event every week and a daily Mini Event
-• Complete event goals to win prizes you keep forever: Epic dice, Epic pawns, boards and frames
-• Weekly Token Hunt: land on the special squares on the board to collect tokens
-• Free Season Pass with a new season every month, full of coins, gems and chests
-• Daily rewards calendar: come back every day for bigger rewards
-• Treasure chests to win and open: Iron, Silver, Gold and the rare Crystal chest
+★ WEEKLY EVENTS AND PRIZES
+• A new Weekly Event every week and a daily Mini Event
+• Win prizes you keep forever: Epic dice, Epic pawns, boards and frames
+• Weekly Token Hunt, a free monthly Season Pass and daily rewards
+• Treasure chests to win: Iron, Silver, Gold and the rare Crystal chest
 
-🦸 COLLECT AND SHOW OFF
-• 44 boards, each a world of its own: Molten Lava, Deep Ocean, Dragon Realm, Sakura Garden, Cyber City, Wizard Castle, Candy Carnival, Haunted Night and many more
-• 102 pawn heroes to collect, from cute Common pawns to mighty Legendary heroes
-• Every Legendary hero has its own finishing move: lightning bolts, tidal waves, meteors, dragon breath and more
-• 94 dice to spin and inspect in 3D. Every Legendary dice comes with its own guardian
+★ COLLECT AND SHOW OFF
+• 44 boards: Molten Lava, Deep Ocean, Dragon Realm, Sakura Garden, Cyber City and more
+• 102 pawn heroes. Every Legendary hero has its own finishing move
+• 94 dice to spin in 3D. Every Legendary dice has its own guardian
 • 99 picture frames, including glowing Legendary frames
-• Unlock items with the coins you win, by watching optional videos, or by winning events
-• Pick your name, picture, frame and country flag
+• Unlock items with coins, optional videos or event wins
+• Animated emojis and gifts that fly across the board
 
-😀 PLAY TOGETHER
-• Animated emojis to react during a game
-• Send gifts that fly across the board and burst on landing
-• Quick chat messages that every player understands, in any language
-
-🏆 GROW AS A PLAYER
-• Earn XP every game and climb through the levels
-• 12 achievements with bronze, silver and gold medals
-• A full profile with your wins, games played, bumps and more
-• Daily goals that reward you for playing well
-
-🌍 MADE FOR EVERYONE, EVERYWHERE
-• Available in 108 languages. Ludora picks your phone's language automatically, and you can change it any time in Settings
-• Your first game teaches you as you play, step by step
-• Big "YOUR TURN" marker, a countdown around your picture, and auto play if you step away
-• New boards, dice, heroes and events arrive regularly, without needing an app update
+★ FOR EVERYONE, EVERYWHERE
+• Available in 108 languages, picked automatically from your phone
+• Your first game teaches you as you play
+• Earn XP, level up and collect 12 achievement medals
+• New boards, dice, heroes and events arrive regularly
 
 HOW TO PLAY
-Roll a 6 to bring a pawn out of your yard. Move around the board by the number you roll, and roll again every time you get a 6. Land on a rival's pawn to send it back to start, but watch out: pawns resting on a star are safe. Be the first to bring all four pawns home to win!
+Roll a 6 to bring a pawn out. Move by the number you roll, and roll again on a 6. Land on a rival to send it back to start, but pawns on a star are safe. Bring all four pawns home first to win!
 
-Ludora is a ludo dice game for families, friends and board game fans of all ages. 2 to 4 players, quick games, easy rules, endless fun.
+Ludora is a ludo dice game for families, friends and board game fans of all ages. 2 to 4 players, quick games, easy rules.
 
-Questions or ideas? Go to Settings > Send feedback, or write to goldenmayhem.games@gmail.com. We read every message.
+Questions or ideas? Settings > Send feedback, or write to goldenmayhem.games@gmail.com
 
-Made with love by Goldenmayhem.
+Made by Goldenmayhem.
+
 -------------------------------------------------
 WHAT'S NEW (release notes for 1.9, 500 max)
 -------------------------------------------------
@@ -81,7 +67,7 @@ WHAT'S NEW (release notes for 1.9, 500 max)
 -------------------------------------------------
 WHEN ONLINE PLAY IS LIVE (after the server is set up)
 -------------------------------------------------
-Add this line at the top of PLAY YOUR WAY:
+Add this line at the top of ★ PLAY YOUR WAY:
 • Online: quick matches with 2 or 4 players, or invite friends with a code
 and change the short description to:
 Classic ludo with fair dice. Play online, vs computer or with friends offline!
