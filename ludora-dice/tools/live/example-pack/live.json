@@ -1,0 +1,5 @@
+{
+ "inbox": [{"id": "live-1", "t": "New items are here!", "b": "Open the Store to see what's new.", "d": "Dec 2026"}],
+ "src": {"die:e_spellbook": {"shop": 1}},
+ "guardianOn": []
+}

@@ -5,6 +5,7 @@
    weekly token hunt on the board, board spinner, teach-as-you-play tutorial. */
 (function(){
 var V2={};
+function esc2(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function q2(s,r){return (r||document).querySelector(s);}
 function seatPl(s){return S.players.filter(function(p){return p.seat===s;})[0];}
 function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1));}
@@ -308,15 +309,17 @@ renderProf=function(){
 
 /* ---------- rewards: show them, video double, goal bar, XP ---------- */
 function goalItem(){
-  if(set.goal){var f=findItem(set.goal);if(f&&f.it&&!owned(f.cat,f.it.id))return f;}
+  if(set.goal){var f=findItem(set.goal);if(f&&f.it&&!owned(f.cat,f.it.id)&&f.it.c>0)return f;}
   var best=null;
-  ['board','pawn','die','frame'].forEach(function(cat){ITEMS[cat].forEach(function(it){if(it.c>0&&!it.g&&!owned(cat,it.id)&&(!best||it.c<best.it.c))best={cat:cat,it:it};});});
+  function sellable(cat,it){try{var s=window.__src19&&window.__src19.src(cat,it);return !s||!!s.shop;}catch(e){return true;}}
+  ['board','pawn','die','frame'].forEach(function(cat){ITEMS[cat].forEach(function(it){if(it.c>0&&!it.g&&!owned(cat,it.id)&&sellable(cat,it)&&(!best||it.c<best.it.c))best={cat:cat,it:it};});});
   return best;
 }
 V2.goalItem=goalItem;
 function goalHtml(){
   var g=goalItem();if(!g)return '';
   var pct=Math.min(100,set.coins/g.it.c*100);
+  if(set.coins>=g.it.c)return '<div class="goal ready">🛒 <span>Ready to buy in the Store:</span> '+CATNAME[g.cat]+' “'+esc2(g.it.name)+'”  ·  '+nf(g.it.c)+'<div class="lvbar"><i style="width:100%"></i></div></div>';
   return '<div class="goal">Next goal: '+CATNAME[g.cat]+' “'+g.it.name+'”  ·  '+nf(Math.min(set.coins,g.it.c))+' / '+nf(g.it.c)+'<div class="lvbar"><i style="width:'+pct+'%"></i></div></div>';
 }
 V2.showWin=showWin;

@@ -1,7 +1,9 @@
 New in Ludora 1.9:
-• Activity Center: a Weekly Event with a Rare dice to win, and a daily Mini Event
-• 175 animated emojis and 25 animated gifts
+• Activity Center: a Weekly Event with a grand prize to keep, and a daily Mini Event
+• Animated emojis and gifts that fly to other players
 • 99 new picture frames and 50 new dice with a 3D dice viewer
-• Legendary dice now have their own guardians
-• New store, new Dune Run board, Inbox, free coins and diamonds by video
-• Now in 48 languages
+• Legendary dice have their own guardians
+• New store with a Videos tab: watch videos to unlock dice and frames
+• Fair dice for everyone: every roll is pure chance
+• New items and events now arrive without an app update
+• Now in more than 100 languages

@@ -8,6 +8,8 @@ val admobAppId = (project.findProperty("admobAppId") as String?) ?: "ca-app-pub-
 val realRewarded = (project.findProperty("rewardedUnit") as String?) ?: "ca-app-pub-3940256099942544/5224354917"
 val serverUrl = (project.findProperty("serverUrl") as String?) ?: ""
 val privacyUrl = (project.findProperty("privacyUrl") as String?) ?: ""
+// Live content (new items/events without a Play Store update). Change it in gradle.properties with contentUrl=...
+val contentUrl = (project.findProperty("contentUrl") as String?) ?: "https://raw.githubusercontent.com/goldenmayhem101/ludora-live/main/"
 
 android {
     namespace = "com.goldenmayhem.ludoradice"
@@ -30,6 +32,7 @@ android {
             buildConfigField("String", "REWARDED_UNIT", "\"ca-app-pub-3940256099942544/5224354917\"")
             buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
             buildConfigField("String", "PRIVACY_URL", "\"$privacyUrl\"")
+            buildConfigField("String", "CONTENT_URL", "\"$contentUrl\"")
         }
         // The signed release you upload to Google Play uses your real Ludora ad units from gradle.properties.
         release {
@@ -38,6 +41,7 @@ android {
             buildConfigField("String", "REWARDED_UNIT", "\"$realRewarded\"")
             buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
             buildConfigField("String", "PRIVACY_URL", "\"$privacyUrl\"")
+            buildConfigField("String", "CONTENT_URL", "\"$contentUrl\"")
         }
     }
     compileOptions {

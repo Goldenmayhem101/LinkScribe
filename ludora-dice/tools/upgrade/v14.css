@@ -1,0 +1,26 @@
+/* no Lucky Rolls */
+#luckrow,#h-luck,#g-luck,#g-lkn,#lk11,.lkw11,#lk-vid,.lucktag{display:none!important}
+/* Legendary frames: no spinning dots over the face. A breathing glow, a shine that sweeps over the frame only, and twinkles on its corners */
+.fr19.lg,.fb19f.lg{animation:frBreath 2.6s ease-in-out infinite!important;filter:none}
+@keyframes frBreath{0%,100%{filter:drop-shadow(0 0 2px var(--fglow)) drop-shadow(0 0 5px var(--fglow))}50%{filter:drop-shadow(0 0 4px var(--fglow)) drop-shadow(0 0 13px var(--fglow)) brightness(1.06)}}
+.fr19.lg::after,.fb19f.lg::after{content:''!important;position:absolute!important;inset:0!important;border-radius:0!important;opacity:1!important;mix-blend-mode:normal!important;background:inherit!important;
+ filter:brightness(1.9) saturate(1.15);animation:frShine 4.2s ease-in-out infinite!important;
+ -webkit-mask-image:linear-gradient(115deg,transparent 38%,#000 47%,#000 53%,transparent 62%);mask-image:linear-gradient(115deg,transparent 38%,#000 47%,#000 53%,transparent 62%);
+ -webkit-mask-size:320% 100%;mask-size:320% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+@keyframes frShine{0%{-webkit-mask-position:115% 0;mask-position:115% 0}50%,100%{-webkit-mask-position:-15% 0;mask-position:-15% 0}}
+.fr19.lg::before,.fb19f.lg::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;
+ background:radial-gradient(circle,#fff 0 1.5px,var(--fglow) 2.5px,transparent 4.5px) 9% 9%/14% 14% no-repeat,radial-gradient(circle,#fff 0 1.5px,var(--fglow) 2.5px,transparent 4.5px) 91% 12%/12% 12% no-repeat,radial-gradient(circle,#fff 0 1.5px,var(--fglow) 2.5px,transparent 4.5px) 10% 90%/12% 12% no-repeat,radial-gradient(circle,#fff 0 1.5px,var(--fglow) 2.5px,transparent 4.5px) 90% 89%/14% 14% no-repeat;
+ animation:frTw 1.8s ease-in-out infinite alternate}
+@keyframes frTw{from{opacity:.15;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.fr19.lg,.fb19f.lg,.fr19.lg::after,.fb19f.lg::after,.fr19.lg::before,.fb19f.lg::before{animation:none!important}}
+/* finishing-move words: dark outline + colour gradient letters + glow in the character's colour */
+.w14{color:#170f45!important;-webkit-text-stroke:.2em #170f45!important;paint-order:stroke fill;letter-spacing:.03em!important;
+ text-shadow:0 .12em 0 #170f45,0 0 .5em var(--wc),0 0 1.1em var(--wc)!important;white-space:nowrap}
+.w14::after{content:attr(data-t);position:absolute;inset:0;box-sizing:border-box;padding:inherit;text-align:inherit;line-height:inherit;letter-spacing:inherit;white-space:nowrap;pointer-events:none;
+ -webkit-text-stroke:0;text-shadow:none;color:transparent;
+ background:linear-gradient(180deg,#fff 6%,color-mix(in srgb,var(--wc) 55%,#fff) 30%,var(--wc) 58%,color-mix(in srgb,var(--wc) 62%,#000) 100%);
+ -webkit-background-clip:text;background-clip:text}
+.pcard .pword{top:4%!important}
+/* live content download pill */
+.lv14{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 78px);translate:-50% 0;z-index:300;background:#170f45;color:#fff;font:800 13px/1 Nunito,sans-serif;padding:8px 14px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.35);pointer-events:none;white-space:nowrap}
+.lv14[hidden]{display:none}

@@ -86,3 +86,25 @@
 .p7pic.fr13 .p7flag{z-index:5}
 .seat .fr19{transform:scale(.8)!important;transform-origin:50% 50%!important}
 .tab11 .dv19>*:not(.dv19bg):not(.dv19rays){zoom:var(--z11)}
+/* Flow animations (real animated pictures) */
+.ean{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.react.r19.ea-vid{animation:r19vid 4s ease-out forwards}
+.react.r19.ea-vid .r19in{width:84px;height:84px}
+.react.r19.ea-vid .ean{filter:drop-shadow(0 3px 4px rgba(0,0,30,.45))}
+@keyframes r19vid{0%{transform:scale(.2) translateY(20px);opacity:0}8%{transform:scale(1.1);opacity:1}13%{transform:scale(1)}90%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.85) translateY(-10px)}}
+.r19.big.ea-vid .r19in{width:180px;height:180px}
+.gl19.ga-vid{width:120px;height:120px}
+.gl19.ga-vid .ean{animation:gVid 3.6s ease-out forwards;filter:drop-shadow(0 4px 6px rgba(0,0,30,.5))}
+@keyframes gVid{0%{transform:scale(.3);opacity:0}8%{transform:scale(1.15);opacity:1}14%{transform:scale(1)}88%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.9)}}
+/* dice viewer: solid faces, filled cube corners */
+.dv19f.dv13f.dv13s{border-radius:5%;box-shadow:inset 0 0 0 1.5px rgba(23,15,69,.55),inset 0 0 14px rgba(0,0,0,.18)}
+.dv13c{inset:0!important;border-radius:0!important;background:var(--dvc,#2a2050)!important}
+/* Videos tab + event items */
+.tab13{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+.tab13 button{font-size:11px!important;padding:8px 1px!important}
+.c13.vd13 .c13s{background:#1f8a4c}
+.c13.ev13 .c13s{background:rgba(10,8,50,.6)}
+.vd13w{background:rgba(23,15,69,.06);border-radius:12px;padding:8px 10px 2px;margin-bottom:6px}
+.vd13t{font:900 14px/1.2 Nunito,sans-serif;color:#1d1647;text-align:center;margin-bottom:4px}
+.btn.vd13b{background:linear-gradient(#5fe08a,#22a456)!important;color:#fff!important}
+.ev13n{text-align:center;font-weight:800;color:#5d5887;margin:2px 0 8px}

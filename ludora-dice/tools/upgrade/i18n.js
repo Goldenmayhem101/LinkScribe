@@ -2,17 +2,18 @@
    Text on screen is translated as it appears. Each language lives in its own small file (lang/<code>.json).
    Names of boards, dice and other collectibles stay as they are. */
 (function(){
-var CODES=['en','ar','az','bg','bn','ca','cs','da','de','el','es','et','eu','fa','fi','fr','ga','gl','he','hi','hu','id','it','ja','ko','ky','lt','lv','ms','nb','nl','pl','pt','ro','ru','sk','sl','sq','sv','sw','th','tl','tr','uk','ur','vi','zh','zt'];
-var RTL={ar:1,fa:1,he:1,ur:1};
+var CODES=['en','ar','az','bg','bn','ca','cs','da','de','el','es','et','eu','fa','fi','fr','ga','gl','he','hi','hu','id','it','ja','ko','ky','lt','lv','ms','nb','nl','pl','pt','ro','ru','sk','sl','sq','sv','sw','th','tl','tr','uk','ur','vi','zh','zt','af','am','hy','my','km','lo','ka','kk','uz','tg','mn','ne','si','ta','te','mr','gu','kn','ml','pa','ps','sr','hr','bs','mk','is','mt','be','so','ha','yo','ig','zu','xh','rw','mg','ny','sn','om','ti','ht','lb','cy','jv','tk','ku','or','as','wo','ln','st','tn','lg','ckb','sd','ug','fo','qu','gn','ay'];
+var RTL={ar:1,fa:1,he:1,ur:1,ps:1,ckb:1,sd:1,ug:1};
 function phoneLang(){
   var L=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||'en']);
   for(var i=0;i<L.length;i++){var t=String(L[i]).toLowerCase(),b=t.split('-')[0];
     if(b==='zh')return /tw|hk|mo|hant/.test(t)?'zt':'zh';
-    if(b==='no'||b==='nn')return 'nb';if(b==='iw')return 'he';if(b==='in')return 'id';if(b==='fil')return 'tl';
+    if(b==='no'||b==='nn')return 'nb';if(b==='iw')return 'he';if(b==='in')return 'id';if(b==='fil')return 'tl';if(b==='ku'&&/arab|iq|ir/.test(t))return 'ckb';if(b==='mo')return 'ro';
     if(CODES.indexOf(b)>=0)return b;}
   return 'en';
 }
-function nameOf(c){var k=c==='zt'?'zh-Hant':c==='zh'?'zh-Hans':c;try{var n=new Intl.DisplayNames([k],{type:'language'}).of(k);return n.charAt(0).toUpperCase()+n.slice(1);}catch(e){return c;}}
+var OWN={ay:'Aymar aru',qu:'Runa Simi',gn:"Avañe'ẽ",ny:'Chichewa',om:'Afaan Oromoo',ln:'Lingála',lg:'Luganda',wo:'Wolof',tn:'Setswana',st:'Sesotho',sn:'chiShona',rw:'Kinyarwanda',ckb:'کوردیی ناوەندی',ku:'Kurdî',fo:'Føroyskt',ht:'Kreyòl ayisyen',mg:'Malagasy',jv:'Basa Jawa',tk:'Türkmen dili',ug:'ئۇيغۇرچە',sd:'سنڌي',ti:'ትግርኛ',xh:'isiXhosa',zu:'isiZulu',ig:'Igbo',yo:'Yorùbá',ha:'Hausa',so:'Soomaali',mt:'Malti',lb:'Lëtzebuergesch',cy:'Cymraeg',or:'ଓଡ଼ିଆ',as:'অসমীয়া'};
+function nameOf(c){var k=c==='zt'?'zh-Hant':c==='zh'?'zh-Hans':c;try{var n=new Intl.DisplayNames([k],{type:'language'}).of(k);if(!n||n.toLowerCase()===k.toLowerCase())throw 0;return n.charAt(0).toUpperCase()+n.slice(1);}catch(e){return OWN[c]||c;}}
 var lang=(set.langAuto===false&&CODES.indexOf(set.lang)>=0)?set.lang:phoneLang();
 var D={},P=[],ready=false;
 function word(t){if(t==null)return '';var d=D[t];return d||t;}

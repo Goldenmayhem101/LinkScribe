@@ -33,7 +33,7 @@ const CHECK=`(root)=>{
 }`;
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:W,height:H},isMobile:true,hasTouch:true});
 const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto('http://localhost:8790/dbg.html');await p.waitForTimeout(5000);
+await require('./boot19.js')(p);
 for(let i=0;i<4;i++){await p.mouse.click(W/2,H*0.53);await p.waitForTimeout(700);await p.evaluate(()=>{document.querySelectorAll('.overlay:not([hidden]):not(#ov-welcome) .btn').forEach(x=>x.click());});await p.waitForTimeout(300);}
 await p.evaluate(()=>{document.querySelectorAll('[class*=tour]').forEach(e=>e.remove());__ev("set.tour8=1;set.coins=2500000;set.gems=5000;set.lk=2;addChest('gold');addChest('silver');save();refreshStars();")});
 const report={};
@@ -59,7 +59,7 @@ for(const k of ['cpu','team','pass','online']){await p.evaluate(k=>__ev("window.
 await p.evaluate(()=>__ev("window.__ludoraV7.openSetup('cpu')"));await p.waitForTimeout(500);await p.click('#su7-play');await p.waitForTimeout(3500);
 await snap('game');
 for(let i=0;i<30;i++){await p.waitForTimeout(300);if(await p.evaluate(()=>__ev("mine(cur())&&S.phase==='roll'")))break;}
-await p.evaluate(()=>__ev("openLuck()"));await snap('game_luck');await closeAll();
+
 const gb=await p.evaluate(()=>[...document.querySelectorAll('.gbar button, #b-settings, .topbar button')].filter(x=>x.getBoundingClientRect().width>8).map((x,i)=>{x.dataset.gb=i;return i+':'+(x.id||x.className)+':'+(x.textContent||'').trim().slice(0,10);}));
 for(const t of gb){const i=t.split(':')[0];await p.evaluate(i=>{const x=document.querySelector('[data-gb="'+i+'"]');x&&x.click();},i);
  const any=await p.evaluate(()=>!!document.querySelector('.overlay:not([hidden]):not(#ov-welcome), .emopanel:not([hidden]), [class*=pop]:not([hidden])'));

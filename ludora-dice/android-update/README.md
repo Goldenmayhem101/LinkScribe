@@ -1,6 +1,26 @@
 # Ludora – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.8 (versionCode 9)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.9 (versionCode 10)
+
+## What's new in 1.9
+- Activity Center (Weekly Event with a rotating grand prize: Epic dice, Epic pawn, Rare board or Epic frame; daily Mini Event), Inbox
+- Store: Shop / Videos / Events / Owned / Offers / Chests. Common items for coins; common dice 30 videos, rare dice 50 videos,
+  common frames 15 videos, rare frames 30 videos; everything Epic and Legendary, all non-common boards and pawns are event prizes
+- Real animations from Google Flow: legendary dice guardians (▶ in the dice viewer; Frost Queen off until her animation arrives),
+  animated emojis above the sender's picture, gifts that fly to the receiver and play on landing
+- Lucky Rolls removed completely: every roll is a plain 1 in 6, in every mode
+- Dice viewer: solid cube (no gaps), Equip button really equips; store dice pictures cleaned of stray pieces
+- Legendary frames: breathing glow, shine and corner twinkles (no more spinning dots over the face)
+- Finishing-move words in each character's colours
+- Live content (`LiveContent.kt`, `tools/live/`): new items, events, guardian animations and inbox messages download in the
+  background without a Play Store update. Only pictures, sounds and a data list are accepted, never code
+- Languages: 112 (the phone's language is picked automatically; Settings has a drop-down)
+- Online: shows "Online is coming soon" until a game server address is set
+
+## Live content (updates without the Play Store)
+See `../tools/live/README.md`. In short: make a pack with `tools/live/mkpack.py`, upload it to the public GitHub repository
+`ludora-live` (or set your own address with `contentUrl=` in gradle.properties). Phones download it on their own.
+
 
 ## What's new in 1.8
 - `tools/upgrade/v10.js`: Legendary finishing moves. Each of the 30 Legendary pawns has its own show (slam, charge, breath, lightning bolt, beam, tidal wave, gulp, claw slash, meteor, time stop, tornado, foxfire orbs, island rise, roar, shock, pounce, dive, rainbow, holy light, black hole) with its own victim reaction (squashed, launched, frozen and shattered, burnt, zapped, dissolved, swallowed, split, turned to sand, ascended), sounds, buzz and word. Store item sheet has "See finishing move"

@@ -1,6 +1,9 @@
 /* ===================== v1.9: custom frames, animated emojis & gifts, new dice, dice viewer, Events Hub, Weekly + Mini events, Inbox ===================== */
 (function(){
 var UI='ui/v19/';
+window.__gdOff=window.__gdOff||{r5_03:1}; /* guardians without a real animation yet (Frost Queen) */
+var ANIM={};'face02 face03 face09 face11 face12 face18 face19 face21 face25 g01 g02 g03 g04 g05 g06 g07 g08 g09 g10 g11 g12 g13 g14 g15 g16 g17 g18 g20 g21 g22 g23 g24 g25 r1_01 r1_02 r1_03 r1_04 r1_05 r2_01 r2_02 r2_03 r2_04 r2_05 r3_01 r3_02 r3_03 r3_04 r3_05 r4a01 r4a02 r4a03 r4b01 r4b02 r5_01 r5_02 r5_04 r5_05 st_cat01 st_cat02 st_cat03 st_cat04 st_cat05 st_dice01 st_dice02 st_dice03 st_dice04 st_dice05 st_dragon01 st_dragon02 st_dragon03 st_dragon04 st_dragon05 st_penguin01 st_penguin02 st_penguin03 st_penguin04 st_puppy01 st_puppy02 st_puppy03 st_puppy04 st_puppy05'.split(' ').forEach(function(k){ANIM[k]=1;});
+function aImg(id,c){return '<img class="ean '+(c||'')+'" alt="" draggable="false" src="'+((window.__animURL||{})[id]||UI+'anim/'+id+'.webp')+'">';}
 function q(s,r){return (r||document).querySelector(s);}
 function mk(tag,cls,html,par){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(par)par.appendChild(e);return e;}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -89,9 +92,9 @@ showReaction=function(seat,e){
   if(S.mute&&S.mute[seat])return;
   var av=SEATEL[seat]&&SEATEL[seat].querySelector('.av');if(!av)return;
   av.querySelectorAll('.r19').forEach(function(x){x.remove();});
-  var inf=EINFO[id]||{a:'laugh'},r=mk('span','react r19 ea-'+inf.a,'<span class="r19in">'+eImg(id)+'<i class="fx1"></i><i class="fx2"></i><i class="fx3"></i></span>',av);
+  var inf=EINFO[id]||{a:'laugh'},vid=ANIM[id],r=vid?mk('span','react r19 ea-vid','<span class="r19in">'+aImg(id)+'</span>',av):mk('span','react r19 ea-'+inf.a,'<span class="r19in">'+eImg(id)+'<i class="fx1"></i><i class="fx2"></i><i class="fx3"></i></span>',av);
   try{sfx.pop();}catch(x){}
-  setTimeout(function(){r.remove();},2600);
+  setTimeout(function(){r.remove();},vid?4100:2600);
   try{track('emo',1,seat);}catch(x){}
 };
 buildTray=function(){
@@ -133,7 +136,7 @@ function openPack(pid,idx){
   var ids=pk.ids;idx=(idx+ids.length)%ids.length;var id=ids[idx],inf=EINFO[id];
   o.querySelector('.pk19t').textContent=pk.n;o.querySelector('.pk19s').textContent=pk.k==='event'?'Event exclusive':pk.k==='faces'?'Classic faces':'Emoji pack';
   o.className='overlay pk19 k-'+pk.k;
-  o.querySelector('.pk19big').innerHTML='<span class="r19 big ea-'+inf.a+'"><span class="r19in">'+eImg(id)+'<i class="fx1"></i><i class="fx2"></i><i class="fx3"></i></span></span>';
+  o.querySelector('.pk19big').innerHTML=ANIM[id]?'<span class="r19 big ea-vid"><span class="r19in">'+aImg(id)+'</span></span>':'<span class="r19 big ea-'+inf.a+'"><span class="r19in">'+eImg(id)+'<i class="fx1"></i><i class="fx2"></i><i class="fx3"></i></span></span>';
   o.querySelector('.pk19n').textContent=inf.n;o.querySelector('.pk19tip').textContent=inf.t;
   o.querySelector('.pk19dots').innerHTML=ids.map(function(x,i){return '<i class="'+(i===idx?'on':'')+(eOwned(x)?' have':'')+'"></i>';}).join('');
   o.querySelector('.pk19a.l').onclick=function(){openPack(pid,idx-1);};o.querySelector('.pk19a.r').onclick=function(){openPack(pid,idx+1);};
@@ -199,9 +202,9 @@ function sendGift19(gid,to){
 }
 function giftLand(seat,gid){
   var av=SEATEL[seat]&&SEATEL[seat].querySelector('.av');if(!av)return;var G=GINFO[gid];
-  var fx=mk('span','gl19 ga-'+G.a,gImg(gid)+'<i></i><i></i><i></i><i></i><i></i><i></i>',av);
+  var vid=ANIM[gid],fx=mk('span','gl19 '+(vid?'ga-vid':'ga-'+G.a),(vid?aImg(gid):gImg(gid))+'<i></i><i></i><i></i><i></i><i></i><i></i>',av);
   try{(G.a==='splat'?sfx.bump:sfx.pop)();}catch(e){}
-  setTimeout(function(){fx.remove();},1800);
+  setTimeout(function(){fx.remove();},vid?3600:1800);
 }
 var rsx=renderSeats;
 renderSeats=function(){var r=rsx.apply(this,arguments);
@@ -234,7 +237,7 @@ function track(k,n,seat){
 var THEMES=[['Desert Dash','wk1','#ff9a1f'],['Pirate Plunder','wk2','#1f8ce0'],['Frost Fortress','wk3','#5fb8ff'],['Candy Rush','wk4','#ff5ab0']];
 var TASKS={play:['Play {n} games',[1,2,3,4,5,6,8]],win:['Win {n} games',[1,1,2,2,3,3,4]],cap:['Capture {n} pawns',[2,3,4,6,8,10,12]],six:['Roll {n} sixes',[3,5,7,9,12,15,18]],
   home:['Bring {n} pawns home',[2,4,6,8,10,12,16]],six2:['Roll two sixes in a row {n} times',[1,1,2,2,3,3,4]],emo:['Send {n} emojis',[2,3,4,5,6,8,10]],
-  gift:['Send {n} gifts',[1,1,1,2,2,2,3]],vid:['Watch {n} videos',[1,1,2,2,2,3,3]],online:['Play {n} online games',[1,1,1,2,2,2,3]],lucky:['Use {n} Lucky Rolls',[1,1,2,2,2,3,3]]};
+  gift:['Send {n} gifts',[1,1,1,2,2,2,3]],vid:['Watch {n} videos',[1,1,2,2,2,3,3]],online:['Play {n} online games',[1,1,1,2,2,2,3]]};
 var WGAP=6*36e5;
 function wk(){
   var w=weekNo();
@@ -248,13 +251,20 @@ function wkTasks(j){
   while(out.length<3){var k=keys[Math.floor(r()*keys.length)];if(out.indexOf(k)<0)out.push(k);}
   return out.map(function(k){return {k:k,n:TASKS[k][1][j],t:TASKS[k][0].replace('{n}',TASKS[k][1][j])};});
 }
+/* grand prize rotates each week: an Epic dice, an Epic pawn, a Rare board or an Epic frame to keep (event-only items) */
+function grand(w,r){
+  var kinds=[['die','epic','Epic dice'],['pawn','epic','Epic pawn'],['board','rare','Rare board'],['frame','epic','Epic frame']],k=kinds[w%4];
+  var pool=ITEMS[k[0]].filter(function(x){return x.r===k[1];}),fresh=pool.filter(function(x){return !owned(k[0],x.id);});
+  var list=fresh.length?fresh:pool,it=list[Math.floor(r()*list.length)];
+  return {keep:[k[0],it.id],g:100,t:it.name+' ('+k[2]+') to keep + 100 diamonds',it:[k[0],it]};
+}
 function wkPrize(j){
   var w=weekNo(),r=rng(w*31+7);
   var rare=ITEMS.die.filter(function(d){return d.v19&&d.r==='rare';}),epicP=ITEMS.pawn.filter(function(p){return p.r==='epic';});
   var d=rare[Math.floor(r()*rare.length)],p=epicP[Math.floor(r()*epicP.length)],sp=['st_cat','st_dice','st_dragon','st_penguin','st_puppy'][w%5];
-  return [{c:25000,g:20,t:'25,000 coins + 20 diamonds'},{lk:2,c:30000,t:'2 Lucky Rolls + 30,000 coins'},{chest:'silver',g:40,t:'Silver chest + 40 diamonds'},
+  return [{c:25000,g:20,t:'25,000 coins + 20 diamonds'},{c:50000,t:'50,000 coins'},{chest:'silver',g:40,t:'Silver chest + 40 diamonds'},
     {trial:['pawn',p.id],t:p.name+' (Epic pawn) for 7 days',it:['pawn',p]},{c:100000,g:60,t:'100,000 coins + 60 diamonds'},
-    {pack:sp,t:PACK[sp].n+' (animated, event only)'},{keep:['die',d.id],g:100,t:d.name+' Rare dice to keep + 100 diamonds',it:['die',d]}][j];
+    {pack:sp,t:PACK[sp].n+' (animated, event only)'},grand(w,r)][j];
 }
 function wkAdd(k,n){var s=wk();if(s.m>=7)return;s.p[s.m]=s.p[s.m]||{};var ts=wkTasks(s.m);
   ts.forEach(function(t){if(t.k===k){s.p[s.m][k]=Math.min(t.n,(s.p[s.m][k]||0)+n);}});save();badgeSync();}
@@ -279,7 +289,7 @@ function openWeekly(){
     var row=mk('div','wk19m s-'+st+(j===6?' final':''),null,tr);
     var node=mk('div','wk19n',j<s.m?'✓':String(j+1),row);
     var card=mk('div','wk19c',null,row);
-    var rimg=rw.it?(rw.it[0]==='die'?'<div class="wk19ri dice" style="background-image:url(dice/'+rw.it[1].id+'.webp)"></div>':'<div class="wk19ri">'+(window.__ludoraV9&&window.__ludoraV9.sprHTML?window.__ludoraV9.sprHTML(rw.it[1].id,'red'):'🎁')+'</div>'):rw.pack?'<div class="wk19ri">'+eImg(PACK[rw.pack].ids[1])+'</div>':rw.chest?'<div class="wk19ri"><img alt="" src="ui/ic/chest_'+rw.chest+'.webp"></div>':rw.lk?'<div class="wk19ri"><img alt="" src="ui/ic/clover.webp"></div>':'<div class="wk19ri"><img alt="" src="ui/ic/'+(rw.g&&!rw.c?'gems':'coins')+'.webp"></div>';
+    var rimg=rw.it?(rw.it[0]==='die'?'<div class="wk19ri dice" style="background-image:url(dice/'+rw.it[1].id+'.webp)"></div>':rw.it[0]==='board'?'<div class="wk19ri bd" style="background:url(boards/'+rw.it[1].id+'.webp) center/cover;border-radius:10px;border:2px solid #fff"></div>':rw.it[0]==='frame'?'<div class="wk19ri" style="'+atSt(String(rw.it[1].id).replace(/^F/,''))+'"></div>':'<div class="wk19ri">'+(window.__ludoraV9&&window.__ludoraV9.sprHTML?window.__ludoraV9.sprHTML(rw.it[1].id,'red'):'🎁')+'</div>'):rw.pack?'<div class="wk19ri">'+eImg(PACK[rw.pack].ids[1])+'</div>':rw.chest?'<div class="wk19ri"><img alt="" src="ui/ic/chest_'+rw.chest+'.webp"></div>':rw.lk?'<div class="wk19ri"><img alt="" src="ui/ic/clover.webp"></div>':'<div class="wk19ri"><img alt="" src="ui/ic/'+(rw.g&&!rw.c?'gems':'coins')+'.webp"></div>';
     card.innerHTML='<div class="wk19rw">'+rimg+'<div><small>'+(j===6?'GRAND PRIZE':'Milestone '+(j+1))+'</small><b>'+esc(rw.t)+'</b></div></div>';
     if(st==='now'||st==='done'){var tl=mk('div','wk19tasks',null,card),pp=s.p[j]||{};
       wkTasks(j).forEach(function(t){var v=Math.min(t.n,pp[t.k]||0);if(st==='done')v=t.n;mk('div','wk19t'+(v>=t.n?' ok':''),'<span>'+esc(t.t)+'</span><i><em style="width:'+(v/t.n*100)+'%"></em></i><b>'+v+'/'+t.n+'</b>',tl);});}
@@ -296,7 +306,7 @@ function openWeekly(){
 
 /* ---------- 7. Mini Event (daily): points fill a chest through 10 steps ---------- */
 var MSTEP=[10,25,45,70,100,140,190,250,320,400];
-var MRW=[{c:5000,t:'5,000'},{g:10,t:'10 💎'},{c:15000,t:'15,000'},{lk:1,t:'Lucky Roll'},{g:25,t:'25 💎'},{c:40000,t:'40,000'},{chest:'iron',t:'Iron chest'},{g:50,t:'50 💎'},{c:80000,t:'80,000'},{c:150000,g:100,chest:'gold',t:'Grand chest'}];
+var MRW=[{c:5000,t:'5,000'},{g:10,t:'10 💎'},{c:15000,t:'15,000'},{c:20000,t:'20,000'},{g:25,t:'25 💎'},{c:40000,t:'40,000'},{chest:'iron',t:'Iron chest'},{g:50,t:'50 💎'},{c:80000,t:'80,000'},{c:150000,g:100,chest:'gold',t:'Grand chest'}];
 var MPTS={play:2,win:6,cap:3,six2:4,home:2};
 function mn(){var d=dayKey();if(!set.mn||set.mn.d!==d){set.mn={d:d,pts:0,cl:0,dbl:0,dv:0};save();}return set.mn;}
 function mnAdd(k,n){if(!MPTS[k])return;var s=mn(),p=MPTS[k]*n*(Date.now()<s.dbl?2:1);s.pts+=p;save();badgeSync();
@@ -324,7 +334,7 @@ function openMini(){
 /* ---------- 8. Inbox: updates from the studio + friend requests ---------- */
 var NEWS=[
  {id:'n19a',t:'Ludora 1.9 is here!',b:'New Events Hub with a Weekly Event and a daily Mini Event, 175 animated emojis, 25 animated gifts, 99 new frames, 50 new dice and a 3D dice viewer. Have fun!',d:'Nov 2026'},
- {id:'n19b',t:'Legendary dice have guardians',b:'Every Legendary dice now has its own guardian. Open a Legendary dice in the Store and tap ▶ to call it.',d:'Nov 2026'},
+ {id:'n19b',t:'Legendary dice have guardians',b:'Legendary dice have their own guardians. Open a Legendary dice in the Store and tap ▶ to call it.',d:'Nov 2026'},
  {id:'n19c',t:'Fair play promise',b:'Dice rolls are always random, the computer never cheats, and you only see a video when you choose to.',d:'Nov 2026'}];
 function ibUnread(){var r=(set.ib&&set.ib.r)||[];return NEWS.filter(function(n){return r.indexOf(n.id)<0;}).length+reqs().length;}
 function reqs(){try{return (set.freq||[]).filter(Boolean);}catch(e){return [];}}
@@ -436,7 +446,14 @@ function diceView(it){
   if(!o){o=mk('div','dv19',null,document.body);o.id='dv19';o.hidden=true;
     o.innerHTML='<div class="dv19bg"></div><div class="dv19rays"></div><div class="dv19top"><b class="dv19n"></b><span class="dv19r"></span></div><div class="dv19stage"><div class="dv19cube"></div><div class="dv19gd"></div></div><p class="dv19tip"></p><div class="dv19ctl"><button type="button" class="dv19play" aria-label="Play animation">▶</button></div><p class="dv19hint">Swipe the dice to spin it</p><div class="dv19btns"><button type="button" class="btn dv19go">Buy or equip</button><button type="button" class="btn ghost dv19x">Close</button></div>';
     o.querySelector('.dv19x').addEventListener('click',function(){o.hidden=true;try{closeSheet('ov-item');}catch(e){}});
-    o.querySelector('.dv19go').addEventListener('click',function(){o.hidden=true;});
+    o.querySelector('.dv19go').addEventListener('click',function(){
+      var id=o.dataset.id,b=o.querySelector('.dv19go');
+      if(id&&owned('die',id)){
+        if(String(set.eq.die)!==String(id)){set.eq.die=String(id);save();try{applyCosmetics();}catch(e){}try{renderColl();}catch(e){}try{renderItemBtns();}catch(e){}
+          var it=ITEMS.die.filter(function(d){return d.id===id;})[0];toast((it?it.name:'Dice')+' equipped');}
+        b.textContent='Equipped';return;
+      }
+      o.hidden=true;});
     spinInit(o);}
   o.dataset.id=it.id;o.className='dv19 r-'+it.r;
   o.querySelector('.dv19n').textContent=it.name;o.querySelector('.dv19r').textContent=RAR[it.r].n;
@@ -447,8 +464,9 @@ function diceView(it){
     if(u){f.style.backgroundImage="url('"+UI+"dv6/"+it.id+".webp')";f.style.backgroundSize='600% 100%';f.style.backgroundPosition=((order[i]-1)/5*100)+'% 0';}else{f.style.backgroundImage='url(dice/'+it.id+'.webp)';f.style.backgroundSize='1800% 100%';f.style.backgroundPosition=((11+order[i])/17*100)+'% 0';}
     f.style.transform=rot[i]+' translateZ(var(--hz))';}
   o.querySelector('.dv19gd').innerHTML='';
-  o.querySelector('.dv19play').hidden=!(it.r==='legendary'&&GD[it.id]);
+  o.querySelector('.dv19play').hidden=!(it.r==='legendary'&&GD[it.id]&&!(window.__gdOff||{})[GD[it.id][0]]);
   o.querySelector('.dv19play').onclick=function(){reveal(o,it);};
+  try{var gk=GD[it.id]&&GD[it.id][0];if(gk&&ANIM[gk])(new Image()).src=UI+'gd/'+gk+'.webp';}catch(e){}
   var own=owned('die',it.id);o.querySelector('.dv19go').textContent=own?(String(set.eq.die)===String(it.id)?'Equipped':'Equip'):'Buy';
   SP.rx=-24;SP.ry=35;SP.vy=.6;SP.vx=0;o.hidden=false;
 }
@@ -477,6 +495,6 @@ function reveal(o,it){
   new MutationObserver(fix).observe(document.body,{childList:true});fix();
 })();
 
-window.__l19={openHub:openHub,openWeekly:openWeekly,openMini:openMini,openInbox:openInbox,diceView:diceView,openPack:openPack,track:track,wk:wk,mn:mn,celebrate:celebrate};
+window.__l19={THEMES:THEMES,NEWS:NEWS,ANIM:ANIM,sendGift:sendGift19,openHub:openHub,openWeekly:openWeekly,openMini:openMini,openInbox:openInbox,diceView:diceView,openPack:openPack,track:track,wk:wk,mn:mn,celebrate:celebrate};
 try{buildTray();}catch(e){}
 })();

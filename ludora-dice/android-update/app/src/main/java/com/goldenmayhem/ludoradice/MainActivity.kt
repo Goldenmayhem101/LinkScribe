@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() {
     private var rewarded: RewardedAd? = null
     private var fileCb: android.webkit.ValueCallback<Array<android.net.Uri>>? = null
     private var pageReady = false
+    // New items, events and pictures downloaded without a Play Store update (see LiveContent.kt)
+    private val live by lazy { LiveContent(this, BuildConfig.CONTENT_URL) }
     private val launchedAt = SystemClock.uptimeMillis()
 
     // Asks Android 13+ for permission to show the daily reminder; turns the reminder off if the player says no.
@@ -103,8 +105,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
         web.webViewClient = object : WebViewClient() {
-            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                assets.shouldInterceptRequest(request.url)
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                val u = request.url
+                // a downloaded (live) file wins over the one built into the app
+                if (u.host == "appassets.androidplatform.net" && (u.path ?: "").startsWith("/assets/")) {
+                    live.open((u.path ?: "").removePrefix("/assets/"))?.let { return it }
+                }
+                return assets.shouldInterceptRequest(u)
+            }
 
             // Only the game itself runs inside the app. Any other link (e.g. the privacy policy) opens in the browser.
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -114,7 +122,11 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
 
-            override fun onPageFinished(view: WebView, url: String) { pageReady = true }
+            override fun onPageFinished(view: WebView, url: String) {
+                val first = !pageReady
+                pageReady = true
+                if (first) checkLive(true)
+            }
         }
         web.addJavascriptInterface(AdsBridge(), "AndroidAds")
         web.addJavascriptInterface(AppBridge(), "AndroidApp")
@@ -222,6 +234,10 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun privacyUrl(): String = BuildConfig.PRIVACY_URL
 
+        // Version of the live content pack on this phone (0 = only what came with the app)
+        @JavascriptInterface
+        fun liveVersion(): Int = live.version
+
         // Opens a web page (the privacy policy) in the phone's browser
         @JavascriptInterface
         fun openUrl(url: String) {
@@ -259,6 +275,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Looks for new live content (on start, then at most every few hours when the player comes back to the app)
+    private fun checkLive(force: Boolean) {
+        live.check(BuildConfig.VERSION_CODE, force,
+            { done, total -> runOnUiThread { web.evaluateJavascript("window.__liveProgress&&window.__liveProgress($done,$total)", null) } },
+            { v, msg -> runOnUiThread { web.evaluateJavascript("window.__liveReady&&window.__liveReady($v," + org.json.JSONObject.quote(msg) + ")", null) } })
+    }
+
     override fun onPause() { super.onPause(); web.onPause() }
-    override fun onResume() { super.onResume(); web.onResume() }
+    override fun onResume() { super.onResume(); web.onResume(); if (pageReady) checkLive(false) }
 }

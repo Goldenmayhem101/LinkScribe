@@ -544,7 +544,7 @@ function joinPrompt7(){
 }
 /* online needs a sign-in (guest is fine): ask once, then carry on with what the player picked */
 function withAuth(cb){
-  if(!NET.rt){notice('Online play unavailable','Could not reach the game server. Check your internet connection and try again.');showWelcome();return;}
+  if(!NET.rt){if(!(window.LUDORA_SERVER||''))notice('Online is coming soon','Online matches are not open yet. Play Vs Computer, Team 2 vs 2 or Pass & Play for now.');else notice('Online play unavailable','Could not reach the game server. Check your internet connection and try again.');showWelcome();return;}
   NET.rt.join('lu-zz'+Math.random().toString(36).slice(2,8)).then(function(r){try{r.leave();}catch(e){}cb();},function(){
     var a=q7('#ov-auth');if(!a){toast('Sign in to play online.');return;}
     V7.afterAuth=cb;a.hidden=false;var nm=q7('#a-name');if(nm&&!nm.value)nm.value=set.name||'';
