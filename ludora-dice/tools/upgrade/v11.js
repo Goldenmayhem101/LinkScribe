@@ -58,7 +58,7 @@ function winRow(){
 
 /* ---------- 4. small banner on the home screen only ---------- */
 var BAN=document.createElement('div');BAN.id='ban11';BAN.className='ban11';BAN.setAttribute('aria-hidden','true');
-var nativeBan=!!(window.AndroidAds&&AndroidAds.setBanner);
+var nativeBan=!!(window.AndroidAds&&AndroidAds.setBanner);if(window.AndroidAds&&!nativeBan)BAN.style.display='none';
 if(!nativeBan)BAN.innerHTML='<span class="adt">Ad</span><span class="adx"><b>Sample banner</b><small>A small ad shows here, only on the home screen</small></span><span class="adb">Open</span>';
 document.body.appendChild(BAN);
 var banOn=null;
