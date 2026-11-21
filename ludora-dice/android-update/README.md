@@ -14,7 +14,7 @@ Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)**
 - Finishing-move words in each character's colours
 - Live content (`LiveContent.kt`, `tools/live/`): new items, events, guardian animations and inbox messages download in the
   background without a Play Store update. Only pictures, sounds and a data list are accepted, never code
-- Languages: 112 (the phone's language is picked automatically; Settings has a drop-down)
+- Languages: 108 (the phone's language is picked automatically; Settings has a drop-down)
 - Online: shows "Online is coming soon" until a game server address is set
 
 ## Live content (updates without the Play Store)
