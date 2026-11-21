@@ -1,0 +1,69 @@
+LUDORA 1.9: STORE LISTING TEXT (copy and paste into Play Console > Main store listing)
+==================================================================================
+
+App name (30 max):
+Ludora: Fair Play Dice Game
+
+Short description (80 max):
+Classic ludo with fair dice, epic boards, heroes and weekly events. Play offline
+
+Full description (4000 max):
+Roll the dice, race your four pawns home and bump your rivals back to start! Ludora is the classic ludo board game with stunning boards, collectable heroes and fair play built in.
+
+FAIR DICE FOR EVERYONE
+• Every roll is pure chance: a 1 in 6 for every number, for you and for the computer
+• No boosts, no lucky rolls, no paid dice. The best player wins, not the biggest wallet
+• Harder computer levels only make smarter moves, they never get better dice
+• No pop-up ads. Videos only play when you choose to watch one for a reward
+
+PLAY YOUR WAY
+• Vs Computer: four levels, from Easy to Expert
+• Team 2 vs 2: you and a partner against two rivals
+• Pass & Play: 2 to 4 players on one phone
+• Plays fully offline, anywhere
+
+WEEKLY EVENTS AND PRIZES
+• Activity Center with a new Weekly Event and a daily Mini Event
+• Win event prizes to keep: Epic dice, Epic pawns, boards and frames
+• Daily rewards, a free season pass and treasure chests to open
+
+COLLECT AND SHOW OFF
+• 44 boards: Molten Lava, Deep Ocean, Dragon Realm, Sakura Garden, Frost and more
+• 102 pawn heroes, from cute to Legendary. Legendary heroes have their own finishing moves
+• 94 dice to spin in 3D. Legendary dice come with their own guardian
+• 99 picture frames, with glowing Legendary frames
+• Unlock items with coins, by watching videos, or by winning events
+• Animated emojis and gifts that fly across the board to other players
+
+FOR EVERYONE, EVERYWHERE
+• Available in 108 languages; Ludora picks your phone's language automatically
+• Your first game teaches you as you play
+• Big "YOUR TURN" marker, a countdown around your picture, and auto play if you step away
+• New items and events arrive regularly, no app update needed
+
+Ludora is a ludo dice game for families, friends and board game fans of all ages. 2 to 4 players, quick games, easy rules.
+
+Questions or ideas? Settings > Send feedback, or write to goldenmayhem.games@gmail.com
+
+Made by Goldenmayhem.
+
+-------------------------------------------------
+WHAT'S NEW (release notes for 1.9, 500 max)
+-------------------------------------------------
+• Activity Center: a Weekly Event with a grand prize to keep, and a daily Mini Event
+• Animated emojis and gifts that fly to other players
+• 99 new picture frames and 50 new dice with a 3D dice viewer
+• Legendary dice have their own guardians
+• New store with a Videos tab: watch videos to unlock dice and frames
+• Fair dice for everyone: every roll is pure chance
+• New items and events now arrive without an app update
+• Now in more than 100 languages
+
+-------------------------------------------------
+WHEN ONLINE PLAY IS LIVE (after the server is set up)
+-------------------------------------------------
+Add this line at the top of PLAY YOUR WAY:
+• Online: quick matches with 2 or 4 players, or invite friends with a code
+and change the short description to:
+Classic ludo with fair dice. Play online, vs computer or with friends offline!
+Also update Data safety (online sends a nickname and friend list to the server).
