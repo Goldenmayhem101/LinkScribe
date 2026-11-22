@@ -1,6 +1,6 @@
 # Monkey Mayhem: handoff for the next Claude session
 
-Last updated: 22 November 2026 (project set up, no game code written yet).
+Last updated: 22 November 2026 (steps 1-3 built: global scripts, touch UI, walking/jump in placeholder cage).
 
 ## Paste this into the new chat
 > I'm Goldenmayhem, a solo game studio owner (not a programmer). My games live in my GitHub repo `goldenmayhem101/LinkScribe`, branch `claude/android-3d-shooter-game-3cin11`. Read `CLAUDE.md` and `monkey-mayhem/HANDOFF.md` first, then continue **Monkey Mayhem**. Talk to me in plain language. If my message has a question in it, answer it first before you start any work. Show me a preview before you build anything into the game, and don't build until I say go.
@@ -26,10 +26,10 @@ Order follows the source chat. Update this list every session.
 
 | # | Item | Script / scene | Status |
 |---|------|----------------|--------|
-| 1 | Global signals | `signal_bus.gd` (autoload) | todo |
-| 2 | Chaos meter, 3 tiers (Tourists / Annoyed+Zookeepers / Lockdown) | `chaos_manager.gd` (autoload) | todo |
-| 3 | Touch HUD: left joystick, right-side look drag, jump/grab/throw buttons, chaos bar, mission banner | `touch_ui.gd`, `touch_ui.tscn` | todo |
-| 4 | Monkey movement, jump, climbing ("climbable" group) | `player_monkey.gd` (+ `player_movement.gd` if split) | todo |
+| 1 | Global signals | `signal_bus.gd` (autoload) | built+tested |
+| 2 | Chaos meter, 3 tiers (Tourists / Annoyed+Zookeepers / Lockdown) | `chaos_manager.gd` (autoload) | built+tested |
+| 3 | Touch HUD: left joystick, right-side look drag, jump/grab/throw buttons, chaos bar, mission banner | `touch_ui.gd`, `touch_ui.tscn` | built+tested |
+| 4 | Monkey movement + jump DONE (built+tested); climbing still todo | `shared/player/player_controller.gd`, `characters/monkey/monkey.tscn` | partly built |
 | 5 | Grab / throw / eat-or-use ("grabbable", "edible", "interactive") | `grab_system.gd` | todo |
 | 6 | Throw aim arc | `throw_trajectory.gd` | todo |
 | 7 | Visitor AI state machine, ragdoll reaction, steals/drops items | `visitor_ai.gd` | todo |
@@ -49,6 +49,14 @@ Order follows the source chat. Update this list every session.
 | 21 | Android export + test on the owner's phone (do right after item 5) | export preset | todo |
 
 First playable test = items 1-13 plus 21, one cage, placeholder art. Then 14-17. Zones and stampede (18-20) are later, and need their own preview first.
+
+## 4b. How to test (no phone needed)
+Godot 4.4.1 headless is installed per session: download `Godot_v4.4.1-stable_linux.x86_64.zip` from github.com/godotengine/godot/releases/tag/4.4.1-stable to /opt/godot, link it as `godot`. Then from `monkey-mayhem/`:
+```
+godot --headless --import --path .
+xvfb-run -a -s "-screen 0 1280x720x24" godot --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 --path . res://tests/smoke_test.tscn
+```
+`tests/smoke_test.gd` drives the joystick/look/jump with real touch events, checks the chaos tiers and saves screenshots to `tests/out/`. (Screens are software-rendered, about 5 fps, so tests count physics ticks, not seconds. Autoloads don't work with `--script`; run test scenes.) The game itself uses the Mobile renderer on phones.
 
 ## 5. Planned folder layout (so Gorilla Mayhem can reuse it)
 - `monkey-mayhem/` = Godot project root.
