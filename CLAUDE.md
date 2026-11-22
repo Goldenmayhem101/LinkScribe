@@ -31,3 +31,7 @@ Cutting tools: `ludora-dice/tools/ui-art/` (`cutgrid.py` even grids, `holes.py` 
   frames, bundles, diamonds spent only on looks, Weekly event premium row, remove-banner). Never sell coins, Lucky
   Rolls or anything that converts to coins (coins are used for bets); no paid random chests (loot boxes).
   Other games keep the no-IAP rule.
+
+## Project handoffs (read the one for the project you work on)
+- Ludo Mayhem (formerly Ludora), live on Google Play: `ludora-dice/HANDOFF.md`
+- Gloamwood (Godot platformer): `gloamwood/HANDOFF.md`
