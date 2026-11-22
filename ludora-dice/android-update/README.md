@@ -1,6 +1,18 @@
-# Ludora – Android project (by Goldenmayhem)
+# Ludo Mayhem (formerly Ludora) – Android project (by Goldenmayhem)
 
-Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.10 (versionCode 12)
+Package name: **com.goldenmayhem.ludoradice** · Targets **Android 16 (API 36)** · Version 1.11 (versionCode 13)
+
+## What's new in 1.11 (the game is now called Ludo Mayhem)
+- New name everywhere: app name under the icon, in the game (all 108 languages), notifications, share text. Package name unchanged
+- New launcher icon (adaptive layers in res/drawable-nodpi, ic_lm_*) and Android launch-screen icon
+- New loading screen: studio name, then the Ludo Mayhem logo drops in over the night-garden background, gold shine, loading bar, slow fade into the game (ui/v111)
+- Rating card after the first finished game in any mode; asks 3 times at most (3 games and 2 days apart); "Rate us" button on the home screen
+- No more YOUR TURN banner: a small pointing hand on the dice and a soft gold glow around your picture
+- Dice land with a solid thud (no bounce); a captured pawn flies home about twice as slowly
+- Settings > Delete my online data (server route /account/delete)
+- Google Play save box hides itself when cloud save is off and explains a failed sign-in
+- Portrait is now optional in the manifest (clears the Play Console device warning)
+- Store images: store/listing-v1.11 (new icon, feature graphic, phone and tablet screenshots), text: store/STORE-LISTING-v1.11.txt
 
 ## What's new in 1.10
 - Google Play cloud save (`CloudSave.kt`, game side `tools/upgrade/v15.js`): players are signed in to Google Play Games

@@ -1411,8 +1411,74 @@ body.ban11on.deep9 .h7{padding-bottom:132px}
 #s-cloud b{display:block;font-size:16px}
 #s-cloud small{display:block;font-size:13px;opacity:.8;line-height:1.3;font-weight:600}
 #s-cloud .cs15s{width:100%}
+
+
+/* ===== Ludo Mayhem 1.11 ===== */
+
+/* ---------- loading screen ---------- */
+#intro.i11{background:#1a0f4a;overflow:hidden;transition:opacity 1s ease!important;gap:0}
+#intro.i11 .ibg{position:absolute;inset:0;background:url(ui/v111/loading-bg.webp) center 62%/cover no-repeat;opacity:0;transform:scale(1.08);transition:opacity 1.2s ease,transform 3.6s ease-out}
+#intro.i11 .ishade{position:absolute;inset:0;background:radial-gradient(120% 70% at 50% 38%,rgba(42,26,110,.88),rgba(11,8,48,.97) 72%);transition:opacity 1.2s ease}
+#intro.i11 .st{position:relative;z-index:2}
+#intro.i11 .lg11{position:absolute;z-index:3;left:0;right:0;top:15%;display:flex;flex-direction:column;align-items:center;opacity:0;pointer-events:none}
+#intro.i11 .lg11 .lw{position:relative;width:min(84vw,420px)}
+#intro.i11 .lg11 img{display:block;width:100%;height:auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.55))}
+#intro.i11 .lg11 .shine{position:absolute;inset:0;-webkit-mask:url(ui/v111/logo.webp) center/100% 100% no-repeat;mask:url(ui/v111/logo.webp) center/100% 100% no-repeat;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.75) 46%,rgba(255,255,255,.95) 50%,rgba(255,255,255,.75) 54%,transparent 70%) -160% 0/60% 100% no-repeat}
+#intro.i11 .lg11 .tag{margin:6px 0 0;font-weight:800;color:#fff;font-size:15px;letter-spacing:.06em;text-shadow:0 2px 6px rgba(0,0,0,.6);opacity:0}
+#intro.i11 .bar11{position:absolute;z-index:3;left:50%;bottom:9%;translate:-50% 0;width:min(62vw,280px);height:14px;border-radius:999px;background:rgba(10,6,40,.7);border:2px solid rgba(255,216,74,.8);box-shadow:0 0 14px rgba(255,190,60,.35);overflow:hidden;opacity:0;transition:opacity .6s}
+#intro.i11 .bar11 i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,#ffb020,#ffe28a,#ffb020);box-shadow:inset 0 2px 0 rgba(255,255,255,.5)}
+#intro.i11 .bar11 + .lt11{position:absolute;z-index:3;left:0;right:0;bottom:calc(9% + 22px);text-align:center;color:#ffe9a8;font-weight:800;font-size:12px;letter-spacing:.22em;text-transform:uppercase;opacity:0;transition:opacity .6s}
+#intro.i11.s2 .st{animation:fadeout .5s forwards}
+#intro.i11.s2 .ibg{opacity:1;transform:scale(1)}
+#intro.i11.s2 .ishade{opacity:.25}
+#intro.i11.s2 .lg11{opacity:1;animation:lmDrop .9s cubic-bezier(.3,1.25,.45,1) both}
+#intro.i11.s2 .lg11 .shine{animation:lmShine 1.1s .95s ease-in-out both}
+#intro.i11.s2 .lg11 .tag{animation:fadeup .7s .8s forwards}
+#intro.i11.s2 .bar11,#intro.i11.s2 .bar11 + .lt11{opacity:1}
+#intro.i11.s2 .bar11 i{animation:lmBar 2.6s .2s cubic-bezier(.3,.1,.3,1) forwards}
+#intro.i11.out{opacity:0}
+@keyframes lmDrop{0%{opacity:0;transform:translateY(-70px) scale(.7)}55%{opacity:1;transform:translateY(6px) scale(1.04,.96)}75%{transform:translateY(-3px) scale(.99,1.01)}100%{opacity:1;transform:none}}
+@keyframes lmShine{from{background-position:-160% 0}to{background-position:260% 0}}
+@keyframes lmBar{0%{width:0}60%{width:72%}100%{width:100%}}
+@media (prefers-reduced-motion:reduce){#intro.i11 .ibg{transition:none;transform:none}#intro.i11.s2 .lg11,#intro.i11.s2 .lg11 .shine{animation:none}}
+
+/* ---------- home logo ---------- */
+#w-title .lm11{display:block;width:min(64vw,300px);height:auto;margin:0 auto;filter:drop-shadow(0 6px 12px rgba(0,0,0,.45))}
+#w-title{font-size:0!important;line-height:0}
+
+/* ---------- Rate us (home) + rating card ---------- */
+.t9.rt11 img{object-fit:contain}
+#ov-rate .rateico img{width:96px;height:auto;display:block;margin:0 auto 4px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.3));animation:rt11 2.4s ease-in-out infinite}
+@keyframes rt11{50%{transform:translateY(-4px) rotate(-4deg)}}
+#ov-rate .rateico{font-size:0!important}
+
+/* ---------- your turn: no banner, a small hand + a soft glow ---------- */
+.tp8.you{display:none!important}
+.arr8.h11{translate:4px calc(-100% + 20px);animation:h11 1.1s ease-in-out infinite;z-index:41}
+.arr8.h11 img{display:block;width:40px;height:auto;filter:drop-shadow(0 3px 3px rgba(0,0,30,.45))}
+.arr8.h11 i,.arr8.h11 span{display:none}
+@keyframes h11{0%,100%{translate:4px calc(-100% + 20px)}50%{translate:-1px calc(-100% + 25px)}}
+.g11{display:none;position:absolute;inset:-6px;border-radius:24%;pointer-events:none;z-index:-1}
+.seat.me11 .g11{display:block;box-shadow:0 0 10px 4px rgba(255,210,80,.75),0 0 0 2px rgba(255,226,140,.9);animation:g11 1.4s ease-in-out infinite}
+@keyframes g11{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.arr8.h11,.seat.me11 .g11{animation:none}}
+
+/* ---------- dice: falls, lands with a solid thud, no bouncing ---------- */
+.die.has3d.tumble .d3{animation:dt11 .42s cubic-bezier(.5,0,.85,.4)!important}
+@keyframes dt11{0%{transform:translate(-14px,-34px) rotate(-210deg) scale(.72)}70%{transform:translate(0,-2px) rotate(-12deg) scale(1.02)}86%{transform:translate(0,1px) rotate(0) scale(1.06,.92)}100%{transform:none}}
+.die.has3d.land .d3{animation:dl11 .16s ease-out!important}
+@keyframes dl11{0%{transform:scale(1.05,.93)}100%{transform:none}}
+
+/* ---------- captured pawn: slower flight home ---------- */
+.pawn.fly11,.pshadow.fly11{transition:translate 1.1s cubic-bezier(.45,0,.25,1),scale .4s!important}
+
+/* ---------- Settings: delete my online data ---------- */
+.del11{text-align:center;margin:16px 0 4px}
+.lnk11{background:none;border:0;padding:6px 10px;color:#c0392b;font-weight:800;font-size:13px;text-decoration:underline;cursor:pointer}
+.cs15 .btn.red11{background:linear-gradient(#ff6b5a,#d63a2a)!important;color:#fff}
 </style></head><body>
-<title>Ludora</title>
+<title>Ludo Mayhem</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout concept: a night-time arcade table. A neon board fills the width; each player's avatar sits at its own corner of
@@ -1846,13 +1912,15 @@ body.nogift .hud{visibility:hidden}
 .giftrow div{display:flex;align-items:center;gap:8px;background:#fff6e0;border:2px solid #e7d3a5;border-radius:16px;padding:8px 14px;font-family:var(--font-display);font-weight:800;font-size:24px;color:var(--cream-ink)}
 </style>
 
-<div id="intro" aria-hidden="true">
+<div id="intro" class="i11" aria-hidden="true">
+  <div class="ibg"></div><div class="ishade"></div>
   <div class="st"><div class="by">A game by</div><div class="studio">Goldenmayhem</div><div class="prod">Produced by Shawn Morris</div></div>
-  <div class="lg"><h1 class="logo"><span>L</span><span>u</span><span>d</span><span>o</span><span>r</span><span>a</span></h1><p class="tag">Roll. Race. Get home first.</p></div>
+  <div class="lg11"><div class="lw"><img src="ui/v111/logo.webp" alt="Ludo Mayhem"><div class="shine"></div></div><p class="tag">Roll. Race. Get home first.</p></div>
+  <div class="bar11"><i></i></div><div class="lt11">Loading</div>
 </div>
 
 <div class="app" id="app">
-  <div class="pillrow"><div class="pill" id="pill"><i></i><span>Ludora</span></div><div class="mbadge" id="mbadge"></div></div>
+  <div class="pillrow"><div class="pill" id="pill"><i></i><span>Ludo Mayhem</span></div><div class="mbadge" id="mbadge"></div></div>
 
   <div class="seatrow" id="row-top"></div>
 
@@ -1912,7 +1980,7 @@ body.nogift .hud{visibility:hidden}
 <div class="overlay home" id="ov-welcome" role="dialog" aria-modal="true" aria-labelledby="w-title">
   <div class="inner" id="w-main">
     <div class="hud"><span class="bal"><i class="cn"></i> <b class="coincount">0</b></span><span class="bal"><i class="gm"></i> <b class="gemcount">0</b></span></div>
-    <h1 class="logo" id="w-title" aria-label="Ludora"><span>L</span><span>u</span><span>d</span><span>o</span><span>r</span><span>a</span></h1>
+    <h1 class="logo" id="w-title" aria-label="Ludo Mayhem"><span>L</span><span>u</span><span>d</span><span>o</span><span>r</span><span>a</span></h1>
     <p class="tag">Roll. Race. Get home first.</p>
     <div class="stagehome">
       <div class="side">
@@ -2020,7 +2088,7 @@ body.nogift .hud{visibility:hidden}
       <label class="row" for="s-bonus"><span>Bonus roll<small>Roll again after a bump or reaching home</small></span><input class="sw" type="checkbox" id="s-bonus" role="switch"></label>
       <label class="row" for="s-nums"><span>Number the pawns<small>Helps tell pawns apart</small></span><input class="sw" type="checkbox" id="s-nums" role="switch"></label>
       <label class="row" for="s-rem"><span>Daily reminder<small>A gentle nudge to claim your reward</small></span><input class="sw" type="checkbox" id="s-rem" role="switch"></label>
-      <div class="stack" style="margin-top:8px"><button type="button" class="btn ghost" id="s-rate">&#11088; Rate Ludora</button><button type="button" class="btn ghost" id="s-adp" hidden>Ad privacy options</button><button type="button" class="btn ghost" id="s-pp" hidden>Privacy policy</button></div>
+      <div class="stack" style="margin-top:8px"><button type="button" class="btn ghost" id="s-rate">&#11088; Rate Ludo Mayhem</button><button type="button" class="btn ghost" id="s-adp" hidden>Ad privacy options</button><button type="button" class="btn ghost" id="s-pp" hidden>Privacy policy</button></div>
       <h3>Your photo</h3>
       <div class="row" style="margin-top:0"><span>Shown on your avatar<small>Stays on this device</small></span><span style="display:flex;gap:6px"><label class="mini" for="s-photo" style="cursor:pointer">Choose</label><button type="button" class="mini gr" id="s-photo-x">Remove</button></span></div>
       <input type="file" id="s-photo" accept="image/*" hidden>
@@ -2156,7 +2224,7 @@ body.nogift .hud{visibility:hidden}
     <div class="sb" style="text-align:center">
       <div class="rateico" aria-hidden="true">&#11088;</div>
       <p class="lead">A quick rating helps other players find the game.</p>
-      <div class="stack"><button type="button" class="btn" id="rt-yes">Rate Ludora</button><button type="button" class="btn ghost" id="rt-no">Maybe later</button></div>
+      <div class="stack"><button type="button" class="btn" id="rt-yes">Rate Ludo Mayhem</button><button type="button" class="btn ghost" id="rt-no">Maybe later</button></div>
     </div>
   </div>
 </div>
@@ -2225,7 +2293,7 @@ body.nogift .hud{visibility:hidden}
   </div>
 </div>
 <script>
-/* Ludora online client: connects to the server in this folder, then plugs into the game as its "room" provider. */
+/* Ludo Mayhem online client: connects to the server in this folder, then plugs into the game as its "room" provider. */
 (function(){
 'use strict';
 var CFG=null,ws=null,ME=null,PEER=null,WAITERS=[],FRIENDS=[],REQS=[],AUTHED=null,SESS={};
@@ -2832,7 +2900,7 @@ var BUNDLES=[
   {id:'starter',name:'Starter Bundle',g:12,items:['die:glass','frame:silver','emo:1']},
   {id:'nights',name:'Neon Nights Bundle',g:20,items:['die:dark','pawn:robot','board:ocean']}
 ];
-/* ---------- Ludora+ : more collectibles (all original, drawn with CSS and colour only) ---------- */
+/* ---------- Ludo Mayhem+ : more collectibles (all original, drawn with CSS and colour only) ---------- */
 function hx(h,s,l){h=((h%360)+360)%360;s/=100;l/=100;var a=s*Math.min(l,1-l);function f(n){var k=(n+h/30)%12,c=l-a*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,'0');}return '#'+f(0)+f(8)+f(4);}
 function boardPal(o){ /* o: id,name,r,c,g,d, h (base hue), a (accent hue), light (bright track tiles), sat */
   var s=o.sat||55,L=o.light;
@@ -3686,7 +3754,7 @@ function timerCheck(){
 function updateTurn(){
   timerCheck();
   if(S.phase==='idle'||S.phase==='over'||!cur()){
-    setPill(S.phase==='over'?'Game over':'Ludora');dieEl.disabled=true;dieEl.classList.remove('ready');
+    setPill(S.phase==='over'?'Game over':'Ludo Mayhem');dieEl.disabled=true;dieEl.classList.remove('ready');
     for(var g=0;g<4;g++)GLOW[g].classList.remove('on');renderSeats();return;
   }
   var pl=cur();
@@ -4244,7 +4312,7 @@ var TUT=[
  {t:'Stacks',x:'Two of your pawns on one square make a stack. A rival who lands there simply joins the square. To send a stack home, rivals need as many pawns on that square as the stack has.'},
  {t:'Team match 2 vs 2',x:'Partners sit across the board: Blue with Green (Team A) against Red with Yellow (Team B). Partners never bump each other and can share a square. When all your pawns are home you move your partner\u2019s pawns. A team wins when all its pawns are home.'},
  {t:'Take the home stretch',x:'Your colored path leads to the middle. You need the exact number to land on the center.'},
- {t:'Casual and fair',x:'Ludora is a casual game. Coin entry fees and prize pools use only coins earned in the game. There is no real money, no betting with money and no real-money prizes. Coins are earned by playing. Gems and coins only buy looks like boards, dice, frames and emoji, never an advantage in a game.'},
+ {t:'Casual and fair',x:'Ludo Mayhem is a casual game. Coin entry fees and prize pools use only coins earned in the game. There is no real money, no betting with money and no real-money prizes. Coins are earned by playing. Gems and coins only buy looks like boards, dice, frames and emoji, never an advantage in a game.'},
  {t:'Tap a glowing pawn',x:'When you can move, your pawns glow and bounce. Tap the one you want. If only one move is possible, it moves for you. Tap AUTO to let the computer play for you.'}
 ];
 var helpI=0,helpAfter=null;
@@ -4632,7 +4700,7 @@ async function gHandle(m){
 
 /* ---------- boot ---------- */
 /* =====================================================================
-   Ludora+ features: ads hooks, dice levels, Lucky Roll, timed chests, 7-day calendar, daily goals
+   Ludo Mayhem+ features: ads hooks, dice levels, Lucky Roll, timed chests, 7-day calendar, daily goals
    ===================================================================== */
 /* ---------- saved data for the new features ---------- */
 (function(){
@@ -4858,7 +4926,7 @@ function renderChest(box){
       var b=el('button','mini'+(act>=0?' gr':''),d);b.type='button';b.textContent='Start';b.disabled=act>=0;b.addEventListener('click',function(){s.s=Date.now();save();renderColl();});
     }
   });
-  var n=el('p','note',box);n.textContent='Win or finish a game to earn a chest. Only one chest opens at a time. Watch a video to skip 30 minutes. Ludora is a casual game: no real money and no real-money prizes.';
+  var n=el('p','note',box);n.textContent='Win or finish a game to earn a chest. Only one chest opens at a time. Watch a video to skip 30 minutes. Ludo Mayhem is a casual game: no real money and no real-money prizes.';
 }
 setInterval(function(){
   var ov=$('#ov-coll');if(!ov||ov.hidden||storeTop!=='chest')return;
@@ -4883,7 +4951,7 @@ function renderSpecial(box){
   var row2=el('div','bundle',box),t2=el('div','',row2);t2.innerHTML='<b>Watch a video</b><small>+2,500 coins · '+(3-set.fa.n)+' left today</small>';
   var b2=el('button','mini',row2);b2.type='button';b2.textContent='Watch';b2.disabled=set.fa.n>=3;
   b2.addEventListener('click',function(){Ads.reward(function(ok){if(!ok){toast('The video did not finish.');return;}set.fa.n++;set.coins+=2500;save();refreshStars();toast('+2,500 coins');renderColl();});});
-  var n=el('p','note',box);n.textContent='Everything in Ludora is earned by playing. Gems come from chests, goals, the 7-day calendar and achievements, and only buy looks. Nothing here gives an advantage in a game.';
+  var n=el('p','note',box);n.textContent='Everything in Ludo Mayhem is earned by playing. Gems come from chests, goals, the 7-day calendar and achievements, and only buy looks. Nothing here gives an advantage in a game.';
 }
 
 /* ---------- after every finished game: fragments, a chest, the rate prompt and ad pacing ---------- */
@@ -4951,9 +5019,9 @@ window.__back=function(){
   var it=$('#intro');if(!it)return;
   var reduce=false;try{reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
   var done=false,t0=Date.now();
-  function end(){if(done)return;done=true;it.classList.add('out');setTimeout(function(){if(it.parentNode)it.remove();},500);}
-  setTimeout(function(){if(!done)it.classList.add('s2');},reduce?900:2000);
-  setTimeout(end,reduce?1800:3700);
+  function end(){if(done)return;done=true;it.classList.add('out');setTimeout(function(){if(it.parentNode)it.remove();},1000);}
+  setTimeout(function(){if(!done)it.classList.add('s2');},reduce?900:1900);
+  setTimeout(end,reduce?1800:5300);
   it.addEventListener('click',function(){if(Date.now()-t0>600)end();});
 })();
 
@@ -7100,13 +7168,13 @@ V8.botPick=botPick;
 /* ---------- 5. Settings: rate, share, feedback, replay tutorial, fair play ---------- */
 function rateApp(){set.rated=true;save();if(window.AndroidApp&&AndroidApp.openUrl){try{AndroidApp.openUrl(STORE_URL);return;}catch(e){}}window.open(STORE_URL,'_blank');}
 function shareApp(){
-  var text='Come play Ludora with me! A fair dice board game for 2 to 4 players, online or against the computer. '+STORE_URL;
+  var text='Come play Ludo Mayhem with me! A fair dice board game for 2 to 4 players, online or against the computer. '+STORE_URL;
   if(window.AndroidApp&&AndroidApp.shareText){try{AndroidApp.shareText(text);return;}catch(e){}}
-  if(navigator.share){navigator.share({title:'Ludora',text:text}).catch(function(){});return;}
+  if(navigator.share){navigator.share({title:'Ludo Mayhem',text:text}).catch(function(){});return;}
   try{navigator.clipboard.writeText(text).then(function(){toast('Link copied. Paste it to your friends!');});}catch(e){toast(STORE_URL);}
 }
 function feedback(){
-  var sub='Ludora feedback',body='\n\n---\nVersion 1.4 · '+(navigator.userAgent||'').replace(/\s+/g,' ').slice(0,140);
+  var sub='Ludo Mayhem feedback',body='\n\n---\nVersion 1.4 · '+(navigator.userAgent||'').replace(/\s+/g,' ').slice(0,140);
   if(window.AndroidApp&&AndroidApp.sendEmail){try{AndroidApp.sendEmail(MAIL,sub,body);return;}catch(e){}}
   var o=q8('#ov-fb8');
   if(!o){o=mk8('div','overlay','',document.body);o.id='ov-fb8';o.style.zIndex=70;
@@ -7131,10 +7199,10 @@ function fairPlay(){
 function replayTutorial(){set.tut=false;set.tour8=0;set.seen=true;save();closeSheet('ov-settings');try{if(q8('#ov-welcome').hidden)leaveToMenu();}catch(e){}setTimeout(function(){tour(true);},350);}
 V8.rateApp=rateApp;V8.shareApp=shareApp;V8.feedback=feedback;V8.fairPlay=fairPlay;V8.replayTutorial=replayTutorial;
 (function(){var sb=q8('#ov-settings .sb');if(!sb)return;var st=sb.querySelector('.stack');
-  var box=mk8('div','more8','<h3>Ludora</h3><div class="grid8">'+
-    '<button type="button" data-a="rate"><i>⭐</i>Rate Ludora</button><button type="button" data-a="share"><i>📤</i>Share Ludora</button>'+
+  var box=mk8('div','more8','<h3>Ludo Mayhem</h3><div class="grid8">'+
+    '<button type="button" data-a="rate"><i>⭐</i>Rate Ludo Mayhem</button><button type="button" data-a="share"><i>📤</i>Share Ludo Mayhem</button>'+
     '<button type="button" data-a="fb"><i>✉️</i>Send feedback</button><button type="button" data-a="tut"><i>🎓</i>Replay tutorial</button>'+
-    '<button type="button" data-a="fair" class="wide"><i>🛡️</i>Fair play: how Ludora stays fair</button></div>',null);
+    '<button type="button" data-a="fair" class="wide"><i>🛡️</i>Fair play: how Ludo Mayhem stays fair</button></div>',null);
   sb.insertBefore(box,st||null);
   box.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var a=b.dataset.a;
     if(a==='rate')rateApp();else if(a==='share')shareApp();else if(a==='fb')feedback();else if(a==='tut')replayTutorial();else if(a==='fair')fairPlay();});
@@ -7240,7 +7308,7 @@ showWin=function(pl){
 var DM=[["d_yellow", "Sunny Yellow", "common"], ["d_purple", "Grape Purple", "common"], ["d_orange", "Tangerine", "common"], ["d_pink", "Bubble Pink", "common"], ["d_white", "Classic White", "common"], ["d_gold", "Polished Gold", "rare"], ["d_silver", "Sapphire Silver", "rare"], ["d_ruby", "Ruby", "rare"], ["d_emerald", "Emerald", "rare"], ["d_pearl", "Pearl", "rare"], ["d_pirate", "Pirate Chest", "rare"], ["d_candy", "Frosted Candy", "rare"], ["d_ice", "Ice Crystal", "rare"], ["d_space", "Deep Space", "rare"], ["d_jungle", "Jungle Stone", "rare"], ["d_lava", "Lava Rock", "legendary"], ["d_ocean", "Ocean Wave", "legendary"], ["d_sun", "Golden Sun", "legendary"], ["d_amethyst", "Shadow Amethyst", "legendary"], ["d_blossom", "Cherry Blossom", "legendary"], ["d_fire", "Inferno", "legendary"], ["d_lightning", "Lightning", "legendary"], ["d_galaxy", "Galaxy", "legendary"], ["d_dragon", "Dragon Scale", "legendary"], ["d_prism", "Rainbow Prism", "legendary"], ["e_viking", "Viking Runes", "epic"], ["e_samurai", "Samurai Lacquer", "epic"], ["e_pharaoh", "Pharaoh Gold", "epic"], ["e_aztec", "Temple Jade", "epic"], ["e_marble", "Olympus Marble", "epic"], ["e_vinyl", "Vinyl Neon", "epic"], ["e_origami", "Origami", "epic"], ["e_knit", "Cosy Knit", "epic"], ["e_tin", "Tin Toy", "epic"], ["e_terrarium", "Terrarium", "epic"], ["e_knight", "Knight Steel", "epic"], ["e_spellbook", "Spellbook", "epic"], ["e_crystal", "Crystal Ball", "epic"], ["e_mermaid", "Mermaid Scales", "epic"], ["e_phoenix", "Phoenix Feather", "epic"], ["e_choc", "Chocolate Truffle", "epic"], ["e_icecream", "Ice Cream", "epic"], ["e_bubblegum", "Bubblegum", "epic"], ["e_disco", "Disco Ball", "epic"], ["e_street", "Street Art", "epic"], ["e_robot", "Robot Mech", "epic"], ["e_ghost", "Friendly Ghost", "epic"], ["e_fossil", "Amber Fossil", "epic"], ["e_mushroom", "Mushroom Grove", "epic"], ["e_unicorn", "Unicorn Dream", "epic"]],PM=[["p_yeti_cub", "Yeti Cub", "rare"], ["p_owl_aviator", "Owl Aviator", "rare"], ["p_clockwork_mouse", "Clockwork Mouse", "rare"], ["p_cactus_cowboy", "Cactus Cowboy", "rare"], ["p_hedgehog", "Hedgehog Explorer", "rare"], ["p_penguin_chef", "Penguin Chef", "rare"], ["p_frog", "Rainy Frog", "rare"], ["p_sloth", "Chill Sloth", "rare"], ["p_bee_mail", "Bee Mail", "rare"], ["p_crab_sailor", "Crab Sailor", "rare"], ["p_raccoon", "Raccoon Mechanic", "rare"], ["p_turtle_surfer", "Turtle Surfer", "rare"], ["p_snail", "Snail Courier", "rare"], ["p_capybara", "Capybara", "rare"], ["p_lemur", "Lemur Acrobat", "rare"], ["p_bunny", "Bunny Gardener", "rare"], ["p_otter", "Seashell Otter", "rare"], ["p_puffin", "Puffin Sailor", "rare"], ["p_ghostie", "Lantern Ghost", "rare"], ["p_hamster", "Hamster Pilot", "rare"], ["p_beaver", "Beaver Builder", "rare"], ["p_lamb", "Raincoat Lamb", "rare"], ["p_fox_detective", "Fox Detective", "rare"], ["p_toucan", "Toucan DJ", "rare"], ["p_axolotl", "Axolotl", "rare"], ["p_rhino", "Rhino Gladiator", "epic"], ["p_shark", "Shark Diver", "epic"], ["p_armadillo", "Armadillo Knight", "epic"], ["p_scorpion", "Scorpion Warrior", "epic"], ["p_stag", "Stag Druid", "epic"], ["p_moon_rabbit", "Moon Rabbit Monk", "epic"], ["p_polar_bear", "Polar Berserker", "epic"], ["p_pumpkin_knight", "Pumpkin Knight", "epic"], ["p_coral_knight", "Coral Knight", "epic"], ["p_beetle", "Beetle Knight", "epic"], ["p_sky_pirate", "Sky Pirate", "epic"], ["p_minotaur", "Minotaur Smith", "epic"], ["p_owl_sorcerer", "Owl Sorcerer", "epic"], ["p_gorilla", "Cyborg Gorilla", "epic"], ["p_hawk", "Storm Hawk", "epic"], ["p_salamander", "Lava Salamander", "epic"], ["p_chameleon", "Chameleon Thief", "epic"], ["p_vampire", "Count Batley", "epic"], ["p_inventor", "Steam Inventor", "epic"], ["p_gecko", "Gecko Ninja", "epic"], ["p_frost_elf", "Frost Elf Archer", "epic"], ["p_scarecrow", "Scarecrow Mage", "epic"], ["p_mantis", "Mantis Blademaster", "epic"], ["p_ronin_cat", "Ronin Cat", "epic"], ["p_bee_queen", "Bee Queen", "epic"], ["p_whale", "Celestial Whale", "legendary"], ["p_griffin", "Storm Griffin", "legendary"], ["p_ninefox", "Nine-Tailed Fox", "legendary"], ["p_time_golem", "Time Keeper", "legendary"], ["p_star_knight", "Star Knight", "legendary"], ["p_volcano_titan", "Volcano Titan", "legendary"], ["p_ice_queen", "Ice Queen", "legendary"], ["p_thunderbird", "Thunderbird", "legendary"], ["p_sun_stag", "Sun Stag", "legendary"], ["p_sea_serpent", "Coral Serpent", "legendary"], ["p_cosmic_owl", "Cosmic Owl", "legendary"], ["p_sphinx", "Guardian Sphinx", "legendary"], ["p_moon_goddess", "Moon Goddess", "legendary"], ["p_island_turtle", "Island Turtle", "legendary"], ["p_lightning_tiger", "Lightning Tiger", "legendary"], ["p_koi", "Koi Spirit", "legendary"], ["p_drum_titan", "Thunder Drum Titan", "legendary"], ["p_cat_queen", "Golden Cat Queen", "legendary"], ["p_jellyfish", "Aurora Jellyfish", "legendary"], ["p_galaxy_panther", "Galaxy Panther", "legendary"], ["p_hydra", "Crystal Hydra", "legendary"], ["p_reindeer", "Aurora Reindeer", "legendary"], ["p_ram_king", "Lava Ram King", "legendary"], ["p_mech_titan", "Space Mech", "legendary"], ["p_sky_giant", "Sky Castle Giant", "legendary"], ["p_samurai", "Oni Samurai", "epic"], ["p_tree_spirit", "Tree Spirit", "epic"], ["p_phoenix", "Phoenix", "legendary"], ["p_crystal_golem", "Crystal Golem", "epic"], ["p_wolf", "Frost Wolf", "epic"], ["p_robot_knight", "Robot Knight", "epic"], ["p_wizard", "Wizard", "epic"], ["p_baby_dragon", "Baby Dragon", "epic"], ["p_lion_king", "Lion King", "legendary"], ["p_hooded_mage", "Hooded Mage", "epic"], ["p_octopus", "Octopus", "epic"], ["p_panda_monk", "Panda Monk", "epic"], ["p_robot", "Robot", "epic"], ["p_unicorn", "Unicorn", "legendary"], ["p_alien", "Alien", "epic"], ["p_stone_golem", "Stone Golem", "epic"], ["p_mermaid", "Mermaid", "legendary"], ["p_anubis", "Jackal Guardian", "epic"], ["p_angel_knight", "Angel Knight", "legendary"], ["p_imp", "Horned Imp", "epic"], ["p_crystal_mage", "Crystal Mage", "epic"], ["p_cobra", "Cobra", "epic"], ["p_leaf_spirit", "Leaf Spirit", "epic"], ["p_star_mage", "Star Mage", "epic"]];
 var PRICE={common:{c:1000000,g:0},rare:{c:5000000,g:0},epic:{c:0,g:4000},legendary:{c:0,g:6000}};
 var PPRICE={common:{c:1000000,g:0},rare:{c:5000000,g:0},epic:{c:0,g:4000},legendary:{c:0,g:6000}};
-var DDESC={common:'Glossy and bold, easy to read.',rare:'Polished, precious and dotted with style.',epic:'Themed design with big bold numbers.',legendary:'Glowing magic. The rarest dice in Ludora.'};
+var DDESC={common:'Glossy and bold, easy to read.',rare:'Polished, precious and dotted with style.',epic:'Themed design with big bold numbers.',legendary:'Glowing magic. The rarest dice in Ludo Mayhem.'};
 var PDESC={common:'Clean and classic.',rare:'A cute little racer.',epic:'A hero in full gear.',legendary:'Majestic, glowing and one of a kind.'};
 (function(){
   var keepD=ITEMS.die.filter(function(x){return x.id==='classic';});
@@ -7784,7 +7852,7 @@ renderItemBtns=function(){
 })();
 })();
 
-/* ===== Ludora 1.9 layer: Lucky Roll videos only outside matches, home banner slot, 7-day offers ===== */
+/* ===== Ludo Mayhem 1.9 layer: Lucky Roll videos only outside matches, home banner slot, 7-day offers ===== */
 (function(){
 var LUCK_CAP=5;
 function trialLeft(cat,id){var t=set.trial&&set.trial[cat+':'+id];return t?Math.max(0,t-Date.now()):0;}
@@ -8322,7 +8390,7 @@ function openMini(){
 
 /* ---------- 8. Inbox: updates from the studio + friend requests ---------- */
 var NEWS=[
- {id:'n19a',t:'Ludora 1.9 is here!',b:'New Events Hub with a Weekly Event and a daily Mini Event, 175 animated emojis, 25 animated gifts, 99 new frames, 50 new dice and a 3D dice viewer. Have fun!',d:'Nov 2026'},
+ {id:'n19a',t:'Ludo Mayhem 1.9 is here!',b:'New Events Hub with a Weekly Event and a daily Mini Event, 175 animated emojis, 25 animated gifts, 99 new frames, 50 new dice and a 3D dice viewer. Have fun!',d:'Nov 2026'},
  {id:'n19b',t:'Legendary dice have guardians',b:'Legendary dice have their own guardians. Open a Legendary dice in the Store and tap ▶ to call it.',d:'Nov 2026'},
  {id:'n19c',t:'Fair play promise',b:'Dice rolls are always random, the computer never cheats, and you only see a video when you choose to.',d:'Nov 2026'}];
 function ibUnread(){var r=(set.ib&&set.ib.r)||[];return NEWS.filter(function(n){return r.indexOf(n.id)<0;}).length+reqs().length;}
@@ -8823,7 +8891,7 @@ renderItemBtns=function(){
 var os13=openSheet;openSheet=function(id){if(id==='ov-coll'){if(storeTop==='special'||storeTop==='chest')ST.tab=storeTop;else if(ST.tab==='special'||ST.tab==='chest')ST.tab='shop';try{renderColl();}catch(e){}}return os13.apply(this,arguments);};
 })();
 
-/* ===================== Ludora 1.9: no Lucky Rolls. Every roll is a plain 1 in 6, for everyone, in every mode. ===================== */
+/* ===================== Ludo Mayhem 1.9: no Lucky Rolls. Every roll is a plain 1 in 6, for everyone, in every mode. ===================== */
 (function(){
 luckyValue=function(){S.luckPick=null;return 0;};
 openLuck=function(){};
@@ -8921,7 +8989,7 @@ function tr14(s){try{var r=window.__ludoraLang&&__ludoraLang.tr?__ludoraLang.tr(
 })();
 
 
-/* ===== Ludora 1.10: Google Play cloud save =====
+/* ===== Ludo Mayhem 1.10: Google Play cloud save =====
    The Android app signs the player in to Google Play Games and keeps one saved game ("ludora") in their Google account.
    This part decides what to save, when, and what to do when a save from another phone is found.
    In a web browser (no Android app) nothing here runs. */
@@ -8984,6 +9052,7 @@ function tr14(s){try{var r=window.__ludoraLang&&__ludoraLang.tr?__ludoraLang.tr(
   }
   function sync(){                                                // Settings line
     var r=document.getElementById('s-cloud');if(!r)return;
+    r.hidden=(C.st==='off');var h3=r.previousSibling;if(h3&&h3.tagName==='H3')h3.hidden=r.hidden;
     var t=r.querySelector('small'),b=r.querySelector('button');
     if(C.st==='in'){t.textContent=(C.name?C.name+' · ':'')+T('Your progress is saved to Google Play');b.textContent=T('Save now');}
     else{t.textContent=T('Sign in to keep your progress if you change or reset your phone');b.textContent=T('Sign in');}
@@ -8991,6 +9060,8 @@ function tr14(s){try{var r=window.__ludoraLang&&__ludoraLang.tr?__ludoraLang.tr(
   window.__cloud={
     state:function(st,name){
       var was=C.st;C.st=st;if(name)C.name=name;sync();
+      if(C.tried&&st!=='in'){C.tried=false;toast15(T("Couldn't sign in to Google Play. Make sure Google Play Games is installed and try again."));}
+      if(st==='in')C.tried=false;
       if(st==='in'&&was!=='in'){try{A.cloudLoad();}catch(e){}}
     },
     loaded:onLoaded,
@@ -9008,7 +9079,7 @@ function tr14(s){try{var r=window.__ludoraLang&&__ludoraLang.tr?__ludoraLang.tr(
     var lang=document.getElementById('s-lang');var after=lang?lang.nextSibling:sb.firstChild;
     sb.insertBefore(h,after);sb.insertBefore(r,after);
     r.querySelector('button').onclick=function(){
-      if(C.st==='in'){C.manual=true;upload(true);}else{try{A.cloudSignIn();}catch(e){}}
+      if(C.st==='in'){C.manual=true;upload(true);}else if(C.st==='out'){C.tried=true;try{A.cloudSignIn();}catch(e){C.tried=false;}}
     };
     sync();
   })();
@@ -9016,6 +9087,123 @@ function tr14(s){try{var r=window.__ludoraLang&&__ludoraLang.tr?__ludoraLang.tr(
   // save a little while after anything changes, and when the app goes to the background (MainActivity calls flush)
   setInterval(function(){upload(false);},20000);
   try{window.__cloud.state(A.cloudStatus(),'');}catch(e){}
+})();
+
+
+/* ===== Ludo Mayhem 1.11 =====
+   new name and logo, rating after the first game (kind, 3 asks at most), "Rate us" on the home screen,
+   small pointing hand + soft glow instead of the YOUR TURN banner, slower flight home after a capture,
+   "Delete my online data" in Settings. The loading screen markup is swapped in by build.py. */
+(function(){
+var UI11='ui/v111/';
+function T11(s){try{return (window.__ludoraLang&&__ludoraLang.tr(s))||s;}catch(e){return s;}}
+function mk11(tag,cls,html,parent){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e;}
+
+/* ---------- logo on the home screen ---------- */
+(function(){
+  var h=document.getElementById('w-title');
+  if(h){h.setAttribute('aria-label','Ludo Mayhem');h.innerHTML='<img class="lm11" src="'+UI11+'logo.webp" alt="Ludo Mayhem">';}
+})();
+
+/* ---------- rating: after the first finished game in any mode, then at most twice more ---------- */
+var DAY=86400000;
+function rateDue(){
+  if(set.rated)return false;
+  var asks=+set.r11a||0;if(asks>=3)return false;
+  if((+set.r11g||0)<1)return false;
+  if(asks>0&&((+set.r11g||0)-(+set.r11lg||0)<3||Date.now()-(+set.r11lt||0)<2*DAY))return false;
+  return true;
+}
+try{maybeRate=function(){};}catch(e){}
+function rateCard(){
+  var o=document.getElementById('ov-rate');if(!o)return;
+  var t=o.querySelector('#rt-title');if(t)t.textContent=T11('ENJOYING THE GAME?');
+  var ic=o.querySelector('.rateico');if(ic&&!ic.querySelector('img'))ic.innerHTML='<img src="'+UI11+'star.webp" alt="">';
+  var l=o.querySelector('.lead');if(l)l.textContent=T11('Tell us what you think. Your honest review helps us make Ludo Mayhem better.');
+  var y=o.querySelector('#rt-yes');if(y)y.textContent=T11('Rate Ludo Mayhem');
+}
+function askRate(){
+  if(!rateDue())return;
+  var w=document.getElementById('ov-win');if(!w||w.hidden)return;
+  set.r11a=(+set.r11a||0)+1;set.r11lg=+set.r11g||0;set.r11lt=Date.now();save();
+  rateCard();openSheet('ov-rate');
+}
+var sw11=showWin;showWin=function(){
+  var r=sw11.apply(this,arguments);
+  try{if(S.r11!==S.gid){S.r11=S.gid;set.r11g=(+set.r11g||0)+1;save();setTimeout(askRate,1900);}}catch(e){}
+  return r;
+};
+/* "Rate us" button on the home screen (right column, under Inbox) */
+(function(){
+  var col=document.querySelector('.r9.r');if(!col||document.getElementById('h-rate11'))return;
+  var b=mk11('button','t9 purple rt11','<img alt="" src="'+UI11+'star.webp"><b class="lt9 y">'+T11('Rate us')+'</b>',col);
+  b.type='button';b.id='h-rate11';b.setAttribute('aria-label',T11('Rate us'));
+  b.addEventListener('click',function(){rateCard();openSheet('ov-rate');});
+})();
+document.addEventListener('click',function(e){var y=e.target.closest&&e.target.closest('#rt-yes');if(y){set.rated=true;save();}},true);
+
+/* ---------- your turn: small pointing hand by the dice + soft glow on your picture ---------- */
+(function(){
+  var a=document.querySelector('.arr8');
+  function fix(){a=document.querySelector('.arr8');if(a&&!a.querySelector('img')){a.innerHTML='<img src="'+UI11+'hand.webp" alt="">';a.classList.add('h11');}}
+  var ut11=updateTurn;updateTurn=function(){
+    var r=ut11.apply(this,arguments);
+    try{
+      fix();
+      var pl=cur(),live=pl&&(S.phase==='roll'||S.phase==='move'||S.phase==='busy');
+      for(var s=0;s<4;s++){var d=SEATEL[s];if(!d)continue;
+        var me=live&&pl.seat===s&&mine(pl)&&!pl.bot&&S.mode!=='pass';
+        var any=live&&pl.seat===s;
+        d.classList.toggle('me11',!!me);d.classList.toggle('on11',!!any);
+        var av=d.querySelector('.av');if(av&&!av.querySelector('.g11'))mk11('i','g11','',av);}
+      // the tutorial hand (first game) already points at the dice: don't show two hands
+      var th=document.querySelector('.hand');if(a&&th&&th.style.display!=='none'&&th.offsetParent!==null)a.hidden=true;
+    }catch(e){}
+    return r;
+  };
+  // the first-game tutorial hand uses the same picture
+  var st=document.createElement('style');st.textContent='.hand .fg{font-size:0!important;width:44px;height:37px;left:-2px!important;top:4px!important;background:url('+UI11+'hand.webp) center/contain no-repeat}';
+  document.head.appendChild(st);
+})();
+
+/* ---------- captured pawn: a slower, easy-to-follow flight back to base ---------- */
+try{
+  fly=function(pw,it){
+    pw.el.classList.add('fly11');pw.sh.classList.add('fly11');
+    placePawn(pw,it);
+    var d=Math.max(120,1150*SPEED);
+    try{pw.pin.animate([{transform:'translateY(0) rotate(0deg)'},{transform:'translateY('+(-CELL*3.2)+'px) rotate(320deg)',offset:.45},{transform:'translateY('+(-CELL*.25)+'px) rotate(690deg)',offset:.9},{transform:'translateY(0) rotate(720deg)'}],{duration:d,easing:'ease-in-out'});}catch(e){}
+    setTimeout(function(){pw.el.classList.remove('fly11');pw.sh.classList.remove('fly11');},d+60);
+  };
+}catch(e){}
+
+/* ---------- Inbox: tell players about the new name ---------- */
+try{var N11=window.__l19&&window.__l19.NEWS;if(N11&&!N11.some(function(n){return n.id==='n111';}))N11.unshift({id:'n111',t:'We have a new name: Ludo Mayhem!',b:'Same game, same progress, same fair dice. Thank you for playing!'});}catch(e){}
+
+/* ---------- Settings: delete my online data ---------- */
+(function(){
+  var sb=document.querySelector('#ov-settings .sb');if(!sb)return;
+  var p=mk11('p','del11','<button type="button" class="lnk11"></button>',sb);
+  var b=p.querySelector('button');b.textContent=T11('Delete my online data');
+  b.addEventListener('click',function(){
+    var o=mk11('div','cs15o','<div class="cs15"><div class="cs15i">🗑️</div><b></b><p></p><div class="cs15b"><button type="button" class="btn red11"></button><button type="button" class="btn ghost"></button></div></div>',document.body);
+    o.querySelector('b').textContent=T11('Delete your online data?');
+    o.querySelector('p').textContent=T11('This removes your online name, friend code and friends list from our server. Your coins, items and progress on this phone stay.');
+    var bs=o.querySelectorAll('button');bs[0].textContent=T11('Delete');bs[1].textContent=T11('Cancel');
+    bs[1].onclick=function(){o.remove();};
+    bs[0].onclick=function(){
+      bs[0].disabled=true;
+      var srv=(window.LUDORA_SERVER||'').replace(/\/$/,'');var sess=null;try{sess=JSON.parse(localStorage.getItem('ludora.sess')||'null');}catch(e){}
+      function done(msg){o.remove();try{toast(msg);}catch(e){}}
+      if(!sess||!sess.secret){done(T11('You have no online data saved.'));return;}
+      if(!srv){done(T11('Online is not available right now. Try again later.'));return;}
+      fetch(srv+'/account/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({secret:sess.secret})})
+        .then(function(r){return r.json();})
+        .then(function(j){if(j&&j.ok){try{localStorage.removeItem('ludora.sess');}catch(e){}done(T11('Your online data was deleted.'));}else done(T11('Could not delete. Try again later.'));})
+        .catch(function(){done(T11('Could not delete. Check your internet and try again.'));});
+    };
+  });
+})();
 })();
 
 /* ===================== languages: the game follows the phone's language (about 50 languages), changeable in Settings =====================

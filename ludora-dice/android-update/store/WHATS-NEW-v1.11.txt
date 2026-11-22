@@ -1,0 +1,9 @@
+New in Ludo Mayhem 1.11:
+• Ludora is now Ludo Mayhem! Same game, same progress
+• Brand-new loading screen and app icon
+• Your progress saves to your Google Play account
+• Dice land with a solid thud
+• A small pointing hand and glow show your turn
+• Captured pawns fly home slower so you can see them
+• Rate us any time from the home screen
+• Delete your online data in Settings

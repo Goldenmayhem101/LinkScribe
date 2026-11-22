@@ -107,3 +107,30 @@ for p in glob.glob(OUT+'/*.json'):
     cur['p']=[[NM.sub('Ludo Mayhem',a),NM.sub('Ludo Mayhem',b)] for a,b in cur.get('p',[])]
     json.dump(cur,open(p,'w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
 print(len(done),done)
+
+# 1.11: sentences that contain the name, translated again with the name protected; the name is always "Ludo Mayhem"
+M111=json.load(open(B+'/map111b.json',encoding='utf-8'))
+for p in glob.glob(OUT+'/*.json'):
+    code=os.path.basename(p)[:-5];cur=json.load(open(p,encoding='utf-8'));d=cur['d']
+    f5=B+'/outx5/'+code+'.json'
+    if os.path.exists(f5):
+        for src,v in json.load(open(f5,encoding='utf-8')).items():
+            if '{5}' not in v:continue
+            for k in M111.get(src,[]):
+                w=v.replace('{5}','Ludo Mayhem')
+                if k.startswith('⭐'):w='⭐ '+w.lstrip('⭐ ')
+                if not k.rstrip().endswith(('.','!','?','…')):w=w.rstrip('.。።።।۔')
+                d[k]=w
+    d['Ludo Mayhem']='Ludo Mayhem'
+    for k in [k for k in d if 'Ludo Mayhem' in k and 'Ludo Mayhem' not in d[k]]:del d[k]
+    for k in [k for k in d if 'Ludora' in d[k]]:del d[k]
+    json.dump(cur,open(p,'w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
+print('name check done')
+
+# "Rate us" (home button): translated from a clearer sentence
+for p in glob.glob(OUT+'/*.json'):
+    code=os.path.basename(p)[:-5];f6=B+'/outx6/'+code+'.json'
+    if not os.path.exists(f6):continue
+    cur=json.load(open(p,encoding='utf-8'));v=json.load(open(f6,encoding='utf-8')).get('Give the game a rating')
+    if v and len(v)<=28:cur['d']['Rate us']=v.rstrip('.。።।۔')
+    json.dump(cur,open(p,'w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
