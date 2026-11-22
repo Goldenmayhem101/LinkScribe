@@ -236,7 +236,7 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': 'https://appassets.androidplatform.net' });
     return res.end(JSON.stringify({ google: GOOGLE_CLIENT_ID, facebook: FACEBOOK_APP_ID }));
   }
-  let p = decodeURIComponent(url.pathname); if (p === '/') p = '/index.html';
+  let p = decodeURIComponent(url.pathname); if (p === '/') p = '/index.html'; if (p === '/delete-data' || p === '/delete-data/') p = '/delete-data.html';
   const f = path.normalize(path.join(PUBLIC, p));
   if (!f.startsWith(PUBLIC + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(f, (err, buf) => {
