@@ -23,7 +23,8 @@ var _joy_knob: Control
 var _chaos_bar: ProgressBar
 var _tier_label: Label
 var _mission_label: Label
-var _buttons: Array[Button] = []
+var _buttons: Array[Control] = []
+var _banana_label: Label
 
 
 ## Round dot used for the joystick base and knob.
@@ -49,6 +50,7 @@ func _ready() -> void:
 	_build_buttons(root)
 	_build_chaos(root)
 	_build_mission(root)
+	_build_bananas(root)
 
 	SignalBus.chaos_changed.connect(_on_chaos_changed)
 	SignalBus.mission_progress_updated.connect(_on_mission_progress)
@@ -80,37 +82,53 @@ func _build_joystick(root: Control) -> void:
 	_joy_base.add_child(_joy_knob)
 
 
-func _make_button(root: Control, label: String, right: float, bottom: float, diameter: float, color: Color) -> Button:
-	var b: Button = Button.new()
+func _make_button(root: Control, label: String, icon_path: String, circle_path: String, right: float, bottom: float, diameter: float) -> TextureButton:
+	var b: TextureButton = TextureButton.new()
 	b.name = label.capitalize() + "Button"
-	b.text = label
+	b.texture_normal = load(circle_path) as Texture2D
+	b.ignore_texture_size = true
+	b.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	b.focus_mode = Control.FOCUS_NONE
 	b.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	b.offset_right = -right
 	b.offset_left = -right - diameter
 	b.offset_bottom = -bottom
 	b.offset_top = -bottom - diameter
-	b.add_theme_font_size_override("font_size", int(diameter * 0.24))
-	b.add_theme_color_override("font_color", Color.WHITE)
-	b.add_theme_color_override("font_outline_color", Color(0.09, 0.06, 0.27))
-	b.add_theme_constant_override("outline_size", 6)
-	for state: String in ["normal", "hover", "pressed", "focus"]:
-		var sb: StyleBoxFlat = StyleBoxFlat.new()
-		sb.bg_color = color.darkened(0.25) if state == "pressed" else color
-		sb.set_corner_radius_all(int(diameter * 0.5))
-		sb.set_border_width_all(4)
-		sb.border_color = Color(0.09, 0.06, 0.27)
-		b.add_theme_stylebox_override(state, sb)
+	if icon_path != "":
+		var icon: TextureRect = TextureRect.new()
+		icon.texture = load(icon_path) as Texture2D
+		icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+		icon.offset_left = diameter * 0.2
+		icon.offset_right = -diameter * 0.2
+		icon.offset_top = diameter * 0.2
+		icon.offset_bottom = -diameter * 0.2
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(icon)
+	else:
+		var l: Label = Label.new()
+		l.text = label
+		l.set_anchors_preset(Control.PRESET_FULL_RECT)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.add_theme_font_size_override("font_size", int(diameter * 0.26))
+		l.add_theme_color_override("font_outline_color", Color(0.09, 0.06, 0.27))
+		l.add_theme_constant_override("outline_size", 6)
+		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.add_child(l)
+	b.button_down.connect(func() -> void: b.modulate = Color(0.75, 0.75, 0.75))
+	b.button_up.connect(func() -> void: b.modulate = Color.WHITE)
 	root.add_child(b)
 	_buttons.append(b)
 	return b
 
 
 func _build_buttons(root: Control) -> void:
-	var grab: Button = _make_button(root, "GRAB", 150, 150, 110, Color(0.95, 0.72, 0.15, 0.9))
-	var throw_b: Button = _make_button(root, "THROW", 50, 170, 100, Color(0.95, 0.45, 0.22, 0.9))
-	var jump: Button = _make_button(root, "JUMP", 40, 40, 90, Color(0.35, 0.65, 0.95, 0.9))
-	var use_b: Button = _make_button(root, "USE", 270, 60, 80, Color(0.4, 0.8, 0.4, 0.9))
+	var grab: TextureButton = _make_button(root, "GRAB", "res://art/ui/icon2_01.png", "res://art/ui/btn_10.png", 150, 150, 120)
+	var throw_b: TextureButton = _make_button(root, "THROW", "res://art/ui/icon2_02.png", "res://art/ui/btn_08.png", 50, 175, 105)
+	var jump: TextureButton = _make_button(root, "JUMP", "res://art/ui/icon2_03.png", "res://art/ui/btn_06.png", 40, 40, 100)
+	var use_b: TextureButton = _make_button(root, "USE", "", "res://art/ui/btn_07.png", 280, 60, 85)
 	grab.pressed.connect(func() -> void: grab_pressed.emit())
 	throw_b.pressed.connect(func() -> void: throw_pressed.emit())
 	jump.pressed.connect(func() -> void: jump_pressed.emit())
@@ -140,6 +158,18 @@ func _build_chaos(root: Control) -> void:
 	_chaos_bar.add_theme_stylebox_override("fill", fg)
 	root.add_child(_chaos_bar)
 
+	var gauge: TextureRect = TextureRect.new()
+	gauge.texture = load("res://art/ui/icon2_04.png") as Texture2D
+	gauge.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	gauge.offset_left = -236
+	gauge.offset_right = -176
+	gauge.offset_top = 4
+	gauge.offset_bottom = 64
+	gauge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gauge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	gauge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(gauge)
+
 	_tier_label = Label.new()
 	_tier_label.name = "TierLabel"
 	_tier_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
@@ -155,15 +185,43 @@ func _build_chaos(root: Control) -> void:
 	root.add_child(_tier_label)
 
 
+func _build_bananas(root: Control) -> void:
+	var coin: TextureRect = TextureRect.new()
+	coin.texture = load("res://art/ui/icon1_01.png") as Texture2D
+	coin.offset_left = 16
+	coin.offset_top = 12
+	coin.offset_right = 70
+	coin.offset_bottom = 66
+	coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	coin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(coin)
+	_banana_label = Label.new()
+	_banana_label.text = "0"
+	_banana_label.offset_left = 78
+	_banana_label.offset_top = 20
+	_banana_label.offset_right = 200
+	_banana_label.offset_bottom = 60
+	_banana_label.add_theme_font_size_override("font_size", 28)
+	_banana_label.add_theme_color_override("font_outline_color", Color(0.09, 0.06, 0.27))
+	_banana_label.add_theme_constant_override("outline_size", 8)
+	_banana_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(_banana_label)
+
+
+func set_bananas(amount: int) -> void:
+	_banana_label.text = str(amount)
+
+
 func _build_mission(root: Control) -> void:
 	_mission_label = Label.new()
 	_mission_label.name = "MissionLabel"
 	_mission_label.text = "Mission: (coming soon)"
 	_mission_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_mission_label.offset_left = -380
-	_mission_label.offset_right = -16
-	_mission_label.offset_top = 16
-	_mission_label.offset_bottom = 60
+	_mission_label.offset_right = -76
+	_mission_label.offset_top = 18
+	_mission_label.offset_bottom = 62
 	_mission_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_mission_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_mission_label.add_theme_font_size_override("font_size", 17)
@@ -171,6 +229,17 @@ func _build_mission(root: Control) -> void:
 	_mission_label.add_theme_constant_override("outline_size", 6)
 	_mission_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(_mission_label)
+	var scroll: TextureRect = TextureRect.new()
+	scroll.texture = load("res://art/ui/icon1_03.png") as Texture2D
+	scroll.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	scroll.offset_left = -66
+	scroll.offset_right = -12
+	scroll.offset_top = 10
+	scroll.offset_bottom = 64
+	scroll.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	scroll.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	scroll.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(scroll)
 
 
 # ------------------------------------------------------------------ input
@@ -203,7 +272,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _over_button(pos: Vector2) -> bool:
-	for b: Button in _buttons:
+	for b: Control in _buttons:
 		if b.get_global_rect().has_point(pos):
 			return true
 	return false

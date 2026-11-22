@@ -72,7 +72,9 @@ If the owner wants Gorilla Mayhem, copy the project, swap the character folder, 
 - Need list (originals only): the monkey's hands/arms and skins, visitors (several types), zookeepers, props (banana, ball, phone, camera, bottle, watermelon), cage and zoo, UI icons, app icon, store images.
 
 - **Delivered 22 Nov 2026** (in `art/reference/`): `zookeepers-sheet.png` (tranq-dart ranger, net girl, riot-shield, head keeper with mustache, security guard), `visitors-A-sheet.png` (raincoat kid w/ balloon, tourist dad w/ camera, grandma w/ umbrella, teen w/ selfie stick, burger man), `visitors-B-sheet.png` (jogger, stroller mom, school kid w/ banana, mime, tall man w/ ice cream). Style that worked: 5 rows x 4 views (front, side, back, 3/4), faceted low-poly, dark outline, gray #D9D9D9 background.
-- Still to order from ChatGPT (owner runs batches): monkey skins + first-person hands, props (25), scenery (25), zoo animals (15), UI icons (15). Prompts were given in chat.
+- **All 20 sheets delivered** (in `art/reference/`): zookeepers, visitors A+B, monkey skins (15), props 1-5, scenery 1-5, animals 1-3, ui-buttons-frames, ui-icons-1, ui-icons-2. 75 cut UI PNGs are in `art/ui/` and are used by `shared/ui/touch_ui.gd`.
+- **Low-poly 3D is built in code (no model files)** in `shared/models/`: `lowpoly.gd` (flat-shaded facets, outline, face sticker), `figure.gd` (7 visitor/keeper presets), `props.gd` (11 props), `scenery.gd`, `animals.gd` (elephant only). `zoo/cage_1/cage_1.gd` assembles the cage; `tests/preview_shots.tscn` renders showcase screenshots to `tests/out/`.
+- Not built yet: visitor movement/AI, climbing, grab/throw/use, missions, shop, zookeepers/darts, other animals, monkey skins, Android export. Models are simpler than the sheets; improve later.
 
 ## 7. Open questions for the owner
 - Final icon / store art later.

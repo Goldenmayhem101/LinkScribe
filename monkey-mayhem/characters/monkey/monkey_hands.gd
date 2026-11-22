@@ -1,8 +1,8 @@
 extends Node3D
-## Placeholder first-person monkey arms (plain shapes). Replaced by real low-poly hands later.
+## First-person monkey arms in the low-poly style: furry forearm, tan palm, chunky fingers.
 
-const FUR: Color = Color(0.42, 0.27, 0.14)
-const PALM: Color = Color(0.85, 0.65, 0.48)
+const FUR: Color = Color(0.42, 0.26, 0.13)
+const PALM: Color = Color(0.9, 0.7, 0.5)
 
 
 func _ready() -> void:
@@ -11,26 +11,15 @@ func _ready() -> void:
 
 
 func _build_arm(side: float) -> void:
-	var arm_mat: StandardMaterial3D = StandardMaterial3D.new()
-	arm_mat.albedo_color = FUR
-	var palm_mat: StandardMaterial3D = StandardMaterial3D.new()
-	palm_mat.albedo_color = PALM
-
-	var arm: MeshInstance3D = MeshInstance3D.new()
-	var cap: CapsuleMesh = CapsuleMesh.new()
-	cap.radius = 0.08
-	cap.height = 0.8
-	arm.mesh = cap
-	arm.material_override = arm_mat
-	arm.position = Vector3(side * 0.45, -0.5, -0.55)
-	arm.rotation_degrees = Vector3(-62.0, side * -12.0, 0.0)
+	var arm: Node3D = Node3D.new()
+	arm.position = Vector3(side * 0.42, -0.42, -0.62)
+	arm.rotation_degrees = Vector3(0.0, side * -8.0, 0.0)
 	add_child(arm)
-
-	var fist: MeshInstance3D = MeshInstance3D.new()
-	var sph: SphereMesh = SphereMesh.new()
-	sph.radius = 0.11
-	sph.height = 0.2
-	fist.mesh = sph
-	fist.material_override = palm_mat
-	fist.position = Vector3(side * 0.36, -0.3, -0.9)
-	add_child(fist)
+	# forearm comes in from below-outside
+	LowPoly.capsule(arm, 0.075, 0.85, FUR, Vector3(side * 0.12, -0.14, 0.32), Vector3(-72.0, 0.0, side * -8.0))
+	# hand
+	LowPoly.sphere(arm, 0.095, PALM, Vector3(0, 0.0, -0.06), Vector3(1.1, 0.6, 1.1), 8, 5)
+	for i: int in 4:
+		var fx: float = (float(i) - 1.5) * 0.05
+		LowPoly.capsule(arm, 0.026, 0.13, FUR, Vector3(fx, 0.02, -0.19), Vector3(-82.0, 0.0, 0.0))
+	LowPoly.capsule(arm, 0.028, 0.12, FUR, Vector3(-side * 0.13, 0.0, -0.1), Vector3(-70.0, side * -45.0, 0.0))
