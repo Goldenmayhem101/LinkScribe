@@ -15,6 +15,7 @@ Last updated: 22 November 2026 (project set up, no game code written yet).
 ## 2. Owner decisions so far
 - Landscape. First test = ONE cage only (simple), so the owner can judge the look and feel.
 - Use Claude Code with this repo to build. The owner tests on their phone and builds/signs/uploads to Google Play themselves.
+- **Art style decided 22 Nov 2026: low-poly 3D models** (flat 2D cut-outs in a 3D world were previewed and rejected: they turn into thin cards from the side and can't ragdoll). Flat art is only for UI, icon, store images and textures. Characters/props are built as simple faceted 3D shapes in code (or imported low-poly models), using ChatGPT model sheets as reference. Preview images were made with three.js in /home/claude/preview (not in repo).
 - Visuals: owner has given none yet. First test uses plain placeholder shapes (box cage, capsule monkey, coloured props). Real art comes later via ChatGPT batches (see section 6).
 
 ## 3. The source: `monkey-mayhem/source/google-chat-full.md`
@@ -63,7 +64,6 @@ If the owner wants Gorilla Mayhem, copy the project, swap the character folder, 
 - Need list (originals only): the monkey's hands/arms and skins, visitors (several types), zookeepers, props (banana, ball, phone, camera, bottle, watermelon), cage and zoo, UI icons, app icon, store images.
 
 ## 7. Open questions for the owner
-- 2D painted look vs low-poly 3D for the characters.
 - Final icon / store art later.
 
 ## 8. Lessons learned
