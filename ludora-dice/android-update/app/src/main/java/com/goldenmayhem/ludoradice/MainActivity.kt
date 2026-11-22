@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : AppCompatActivity() {
 
-    // Set in app/build.gradle.kts: test ads in debug builds, your real Ludora ad units in release builds.
+    // Set in app/build.gradle.kts: test ads in debug builds, your real ad units in release builds.
     private val rewardedUnit = BuildConfig.REWARDED_UNIT
 
     // The game is served from the app's own files under this private https address (no file:// access needed).
@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Android launch screen with the Ludora icon; it stays up until the game page has loaded (max ~3 s)
+        // Android launch screen with the Ludo Mayhem icon; it stays up until the game page has loaded (max ~3 s)
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
         splash.setKeepOnScreenCondition { !pageReady && SystemClock.uptimeMillis() - launchedAt < 3000 }
@@ -270,7 +270,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 try {
                     val send = Intent(Intent.ACTION_SEND).apply { type = "text/plain"; putExtra(Intent.EXTRA_TEXT, t) }
-                    startActivity(Intent.createChooser(send, "Share Ludora"))
+                    startActivity(Intent.createChooser(send, "Share Ludo Mayhem"))
                 } catch (_: Exception) {}
             }
         }

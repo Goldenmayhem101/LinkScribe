@@ -94,6 +94,23 @@ function snapshot(u) {
     incoming: u.incoming.map(id => DB.users[id]).filter(Boolean).map(publicUser)
   };
 }
+/* ---------- delete an account and everything linked to it (Settings > Delete my online data) ---------- */
+function deleteUser(uid) {
+  const u = DB.users[uid]; if (!u) return false;
+  Object.values(DB.users).forEach(o => {
+    if (o.id === uid) return;
+    const had = o.friends.includes(uid) || o.incoming.includes(uid);
+    o.friends = o.friends.filter(x => x !== uid); o.incoming = o.incoming.filter(x => x !== uid);
+    if (had) pushSnap(o.id);
+  });
+  Object.keys(DB.guests).forEach(k => { if (DB.guests[k] === uid) delete DB.guests[k]; });
+  Object.keys(DB.byProv).forEach(k => { if (DB.byProv[k] === uid) delete DB.byProv[k]; });
+  delete DB.users[uid];
+  (online.get(uid) || []).forEach(c => { try { c.ws.close(); } catch (e) {} });
+  online.delete(uid);
+  save();
+  return true;
+}
 function pushSnap(uid) { const u = DB.users[uid]; if (u) sendUser(uid, snapshot(u)); }
 function notifyFriends(u) { u.friends.forEach(pushSnap); }
 
@@ -200,6 +217,21 @@ function acceptFriend(u, otherId) {
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon' };
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://x');
+  if (url.pathname === '/account/delete') {
+    const cors = { 'Access-Control-Allow-Origin': 'https://appassets.androidplatform.net', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Cache-Control': 'no-store' };
+    if (req.method === 'OPTIONS') { res.writeHead(204, cors); return res.end(); }
+    if (req.method !== 'POST') { res.writeHead(405, cors); return res.end(); }
+    let body = '';
+    req.on('data', d => { body += d; if (body.length > 2048) req.destroy(); });
+    req.on('end', () => {
+      let secret = ''; try { secret = String(JSON.parse(body).secret || ''); } catch (e) {}
+      const uid = secret.length >= 16 ? DB.guests[secret] : null;
+      if (uid) deleteUser(uid);
+      res.writeHead(200, Object.assign({ 'Content-Type': 'application/json' }, cors));
+      res.end(JSON.stringify({ ok: true, deleted: !!uid }));
+    });
+    return;
+  }
   if (url.pathname === '/config.json') {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': 'https://appassets.androidplatform.net' });
     return res.end(JSON.stringify({ google: GOOGLE_CLIENT_ID, facebook: FACEBOOK_APP_ID }));

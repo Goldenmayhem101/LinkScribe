@@ -53,7 +53,7 @@ rep("    else if(!S.team&&sec&&sideMine(sec.seat))prize=S.stake;\n", "")
 
 # inject CSS + JS
 css = open(os.path.join(D, 'v2.css'), encoding='utf-8').read()
-for _f in ('v7.css','v8.css','v9.css','v11.css','v12.css','v13.css','v14.css'):
+for _f in ('v7.css','v8.css','v9.css','v11.css','v12.css','v13.css','v14.css','v16.css'):
     if os.path.exists(os.path.join(D, _f)):
         css += '\n' + open(os.path.join(D, _f), encoding='utf-8').read()
 i = s.index('</style>')
@@ -67,7 +67,7 @@ if os.path.exists(os.path.join(D, 'v5.js')):
     js += '\n' + open(os.path.join(D, 'v5.js'), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'v6.js')):
     js += '\n' + open(os.path.join(D, 'v6.js'), encoding='utf-8').read()
-for _f in ('v7.js','v8.js','v9.js','v10.js','v11.js','v12data.js','v12.js','v13.js','v14.js','v15.js'):
+for _f in ('v7.js','v8.js','v9.js','v10.js','v11.js','v12data.js','v12.js','v13.js','v14.js','v15.js','v16.js'):
     if os.path.exists(os.path.join(D, _f)):
         js += '\n' + open(os.path.join(D, _f), encoding='utf-8').read()
 if os.path.exists(os.path.join(D, 'i18n.js')):
@@ -76,6 +76,23 @@ tail = '})();\n</script>'
 i = s.rfind(tail)
 dbg = '\nwindow.__ev=function(e){return eval(e);};\n' if '--debug' in sys.argv else '\n'
 s = s[:i] + js + dbg + s[i:]
+# ---- 1.11: Ludo Mayhem loading screen + the new name everywhere players can see it ----
+import re as _re
+_old_intro = s[s.find('<div id="intro" aria-hidden="true">'):s.find('<div class="app" id="app">')]
+_new_intro = ('<div id="intro" class="i11" aria-hidden="true">\n'
+  '  <div class="ibg"></div><div class="ishade"></div>\n'
+  '  <div class="st"><div class="by">A game by</div><div class="studio">Goldenmayhem</div><div class="prod">Produced by Shawn Morris</div></div>\n'
+  '  <div class="lg11"><div class="lw"><img src="ui/v111/logo.webp" alt="Ludo Mayhem"><div class="shine"></div></div><p class="tag">Roll. Race. Get home first.</p></div>\n'
+  '  <div class="bar11"><i></i></div><div class="lt11">Loading</div>\n'
+  '</div>\n\n')
+assert _old_intro, 'intro not found'
+s = s.replace(_old_intro, _new_intro)
+for _a, _b in [("setTimeout(function(){if(!done)it.classList.add('s2');},reduce?900:2000);", "setTimeout(function(){if(!done)it.classList.add('s2');},reduce?900:1900);"),
+               ("setTimeout(end,reduce?1800:3700);", "setTimeout(end,reduce?1800:5300);"),
+               ("setTimeout(function(){if(it.parentNode)it.remove();},500);", "setTimeout(function(){if(it.parentNode)it.remove();},1000);")]:
+    assert _a in s, _a
+    s = s.replace(_a, _b)
+s = _re.sub(r'(?<![\w.$])Ludora(?![\w])', 'Ludo Mayhem', s)
 out = 'dbg.html' if '--debug' in sys.argv else 'index.html'
 open(os.path.join(D, out), 'w', encoding='utf-8').write(s)
 print('ok', out, len(s))

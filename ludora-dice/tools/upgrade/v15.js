@@ -62,6 +62,7 @@
   }
   function sync(){                                                // Settings line
     var r=document.getElementById('s-cloud');if(!r)return;
+    r.hidden=(C.st==='off');var h3=r.previousSibling;if(h3&&h3.tagName==='H3')h3.hidden=r.hidden;
     var t=r.querySelector('small'),b=r.querySelector('button');
     if(C.st==='in'){t.textContent=(C.name?C.name+' · ':'')+T('Your progress is saved to Google Play');b.textContent=T('Save now');}
     else{t.textContent=T('Sign in to keep your progress if you change or reset your phone');b.textContent=T('Sign in');}
@@ -69,6 +70,8 @@
   window.__cloud={
     state:function(st,name){
       var was=C.st;C.st=st;if(name)C.name=name;sync();
+      if(C.tried&&st!=='in'){C.tried=false;toast15(T("Couldn't sign in to Google Play. Make sure Google Play Games is installed and try again."));}
+      if(st==='in')C.tried=false;
       if(st==='in'&&was!=='in'){try{A.cloudLoad();}catch(e){}}
     },
     loaded:onLoaded,
@@ -86,7 +89,7 @@
     var lang=document.getElementById('s-lang');var after=lang?lang.nextSibling:sb.firstChild;
     sb.insertBefore(h,after);sb.insertBefore(r,after);
     r.querySelector('button').onclick=function(){
-      if(C.st==='in'){C.manual=true;upload(true);}else{try{A.cloudSignIn();}catch(e){}}
+      if(C.st==='in'){C.manual=true;upload(true);}else if(C.st==='out'){C.tried=true;try{A.cloudSignIn();}catch(e){C.tried=false;}}
     };
     sync();
   })();

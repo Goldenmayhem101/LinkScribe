@@ -1,0 +1,17 @@
+<resources>
+    <color name="bg">#0A0F3A</color>
+
+    <!-- Launch screen: the Ludo Mayhem icon on the game's night background (Android's splash screen) -->
+    <style name="Theme.Game.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_lm_splash</item>
+        <item name="windowSplashScreenIconBackgroundColor">#141B66</item>
+        <item name="postSplashScreenTheme">@style/Theme.Game</item>
+    </style>
+
+    <style name="Theme.Game" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+    </style>
+</resources>

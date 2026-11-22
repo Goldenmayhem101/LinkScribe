@@ -20,6 +20,7 @@ CTX2={"Close": "Close this window", "Back": "Go back", "Store": "Game shop", "Sh
 def prot(s):
     s=CTX2.get(s,CTX.get(s,s)) if os.environ.get('CTXPASS') else CTX.get(s,s);s=s.replace('Activity Center','Events Center')
     if 'reasure' not in s: s=re.sub(r'\b([Cc])hest(s?)\b',lambda m:('T' if m.group(1)=='C' else 't')+'reasure chest'+m.group(2),s)
+    s=s.replace('Ludo Mayhem','LMX')
     if os.environ.get('RAWPH'): return s
     return re.sub(r'\{(\d)\}',lambda m:NUM[int(m.group(1))],s)
 sp=spm.SentencePieceProcessor(model_file=M+'/sentencepiece.bpe.model')
@@ -40,6 +41,7 @@ for L,code in LANGS.items():
     out={}
     for k,(a,n) in zip(KEYS,SEG):
         t=re.sub(r'\s+',' ',' '.join(sp.decode(outs[j]) for j in range(a,a+n))).strip()
+        t=re.sub(r'LMX|Lmx|lmx|ЛМХ|LMХ','Ludo Mayhem',t)
         t=''.join(str(unicodedata.digit(ch)) if ch.isdigit() and not ch.isascii() else ch for ch in t)
         for i,n in enumerate(NUM):
             if '{'+str(i)+'}' in k: t=re.sub(r'(?<!\d)'+n+r'(?!\d)','{'+str(i)+'}',t,count=1)

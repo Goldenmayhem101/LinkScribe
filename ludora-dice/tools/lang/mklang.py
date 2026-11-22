@@ -47,7 +47,7 @@ for f in sorted(glob.glob(B+'/outn/*.json')):
     json.dump({'d':d,'p':[]},open(f'{OUT}/{code}.json','w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
     done.append(code)
 # newest words for every language (NLLB), added on top
-for f in sorted(glob.glob(B+'/outx/*.json')+glob.glob(B+'/outx2/*.json')+glob.glob(B+'/outx3/*.json')):
+for f in sorted(glob.glob(B+'/outx/*.json')+glob.glob(B+'/outx2/*.json')+glob.glob(B+'/outx3/*.json')+glob.glob(B+'/outx4/*.json')):
     code=os.path.basename(f)[:-5];p=f'{OUT}/{code}.json'
     if not os.path.exists(p):continue
     cur=json.load(open(p,encoding='utf-8'));x=json.load(open(f,encoding='utf-8'))
@@ -99,4 +99,11 @@ for p in glob.glob(OUT+'/*.json'):
             d[k]=re.sub(r'\s+',' ',t).strip();dropped+=1
     json.dump(cur,open(p,'w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
 print('emoji fixed',fixed,'rebuilt',dropped)
+# 1.11: the game is now called Ludo Mayhem (keys and translations); the name is never translated
+NM=re.compile(r'(?<![\w.$])Ludora(?![\w])')
+for p in glob.glob(OUT+'/*.json'):
+    cur=json.load(open(p,encoding='utf-8'))
+    cur['d']={NM.sub('Ludo Mayhem',k):NM.sub('Ludo Mayhem',v) for k,v in cur['d'].items()}
+    cur['p']=[[NM.sub('Ludo Mayhem',a),NM.sub('Ludo Mayhem',b)] for a,b in cur.get('p',[])]
+    json.dump(cur,open(p,'w',encoding='utf-8'),ensure_ascii=False,separators=(',',':'))
 print(len(done),done)
