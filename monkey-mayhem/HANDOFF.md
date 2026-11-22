@@ -63,6 +63,9 @@ If the owner wants Gorilla Mayhem, copy the project, swap the character folder, 
 - Real art: follow CLAUDE.md. Offer the owner ONE batch prompt for ChatGPT (5 rows x 5 variants, 1536x1536, flat #D9D9D9 background, glossy 2.5D, dark outline #170F45). Owner generates and sends the images back; cut them with `ludora-dice/tools/ui-art/` tools. 3D models are the harder part: for a 3D first-person game ask the owner which look they want (flat painted 2D sprites in a 3D scene vs low-poly 3D) before ordering any art, and show a preview.
 - Need list (originals only): the monkey's hands/arms and skins, visitors (several types), zookeepers, props (banana, ball, phone, camera, bottle, watermelon), cage and zoo, UI icons, app icon, store images.
 
+- **Delivered 22 Nov 2026** (in `art/reference/`): `zookeepers-sheet.png` (tranq-dart ranger, net girl, riot-shield, head keeper with mustache, security guard), `visitors-A-sheet.png` (raincoat kid w/ balloon, tourist dad w/ camera, grandma w/ umbrella, teen w/ selfie stick, burger man), `visitors-B-sheet.png` (jogger, stroller mom, school kid w/ banana, mime, tall man w/ ice cream). Style that worked: 5 rows x 4 views (front, side, back, 3/4), faceted low-poly, dark outline, gray #D9D9D9 background.
+- Still to order from ChatGPT (owner runs batches): monkey skins + first-person hands, props (25), scenery (25), zoo animals (15), UI icons (15). Prompts were given in chat.
+
 ## 7. Open questions for the owner
 - Final icon / store art later.
 
