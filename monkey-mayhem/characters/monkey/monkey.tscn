@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://shared/player/player_controller.gd" id="1"]
+[ext_resource type="PackedScene" path="res://shared/ui/touch_ui.tscn" id="2"]
+[ext_resource type="Script" path="res://characters/monkey/monkey_hands.gd" id="3"]
+
+[sub_resource type="CapsuleShape3D" id="shape_body"]
+radius = 0.35
+height = 1.4
+
+[node name="Monkey" type="CharacterBody3D"]
+script = ExtResource("1")
+move_speed = 6.5
+jump_velocity = 6.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("shape_body")
+
+[node name="CameraPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+fov = 70.0
+
+[node name="Hands" type="Node3D" parent="CameraPivot/Camera3D"]
+script = ExtResource("3")
+
+[node name="TouchUI" parent="." instance=ExtResource("2")]

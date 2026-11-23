@@ -1,0 +1,34 @@
+; Engine configuration file for Monkey Mayhem.
+config_version=5
+
+[application]
+
+config/name="Monkey Mayhem"
+run/main_scene="res://zoo/cage_1/cage_1.tscn"
+config/features=PackedStringArray("4.4", "Mobile")
+
+[autoload]
+
+SignalBus="*res://autoload/signal_bus.gd"
+ChaosManager="*res://autoload/chaos_manager.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=0
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
