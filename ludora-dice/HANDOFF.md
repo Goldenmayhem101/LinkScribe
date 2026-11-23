@@ -1,6 +1,6 @@
 # Ludo Mayhem (formerly Ludora): handoff for the next Claude session
 
-Last updated: 22 November 2026, at the end of the 1.11 work.
+Last updated: 23 November 2026 (1.11 shipped to Google Play review, PixelPicked page started, Moonhop 1.1 fixed).
 
 ## Paste this into the new chat
 > I'm Goldenmayhem, a solo game studio owner (not a programmer). My games live in my GitHub repo `goldenmayhem101/LinkScribe`, branch `claude/android-3d-shooter-game-3cin11`. Read `CLAUDE.md` and `ludora-dice/HANDOFF.md` first. They hold my rules, how I like to work, and the full state of my live Google Play game **Ludo Mayhem** (formerly Ludora). Then help me with: **[write the new project or task here]**. Talk to me in plain language. If my message has a question in it, answer it first before you start any work. Show me a preview before you build anything into a game, and don't build until I say go.
@@ -28,12 +28,13 @@ Last updated: 22 November 2026, at the end of the 1.11 work.
   - Never use the owner's personal email anywhere public.
 - **All art and names must be original.** Don't copy any existing game, film or brand.
 - **Ads:** rewarded videos the player chooses only. No pop-ups or interstitials.
+  - **Known conflict, ask the owner before touching it:** Moonhop (see section 7) already ships gently paced "between games" interstitials, which breaks this rule. Do not remove or add ads there without the owner deciding.
 - **Purchases:**
   - No in-app purchases in any game except Ludo Mayhem.
   - Ludo Mayhem may sell **looks only**. Never sell coins, Lucky Rolls or anything that turns into coins (coins are used for bets). No paid random chests.
   - No IAP has been built yet.
 - **Git:** commit and push only to `claude/android-3d-shooter-game-3cin11`. Never open a pull request unless asked.
-- **Never reuse a versionCode** on Google Play. Always go up by 1. The last one used is **13**.
+- **Never reuse a versionCode** on Google Play. Always go up by 1, per game. Last used: Ludo Mayhem **13** (1.11); Moonhop **3** (1.1).
 
 ## 3. Ludo Mayhem: the facts
 - **Store:** https://play.google.com/store/apps/details?id=com.goldenmayhem.ludoradice
@@ -149,3 +150,26 @@ Last updated: 22 November 2026, at the end of the 1.11 work.
 - **Long translations:** text in long languages gets cut off. A fit-text shrinker exists (v13/v14 layers).
 - **Animations on top of animations:** a glow was invisible because another animation was already running on the same element. Add a separate child element instead.
 - **Background jobs:** a local test server only lives for the session. Start it again when needed.
+
+## 9. Moonhop (second live game) and PixelPicked
+- **Moonhop** is a separate Android game: package `com.goldenmayhem.moonhop`, folder `C:\Goldenmayhem\MoonhopAndroid` on the owner's PC. It is **not in this repo**. The owner sends the project as a zip each time.
+  - Version 1.1, versionCode 3. Its game is one file, `app/src/main/assets/index.html`, about 6 MB with fonts built in.
+  - AdMob: rewarded plus "Between Games" interstitial. The real IDs are in its `gradle.properties` (not secret), and debug builds use Google's test ads.
+  - Own upload key `moonhop-upload.jks`. Never reuse the Ludo Mayhem key, and never handle the key or its password.
+  - On 23 Nov 2026 it was checked (no code errors, no secrets in the zip). The "screen.portrait not required" line was added to its manifest and its README was corrected. The fixed zip is `MoonhopAndroid-v1.1-fixed.zip`, which the owner must rebuild and upload.
+  - Ads, rating card and reminder only work inside the Android build, so ask the owner to test them on a phone.
+- **PixelPicked** (pixelpicked.com/submit) is a site where the owner lists games. The page needs a game title, a tagline of 150 characters at most, and optionally a playable demo zip.
+  - Ludo Mayhem title: "Ludo Mayhem". Tagline used: "Fair dice, no pay-to-win. Race your pawns home with friends online, in 108 languages. Ads only if you choose."
+  - **Demo zip limit is 50 MB.** The Ludo Mayhem demo is `Ludo-Mayhem-demo-lite.zip`, 36 MB. HTML5, `index.html` at the root.
+  - How it was built:
+    1. Copy `index.html`, `boards`, `dice`, `pawns`, `pawnset`, `ui` and `live.json` from the app's assets. Leave out `lang` (11 MB, English works without it).
+    2. Shrink pictures larger than 600 px.
+    3. Halve the frames of animated `.webp` files at quality 50. This brought it from 90 MB to 36 MB.
+    4. Test it in a browser. The only 404s are three pawn pictures that are missing in the real app too, plus `config.json`, which only exists on the server.
+  - Online play and Google Play features do not work in a web demo. Mention this to players.
+
+## 10. More lessons from the 22-23 Nov sessions
+- Big file changes: rebuild from a clean copy instead of patching a half-finished folder, especially after an interrupted command.
+- Always send the owner finished files (`SendUserFile`) instead of paths inside the container.
+- When asked to "double check" something, run it for real (syntax check plus a browser load) and report plainly what is fine and what is only a note.
+- Store forms: the owner pastes text in directly, so give each field's text in its own clean block, with character limits respected (count them).
