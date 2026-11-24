@@ -1,6 +1,6 @@
 # Ludo Mayhem (formerly Ludora): handoff for the next Claude session
 
-Last updated: 23 November 2026 (1.11 shipped to Google Play review, PixelPicked page started, Moonhop 1.1 fixed).
+Last updated: 24 November 2026 (1.11 in Google Play review; Moonhop 1.2 and Tiltrix 1.0 projects built and saved in this repo; Ludo Mayhem 1.12 plan waiting for the owner's "go").
 
 ## Paste this into the new chat
 > I'm Goldenmayhem, a solo game studio owner (not a programmer). My games live in my GitHub repo `goldenmayhem101/LinkScribe`, branch `claude/android-3d-shooter-game-3cin11`. Read `CLAUDE.md` and `ludora-dice/HANDOFF.md` first. They hold my rules, how I like to work, and the full state of my live Google Play game **Ludo Mayhem** (formerly Ludora). Then help me with: **[write the new project or task here]**. Talk to me in plain language. If my message has a question in it, answer it first before you start any work. Show me a preview before you build anything into a game, and don't build until I say go.
@@ -152,8 +152,8 @@ Last updated: 23 November 2026 (1.11 shipped to Google Play review, PixelPicked 
 - **Background jobs:** a local test server only lives for the session. Start it again when needed.
 
 ## 9. Moonhop (second live game) and PixelPicked
-- **Moonhop** is a separate Android game: package `com.goldenmayhem.moonhop`, folder `C:\Goldenmayhem\MoonhopAndroid` on the owner's PC. It is **not in this repo**. The owner sends the project as a zip each time.
-  - Version 1.1, versionCode 3. Its game is one file, `app/src/main/assets/index.html`, about 6 MB with fonts built in.
+- **Moonhop** is a separate Android game: package `com.goldenmayhem.moonhop`, folder `C:\Goldenmayhem\MoonhopAndroid` on the owner's PC. The full project is now in this repo at `moonhop/MoonhopAndroid/` (the owner may still send newer zips from another chat; compare before overwriting).
+  - **Version 1.2, versionCode 4** (built 24 Nov 2026 from the other chat's latest zip plus my fixes; 3 may already be uploaded, so 4 is safe). Its game is one file, `app/src/main/assets/index.html`, about 6 MB with fonts built in.
   - AdMob: rewarded plus "Between Games" interstitial. The real IDs are in its `gradle.properties` (not secret), and debug builds use Google's test ads.
   - Own upload key `moonhop-upload.jks`. Never reuse the Ludo Mayhem key, and never handle the key or its password.
   - On 23 Nov 2026 it was checked (no code errors, no secrets in the zip). The "screen.portrait not required" line was added to its manifest and its README was corrected. The fixed zip is `MoonhopAndroid-v1.1-fixed.zip`, which the owner must rebuild and upload.
@@ -173,3 +173,27 @@ Last updated: 23 November 2026 (1.11 shipped to Google Play review, PixelPicked 
 - Always send the owner finished files (`SendUserFile`) instead of paths inside the container.
 - When asked to "double check" something, run it for real (syntax check plus a browser load) and report plainly what is fine and what is only a note.
 - Store forms: the owner pastes text in directly, so give each field's text in its own clean block, with character limits respected (count them).
+
+## 11. WHERE WE LEFT OFF (24 Nov 2026): continue from here
+**A. Tiltrix Mayhem 1.0 (versionCode 1), new, in `tiltrix/TiltrixAndroid/`**
+- Android wrapper built from the Moonhop template; the owner's game (`assets/index.html` + art) is inside. Package `com.goldenmayhem.tiltrix`. A release APK compiled fine.
+- Store images the owner sent are in `tiltrix/store/` (icon 512, feature graphic, 4 screenshot backgrounds). Its privacy link in the game: https://claude.ai/artifact/BtsacaNjCdAye3sSyrmK4C
+- **Still to do by the owner:** create the Tiltrix AdMob app + Rewarded + Between-Games Interstitial units and paste the 3 ids into `tiltrix/TiltrixAndroid/gradle.properties` (it holds Google TEST ids now, which earn nothing). Make a NEW upload key `tiltrix-upload.jks`, back it up, sign and upload themselves.
+- Tiltrix has no store text, content-rating answers or data-safety answers yet. Offer to write them (like `ludora-dice/android-update/store/STORE-LISTING-v1.11.txt`), and a browser-agent prompt to fill Play Console.
+
+**B. Moonhop 1.2 (versionCode 4), in `moonhop/MoonhopAndroid/`**
+- Owner must rebuild, sign and upload. Has the portrait-not-required fix. Black launch screen is deliberate (the owner's other chat did that).
+- Moonhop shows "between games" interstitials, which conflicts with the owner's rewarded-only rule. Ask the owner before changing.
+
+**C. Ludo Mayhem 1.12 (versionCode 14): PLAN, NOT APPROVED. Do not build until the owner says "go".** Bugs the owner reported:
+1. **"Rate us" does nothing.** Cause: `AppBridge.requestReview()` in `MainActivity.kt` uses Google's in-app review card, which Google silently suppresses (test tracks, recently asked, already rated). Fix plan: the Settings "Rate Ludo Mayhem" buttons, the home "Rate us" button and the card's green button open the Play Store listing page (`market://details?id=com.goldenmayhem.ludoradice`, falling back to the https link). Only the automatic ask after a game keeps Google's card. Settings currently shows TWO "Rate Ludo Mayhem" buttons (a grid button and a gold bar): remove one. The 1.11 layer is `tools/upgrade/v16.js`; add the changes in a new `v17.js`/`v17.css`.
+2. **Google Play save sign-in toast is wrong.** `tools/upgrade/v15.js` shows "Couldn't sign in... Make sure Google Play Games is installed" for ANY failed sign-in. Plan: truthful text, a Try again button, and pass the real error code/status from `CloudSave.kt` (`check(true)` listener) to the game so it can be shown. The likely real causes are in Play Console (Play Games Services setup not published, owner's account not a listed tester, app signing SHA-1 not added to the OAuth client), not in the code. Only the owner/browser agent can change those. Ask the owner for the exact error after the fix.
+3. Optional checks the skills suggest (report first, change only with approval): 16 KB alignment, R8/shrinking in release, resizable windows/tablets, edge-to-edge.
+- I cannot test Google sign-in or the review card here (no phone or Google account); the owner must test on a phone.
+
+**D. Skills installed** in `.claude/skills/`: `android-120fps-engine` and `android-platform-standards`. They are for NEW fully native Kotlin games only. Our games are WebView or Godot, so don't apply them to those. They claim things I could not verify (April 2027 rules, Game Finder, Level Up fees): don't plan around those without checking Google's own pages. The pack's `UNIVERSAL_MASTER_PROMPT.md` was deliberately NOT installed (auto-downloads tools and repos).
+
+**E. Desktop session notes**
+- On the owner's desktop you can read their real files (e.g. `C:\Goldenmayhem\...`). Ask before changing anything outside this repo, never open or copy any `.jks` key, and never read passwords.
+- Building here (Linux) works: Android SDK at `/opt/android/sdk` (needs setup again in a new cloud session), `gradle :app:assembleRelease`. On the desktop the owner's own Android Studio build is the real one.
+- Test the games by loading `index.html` in Playwright and checking for page errors.

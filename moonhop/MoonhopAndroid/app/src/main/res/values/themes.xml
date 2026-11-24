@@ -1,0 +1,17 @@
+<resources>
+    <color name="bg">#0B0A2A</color>
+
+    <!-- Launch screen: a plain black screen (no icon) so the in-game studio card is the first thing seen (Android's splash screen) -->
+    <style name="Theme.Game.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#000000</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenIconBackgroundColor">#000000</item>
+        <item name="postSplashScreenTheme">@style/Theme.Game</item>
+    </style>
+
+    <style name="Theme.Game" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:navigationBarColor">@color/bg</item>
+    </style>
+</resources>

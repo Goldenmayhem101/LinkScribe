@@ -36,3 +36,4 @@ Cutting tools: `ludora-dice/tools/ui-art/` (`cutgrid.py` even grids, `holes.py` 
 - Ludo Mayhem (formerly Ludora), live on Google Play: `ludora-dice/HANDOFF.md`
 - Gloamwood (Godot platformer): `gloamwood/HANDOFF.md`
 - Monkey Mayhem (Godot 4.4+ landscape zoo-chaos game; next: Gorilla Mayhem reuses it): `monkey-mayhem/HANDOFF.md`
+- Moonhop (`moonhop/`) and Tiltrix Mayhem (`tiltrix/`): Android projects, current status in `ludora-dice/HANDOFF.md` section 11
