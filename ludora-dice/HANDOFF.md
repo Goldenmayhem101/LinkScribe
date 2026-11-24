@@ -174,6 +174,8 @@ Last updated: 24 November 2026 (1.11 in Google Play review; Moonhop 1.2 and Tilt
 - When asked to "double check" something, run it for real (syntax check plus a browser load) and report plainly what is fine and what is only a note.
 - Store forms: the owner pastes text in directly, so give each field's text in its own clean block, with character limits respected (count them).
 
+Also read: `ludora-dice/CONVERSATION-LOG.md` (the story so far) and `ludora-dice/ANDROID-BUILD-SETUP.md` (how to compile projects).
+
 ## 11. WHERE WE LEFT OFF (24 Nov 2026): continue from here
 **A. Tiltrix Mayhem 1.0 (versionCode 1), new, in `tiltrix/TiltrixAndroid/`**
 - Android wrapper built from the Moonhop template; the owner's game (`assets/index.html` + art) is inside. Package `com.goldenmayhem.tiltrix`. A release APK compiled fine.
