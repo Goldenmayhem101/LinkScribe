@@ -1,0 +1,6 @@
+# Private files: keep on the owner's desktop only. Never upload.
+*.jks
+*.keystore
+local.properties
+moonhop/MoonhopAndroid/gradle.properties
+tiltrix/TiltrixAndroid/gradle.properties
