@@ -37,3 +37,9 @@ Cutting tools: `ludora-dice/tools/ui-art/` (`cutgrid.py` even grids, `holes.py` 
 - Gloamwood (Godot platformer): `gloamwood/HANDOFF.md`
 - Monkey Mayhem (Godot 4.4+ landscape zoo-chaos game; next: Gorilla Mayhem reuses it): `monkey-mayhem/HANDOFF.md`
 - Moonhop (`moonhop/`) and Tiltrix Mayhem (`tiltrix/`): Android projects, current status in `ludora-dice/HANDOFF.md` section 11
+
+## Private files: never upload to GitHub (this repo is public)
+Keys (`.jks`, `.keystore`), passwords, tokens, `local.properties` and the Moonhop and Tiltrix `gradle.properties`
+files stay on the owner's desktop only. Never add them in a commit or a web upload, even though handoffs mention them.
+Before building a fresh copy of Moonhop or Tiltrix, the owner copies in that game's desktop `gradle.properties`;
+without it a release build falls back to Google's TEST ads, which earn nothing.
